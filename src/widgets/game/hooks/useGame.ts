@@ -1,109 +1,146 @@
-import { useEffect, useState } from 'react'
-import { BoardModel, TBoardParams } from '@/features/board'
-import { TPosition } from '@/features/board'
+import { useState } from 'react'
+import { FieldModel, FieldParams, Position } from '@/modules/game-field'
 
-export const useGame = (
-	boardParams: TBoardParams,
-	onWin: () => void,
-	onLose: () => void
-) => {
-	const [gameStatus, setGameStatus] = useState<'lose' | 'win' | 'play'>()
-	const [boardModel, setBoardModel] = useState(new BoardModel(boardParams))
+export type GameStatus = 'lose' | 'win' | 'play' | 'idle'
+
+export type UseGameProps = {
+	config: FieldParams
+	onPlay?: () => void
+	onWin?: () => void
+	onLose?: () => void
+	onReset?: () => void
+}
+
+export const useGame = ({
+	config,
+	onLose = () => {},
+	onPlay = () => {},
+	onWin = () => {},
+	onReset = () => {},
+}: UseGameProps) => {
+	const [gameStatus, setGameStatus] = useState<GameStatus>('idle')
+	const [fieldModel, setFieldModel] = useState(() => new FieldModel(config))
 	const [flagsCount, setFlagsCount] = useState(0)
 	const [cellsOpened, setCellsOpened] = useState(0)
 
 	const isGameOver = gameStatus === 'win' || gameStatus === 'lose'
 
-	const updateBoardState = () => {
-		const newBoardModel = Object.create(
-			BoardModel.prototype,
-			Object.getOwnPropertyDescriptors(boardModel)
-		)
-		setBoardModel(newBoardModel)
-	}
-
-	const openCell = (pos: TPosition) => {
-		const cell = boardModel.getCell(pos)
-		if (cell.isRevealed) return
-		cell.isRevealed = true
-		setCellsOpened(count => count + 1)
-	}
-
-	const placeFlag = (pos: TPosition, draw?: boolean) => {
-		const cell = boardModel.getCell(pos)
-		cell.isFlagged = draw === undefined ? !cell.isFlagged : draw
-		setFlagsCount(count => (cell.isFlagged ? count + 1 : count - 1))
-	}
-
-	const searchAndOpen = (pos: TPosition) => {
-		const cells = boardModel.getAreaToReveal(pos)
-		cells.forEach(cell => {
-			if (cell.isFlagged) placeFlag(cell.position, false)
-			openCell(cell.position)
-		})
+	const callGameLifeCycle = (status: GameStatus) => {
+		setGameStatus(status)
+		if (status === 'lose') onLose()
+		if (status === 'win') onWin()
+		if (status === 'play') onPlay()
+		if (status === 'idle') onReset()
 	}
 
 	const resetGame = () => {
-		setGameStatus(undefined)
-		setBoardModel(new BoardModel(boardParams))
+		setFieldModel(new FieldModel(config))
 		setFlagsCount(0)
 		setCellsOpened(0)
+		callGameLifeCycle('idle')
 	}
 
-	const openCellHandler = (pos: TPosition) => {
-		const targetCell = boardModel.getCell(pos)
+	/**
+	 *    ----------- Обработчик открытия клетки -----------
+	 * 1. Если клетка заминирована, открывает ее и вызывает onLose
+	 * 2. Если клетка не пустая, открывает ее
+	 * 3. Если клетка пустая, открывает ее и все пустые соседние клетки через BFS (getAreaToReveal)
+	 * 4. Если клетка открыта, проверяет наличие флажков вокруг и открывает соседние клетки
+	 * 5. Увеличивает счетчик открытых клеток
+	 * 6. Если клетка найдена через BFS и она отмечена флажком, снимает флажок
+	 * 7. Если все клетки открыты, вызывает onWin
+	 * 8. При первом клике устанавливает мины и вызывает onPlay
+	 * @param pos
+	 * @returns
+	 */
+	const openCellHandler = (pos: Position) => {
+		if (isGameOver || fieldModel.getCell(pos).isFlagged) return
 
-		if (isGameOver || targetCell.isFlagged) return
+		let status: GameStatus = gameStatus
+		let actual: FieldModel = fieldModel
+		let opened: number = cellsOpened
+		let flagged: number = flagsCount
 
-		// Ставим мины при первом клике, первый клик всегда по не заминированной клетке
-		if (!boardModel.isMinesPlaced) boardModel.placeMines(pos)
+		const searchAndOpen = (pos: Position) => {
+			const area = actual.getAreaToReveal(pos)
+			area.forEach(areaPos => {
+				if (actual.getCell(areaPos).isFlagged) {
+					actual = actual.markCellImmutable(areaPos, false)
+					flagged -= 1
+				}
+				if (actual.getCell(areaPos).isRevealed) return
+				actual = actual.openCellImmutable(areaPos)
+				opened += 1
+			})
+		}
+
+		if (!fieldModel.isMinesPlaced || status === 'idle') {
+			status = 'play'
+			actual = fieldModel.placeMines(pos)
+		}
+
+		const targetCell = actual.getCell(pos)
 
 		if (targetCell.isMined) {
-			targetCell.isRevealed = true
-			setGameStatus('lose')
-			onLose()
+			status = 'lose'
+			actual = actual.openCellImmutable(pos)
 		} else if (targetCell.isRevealed) {
-			const siblings = boardModel.getSiblingCells(targetCell.position)
-			const flagsArountCount = siblings.reduce((sum, { isFlagged }) => {
-				return sum + Number(isFlagged)
+			const siblings = fieldModel.getSiblings(pos)
+			const flagsArountCount = siblings.reduce((sum, pos) => {
+				return sum + Number(actual.getCell(pos).isFlagged)
 			}, 0)
-
 			if (flagsArountCount === targetCell.minesAround) {
-				siblings.forEach(cell => {
+				siblings.forEach(sibPos => {
+					const cell = actual.getCell(sibPos)
 					if (cell.isFlagged || cell.isRevealed) return
-					if (cell.isMined && !cell.isFlagged) setGameStatus('lose')
-					if (cell.isEmpty) searchAndOpen(cell.position)
-					else openCell(cell.position)
+					if (cell.isMined && !cell.isFlagged) {
+						status = 'lose'
+						actual = actual.openCellImmutable(sibPos)
+					} else if (cell.isEmpty) {
+						searchAndOpen(sibPos)
+					} else {
+						actual = actual.openCellImmutable(sibPos)
+						opened += 1
+					}
 				})
 			}
 		} else {
 			searchAndOpen(pos)
 		}
 
-		updateBoardState()
-	}
+		status = opened === fieldModel.needToOpen ? 'win' : status
 
-	const markCellHandler = (pos: TPosition) => {
-		if (isGameOver) return
-		if (flagsCount === boardModel.params.mines) return
-		if (boardModel.getCell(pos).isRevealed) return
-		placeFlag(pos)
-		updateBoardState()
-	}
-
-	useEffect(() => {
-		if (cellsOpened === boardModel.needToOpen) {
-			setGameStatus('win')
-			onWin()
+		if (status !== gameStatus) {
+			callGameLifeCycle(status)
 		}
-	}, [cellsOpened, boardModel.needToOpen])
+
+		setFlagsCount(flagged)
+		setCellsOpened(opened)
+		setFieldModel(actual)
+	}
+
+	/**
+	 * 1. Если клетка не открыта, отмечает ее или снимает флажок
+	 * 2. Нельзя установить больше флажков, чем количество мин на поле
+	 * @param pos
+	 * @returns
+	 */
+	const markCellHandler = (pos: Position) => {
+		const cell = fieldModel.getCell(pos)
+		if (gameStatus !== 'play' || cell.isRevealed) return
+
+		const willBeFlagged = !cell.isFlagged
+		if (flagsCount === fieldModel.params.mines && willBeFlagged) return
+
+		setFlagsCount(count => (willBeFlagged ? count + 1 : count - 1))
+		setFieldModel(fieldModel.markCellImmutable(pos, willBeFlagged))
+	}
 
 	return {
-		board: boardModel.board,
+		field: fieldModel.field,
 		flagsCount,
 		cellsOpened,
 		gameStatus,
-		isGameOver,
 		openCellHandler,
 		markCellHandler,
 		resetGame,

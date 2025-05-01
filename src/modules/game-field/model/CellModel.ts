@@ -1,14 +1,14 @@
-import { TPosition } from './types'
+import { Position } from './types'
 
 export class CellModel {
 	public readonly key: string
-	public readonly position: TPosition
+	public readonly position: Position
 	public isMined: boolean
 	public isRevealed: boolean
 	public minesAround: number
 	public isFlagged: boolean
 
-	constructor(position: TPosition) {
+	constructor(position: Position) {
 		this.position = position
 		this.isMined = false
 		this.isRevealed = false
@@ -20,5 +20,17 @@ export class CellModel {
 	/* Вокруг клетки отсутствуют мины */
 	get isEmpty() {
 		return this.minesAround === 0 && !this.isMined
+	}
+
+	public openImmutable() {
+		const newCell = Object.assign(new CellModel(this.position), this)
+		newCell.isRevealed = true
+		return newCell
+	}
+
+	public markImmutable(draw: boolean) {
+		const newCell = Object.assign(new CellModel(this.position), this)
+		newCell.isFlagged = draw
+		return newCell
 	}
 }

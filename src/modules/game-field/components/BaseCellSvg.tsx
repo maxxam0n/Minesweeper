@@ -1,46 +1,29 @@
 import React from 'react'
+import { useFieldColors } from '../hooks/useFieldColors'
 
 export interface IBaseCellSvgProps {
 	size: number
 	variant: 'closed' | 'open' | 'exploded' | 'missed'
 	children?: React.ReactNode
+	bevelWidth?: number
 	[key: string]: any
 }
 
-// Цвета для стилей
-const colors = {
-	closed: {
-		bg: '#c1c1c1', // Основной цвет фона закрытой
-		lightBevel: '#ffffff',
-		darkBevel1: '#757575',
-		darkBevel2: '#5e5e5e',
-	},
-	open: {
-		bg: '#ffffff', // Фон открытой
-		border: '#afafaf', // Тонкая граница для эффекта утопленности
-	},
-	exploded: {
-		bg: '#ff6347', // Красный фон для взорванной мины
-		border: '#ff6347',
-	},
-	missed: {
-		bg: '#ffcccc',
-	},
-}
-
-export const BaseCellSvg: React.FC<IBaseCellSvgProps> = ({
+export const BaseCellSvg = ({
 	size,
 	variant,
 	children,
+	bevelWidth = 4,
 	...props
-}) => {
+}: IBaseCellSvgProps) => {
+	const colors = useFieldColors()
+
 	const renderBackground = () => {
-		const bevelWidth = 4 // Ширина фаски (было неявно около 2)
 		const innerDim = 30 - bevelWidth
 		switch (variant) {
 			case 'closed':
 			case 'missed':
-				const bg = variant == 'closed' ? colors.closed.bg : colors.missed.bg
+				const bg = variant == 'closed' ? colors.CLOSED : colors.MISSED
 				return (
 					<>
 						{/* Основной фон */}
@@ -48,13 +31,13 @@ export const BaseCellSvg: React.FC<IBaseCellSvgProps> = ({
 						{/* Светлая фаска (сверху и слева) */}
 						<polygon
 							points={`0,0 30,0 ${innerDim},${bevelWidth} ${bevelWidth},${bevelWidth} ${bevelWidth},${innerDim} 0,30`}
-							fill={colors.closed.lightBevel}
+							fill={colors.LIGHT_BEVEL}
 							fillOpacity="0.8"
 						/>
 						{/* Темная фаска (снизу и справа) */}
 						<polygon
 							points={`30,0 30,30 0,30 ${bevelWidth},${innerDim} ${innerDim},${innerDim} ${innerDim},${bevelWidth}`}
-							fill={colors.closed.darkBevel1}
+							fill={colors.DARK_BEVEL}
 							fillOpacity="0.6"
 						/>
 					</>
@@ -62,14 +45,14 @@ export const BaseCellSvg: React.FC<IBaseCellSvgProps> = ({
 			case 'exploded':
 				return (
 					<>
-						<rect width="30" height="30" fill={colors.exploded.bg} />
+						<rect width="30" height="30" fill={colors.EXPLODED} />
 						<rect
 							x="1"
 							y="1"
 							width="28"
 							height="28"
 							fill="none"
-							stroke={colors.exploded.border}
+							stroke={colors.EXPLODED_BORDER}
 							strokeWidth="2"
 						/>
 					</>
@@ -78,14 +61,14 @@ export const BaseCellSvg: React.FC<IBaseCellSvgProps> = ({
 			default:
 				return (
 					<>
-						<rect width="30" height="30" fill={colors.open.bg} />
+						<rect width="30" height="30" fill={colors.REVEALED} />
 						<rect
 							x="0"
 							y="0"
 							width="30"
 							height="30"
 							fill="none"
-							stroke={colors.open.border}
+							stroke={colors.BORDER}
 							strokeWidth="1"
 						/>
 					</>

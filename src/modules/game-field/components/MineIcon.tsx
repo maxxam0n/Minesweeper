@@ -1,11 +1,9 @@
-import React from 'react'
+import { useFieldColors } from '../hooks/useFieldColors'
 
-interface IMineIconProps {
-	isExploded?: boolean
-}
+export const MineIcon = () => {
+	const colors = useFieldColors()
 
-export const MineIcon: React.FC<IMineIconProps> = ({ isExploded = false }) => {
-	const mineColor = isExploded ? '#f0000f' : '#000000'
+	const mineColor = colors.MINE
 	const strokeWidthBase = 3
 	const strokeWidthThin = 2
 

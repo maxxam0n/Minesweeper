@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+@import './themes';
+
+@font-face {
+	font-family: 'Digital';
+	src: url('/Digital.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Tektur';
+	src: url('/Tektur.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+	/* fonts */
+	--font-digital: Digital, monospase;
+	--font-tektur: Tektur, monospase;
+}
+
+@theme inline {
+	/* app colors */
+	--color-primary: var(--primary);
+	--color-secondary: var(--secondary);
+	--color-light: var(--light);
+	--color-light-light: var(--light-light);
+	--color-dark: var(--dark);
+	--color-dark-dark: var(--dark-dark);
+	--color-grey-main: var(--grey-main);
+	--color-grey-light: var(--grey-light);
+	--color-grey-middle: var(--grey-middle);
+	--color-grey-dark: var(--grey-dark);
+
+	/* layout colors */
+	--color-layout-1: var(--layout-1);
+	--color-layout-2: var(--layout-2);
+}

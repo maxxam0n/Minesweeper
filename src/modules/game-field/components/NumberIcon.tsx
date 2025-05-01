@@ -1,22 +1,14 @@
-import React from 'react'
+import { useFieldColors } from '../hooks/useFieldColors'
+import { FieldColorsEnum } from '../model/types'
 
 interface INumberIconProps {
 	value: number // Ожидаем число от 1 до 8
 }
 
-const numberColors: { [key: number]: string } = {
-	1: '#0000FF',
-	2: '#008000',
-	3: '#FF0000',
-	4: '#000080',
-	5: '#800000',
-	6: '#008080',
-	7: '#000000',
-	8: '#808080',
-}
+export const NumberIcon = ({ value }: INumberIconProps) => {
+	const colors = useFieldColors()
 
-export const NumberIcon: React.FC<INumberIconProps> = ({ value }) => {
-	const color = numberColors[value] || '#000000'
+	const color = colors[value as unknown as FieldColorsEnum] || '#000000'
 	const fontSize = 20 // Размер шрифта, подбирается под viewBox
 	const yOffset = 17 // Смещение по Y для вертикального центрирования (может требовать подстройки)
 
@@ -26,15 +18,15 @@ export const NumberIcon: React.FC<INumberIconProps> = ({ value }) => {
 
 	return (
 		<text
+			className="select-none"
+			fill={color}
+			fontSize={fontSize}
+			fontFamily="Digital, monospace"
+			fontWeight="normal"
 			x="50%"
+			textAnchor="middle" // Важно для горизонтального центрирования
 			y={yOffset}
 			dominantBaseline="middle" // Важно для вертикального центрирования
-			textAnchor="middle" // Важно для горизонтального центрирования
-			fontFamily="Digital, monospace"
-			fontSize={fontSize}
-			fontWeight="normal"
-			fill={color}
-			style={{ userSelect: 'none' }}
 		>
 			{value}
 		</text>

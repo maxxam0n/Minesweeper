@@ -1,0 +1,23 @@
+:root {
+	/* app colors */
+	--primary: #1e88e5;
+	--secondary: #7598b6;
+	--light: #eaebee;
+	--light-light: #ffffff;
+	--dark: #1f2e3c;
+	--dark-dark: #0f1b24;
+	--grey-main: #d8e5f0;
+	--grey-light: #ebf4fc;
+	--grey-middle: #c1c1c1;
+	--grey-dark: #808080;
+}
+
+:root[data-theme='light'] {
+	--layout-1: var(--light-light);
+	--layout-2: var(--light);
+}
+
+:root[data-theme='dark'] {
+	--layout-1: var(--dark);
+	--layout-2: var(--dark-dark);
+}
