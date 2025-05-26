@@ -1,11 +1,9 @@
-import { Position } from '../../modules/game-field/model/types'
-
 export const createGrid = <T>(
 	rows: number,
 	cols: number,
-	cb: (pos: Position) => T
+	cb: (y: number, x: number) => T
 ) => {
 	return Array.from({ length: rows }, (_, y) =>
-		Array.from({ length: cols }, (_, x) => cb({ y, x }))
+		Array.from({ length: cols }, (_, x) => cb(y, x))
 	)
 }

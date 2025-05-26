@@ -1,12 +1,15 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { ThemeProvider } from './providers/ThemeProvider.tsx'
-import { App } from './app/App.tsx'
+import { RouterProvider } from 'react-router-dom'
+import { router } from './app/router'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const domRoot = document.getElementById('root')
+if (!domRoot) {
+	throw new Error('Root element not found')
+}
+
+ReactDOM.createRoot(domRoot).render(
 	<React.StrictMode>
-		<ThemeProvider>
-			<App />
-		</ThemeProvider>
+		<RouterProvider router={router} />
 	</React.StrictMode>
 )

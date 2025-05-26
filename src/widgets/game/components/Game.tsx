@@ -11,7 +11,7 @@ interface IGameProps {
 }
 
 export const Game = ({
-	config = { cols: 50, rows: 30, mines: 200 },
+	config = { cols: 10, rows: 10, mines: 10, type: 'classic' },
 }: IGameProps) => {
 	const { time, resetTimer, startTimer, stopTimer } = useTimer()
 	const { score, formattedEfficiency, updateStatistic } = useStatistic()
@@ -33,7 +33,7 @@ export const Game = ({
 
 	useEffect(() => {
 		updateStatistic({ cellsOpened, time, config })
-	}, [cellsOpened, time, config])
+	}, [cellsOpened, time, config, updateStatistic])
 
 	const gameColors = useGameColors()
 

@@ -42,7 +42,7 @@ export function SVGField({
 				<Cell key={key} size={cellSize} isGameOver={isGameOver} {...cell} />
 			))
 		)
-	}, [field])
+	}, [field, cellSize, isGameOver])
 
 	const fieldStyle = {
 		gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,

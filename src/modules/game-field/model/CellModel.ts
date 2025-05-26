@@ -1,6 +1,6 @@
-import { Position } from './types'
+import { Cell, Position } from './types'
 
-export class CellModel {
+export class CellModel implements Cell {
 	public readonly key: string
 	public readonly position: Position
 	public isMined: boolean
@@ -22,13 +22,13 @@ export class CellModel {
 		return this.minesAround === 0 && !this.isMined
 	}
 
-	public openImmutable() {
+	public openImmutable(): CellModel {
 		const newCell = Object.assign(new CellModel(this.position), this)
 		newCell.isRevealed = true
 		return newCell
 	}
 
-	public markImmutable(draw: boolean) {
+	public markImmutable(draw: boolean): CellModel {
 		const newCell = Object.assign(new CellModel(this.position), this)
 		newCell.isFlagged = draw
 		return newCell

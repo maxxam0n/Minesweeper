@@ -1,27 +1,13 @@
-import {
-	createContext,
-	PropsWithChildren,
-	useContext,
-	useEffect,
-	useState,
-} from 'react'
-
-type Theme = 'light' | 'dark'
-
-export type ThemeContextType = {
-	theme: Theme
-	setTheme: (theme: Theme) => void
-}
-
-const ThemeContext = createContext<ThemeContextType | null>(null)
+import { PropsWithChildren, useEffect, useState } from 'react'
+import { Theme, ThemeContext } from './ThemeContext'
 
 const storageKey = 'theme'
 
 const getInitialTheme = (): Theme => {
 	const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-	let theme: Theme =
+	return (
 		(localStorage.getItem(storageKey) as Theme) ?? (isDark ? 'dark' : 'light')
-	return theme
+	)
 }
 
 export const ThemeProvider = ({ children }: PropsWithChildren) => {
@@ -37,17 +23,4 @@ export const ThemeProvider = ({ children }: PropsWithChildren) => {
 			{children}
 		</ThemeContext.Provider>
 	)
-}
-
-export const useTheme = () => {
-	const context = useContext(ThemeContext)
-	if (!context) {
-		throw new Error('useTheme must be used within a ThemeProvider')
-	}
-	return context
-}
-
-export const useThemeValue = () => {
-	const { theme } = useTheme()
-	return theme
 }

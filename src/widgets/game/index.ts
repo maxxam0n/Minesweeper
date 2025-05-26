@@ -1,2 +1,2 @@
-import { Game } from './ui/Game'
+import { Game } from './components/Game'
 export { Game }

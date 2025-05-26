@@ -1,41 +1,11 @@
-import { createContext, PropsWithChildren, useContext } from 'react'
+import { PropsWithChildren } from 'react'
 import { FieldColorsEnum } from '@/modules/game-field'
+import { useThemeValue } from '../ThemeProvider'
+import { AppColorsEnum, ColorsContext } from './ColorsContext'
 
-type Theme = 'light' | 'dark'
-
-export enum AppColorsEnum {
-	PRIMARY = 'PRIMARY',
-	SECONDARY = 'SECONDARY',
-	LIGHT = 'LIGHT',
-	LIGHT_LIGHT = 'LIGHT_LIGHT',
-	DARK = 'DARK',
-	DARK_DARK = 'DARK_DARK',
-	GREY_MAIN = 'GREY_MAIN',
-	GREY_LIGHT = 'GREY_LIGHT',
-	GREY_MIDDLE = 'GREY_MIDDLE',
-	GREY_DARK = 'GREY_DARK',
-}
-
-const ColorsContext = createContext<Record<
-	AppColorsEnum | FieldColorsEnum,
-	string
-> | null>(null)
-
-export const useAppColors = () => {
-	const colors = useContext(ColorsContext)
-	if (!colors) {
-		throw new Error('Ошибка получения цветовой палитры приложения')
-	}
-
-	return colors
-}
-
-export const AppColorsProvider = ({
-	children,
-	theme,
-}: PropsWithChildren & { theme: Theme }) => {
-	let styles = getComputedStyle(document.documentElement)
-	const isDark = theme === 'dark'
+export const AppColorsProvider = ({ children }: PropsWithChildren) => {
+	const { isDark } = useThemeValue()
+	const styles = getComputedStyle(document.documentElement)
 
 	const colors: Record<AppColorsEnum | FieldColorsEnum, string> = {
 		PRIMARY: styles.getPropertyValue('--color-primary'),

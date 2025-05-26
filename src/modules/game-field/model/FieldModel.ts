@@ -1,9 +1,9 @@
 import { createGrid } from '@/shared/utils/createGrid'
 import { getRandomNumber } from '@/shared/utils/getRundomNumber'
 import { CellModel } from './CellModel'
-import { FieldParams, Position } from './types'
+import { Field, FieldParams, Position } from './types'
 
-export class FieldModel {
+export class FieldModel implements Field {
 	public field: CellModel[][]
 	public isMinesPlaced: boolean
 	public needToOpen: number
@@ -47,7 +47,7 @@ export class FieldModel {
 	}
 
 	private createEmptyField({ cols, rows }: FieldParams) {
-		return createGrid(rows, cols, ({ x, y }) => new CellModel({ x, y }))
+		return createGrid(rows, cols, (y, x) => new CellModel({ x, y }))
 	}
 
 	public getAreaToReveal(target: Position): Position[] {

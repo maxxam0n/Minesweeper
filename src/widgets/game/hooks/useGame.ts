@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { FieldModel, FieldParams, Position } from '@/modules/game-field'
+import {
+	Field,
+	FieldFactory,
+	FieldParams,
+	Position,
+} from '@/modules/game-field'
 
 export type GameStatus = 'lose' | 'win' | 'play' | 'idle'
 
@@ -11,6 +16,8 @@ export type UseGameProps = {
 	onReset?: () => void
 }
 
+const createField = (config: FieldParams) => FieldFactory.create(config)
+
 export const useGame = ({
 	config,
 	onLose = () => {},
@@ -19,7 +26,7 @@ export const useGame = ({
 	onReset = () => {},
 }: UseGameProps) => {
 	const [gameStatus, setGameStatus] = useState<GameStatus>('idle')
-	const [fieldModel, setFieldModel] = useState(() => new FieldModel(config))
+	const [fieldModel, setFieldModel] = useState(() => createField(config))
 	const [flagsCount, setFlagsCount] = useState(0)
 	const [cellsOpened, setCellsOpened] = useState(0)
 
@@ -34,7 +41,7 @@ export const useGame = ({
 	}
 
 	const resetGame = () => {
-		setFieldModel(new FieldModel(config))
+		setFieldModel(createField(config))
 		setFlagsCount(0)
 		setCellsOpened(0)
 		callGameLifeCycle('idle')
@@ -57,7 +64,7 @@ export const useGame = ({
 		if (isGameOver || fieldModel.getCell(pos).isFlagged) return
 
 		let status: GameStatus = gameStatus
-		let actual: FieldModel = fieldModel
+		let actual: Field = fieldModel
 		let opened: number = cellsOpened
 		let flagged: number = flagsCount
 
@@ -86,10 +93,10 @@ export const useGame = ({
 			actual = actual.openCellImmutable(pos)
 		} else if (targetCell.isRevealed) {
 			const siblings = fieldModel.getSiblings(pos)
-			const flagsArountCount = siblings.reduce((sum, pos) => {
+			const flagsAroundCount = siblings.reduce((sum, pos) => {
 				return sum + Number(actual.getCell(pos).isFlagged)
 			}, 0)
-			if (flagsArountCount === targetCell.minesAround) {
+			if (flagsAroundCount === targetCell.minesAround) {
 				siblings.forEach(sibPos => {
 					const cell = actual.getCell(sibPos)
 					if (cell.isFlagged || cell.isRevealed) return

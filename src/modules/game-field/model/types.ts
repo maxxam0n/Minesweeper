@@ -3,10 +3,13 @@ export type Position = {
 	y: number
 }
 
+export type FieldType = 'classic' | 'honeycomb'
+
 export type FieldParams = {
 	cols: number
 	rows: number
 	mines: number
+	type: FieldType
 }
 
 export enum FieldColorsEnum {
@@ -32,3 +35,28 @@ export enum FieldColorsEnum {
 }
 
 export type FieldColors = Record<FieldColorsEnum, string>
+
+export interface Cell {
+	readonly key: string
+	readonly position: Position
+	isMined: boolean
+	isRevealed: boolean
+	minesAround: number
+	isFlagged: boolean
+	readonly isEmpty: boolean
+	openImmutable: () => Cell
+	markImmutable: (draw: boolean) => Cell
+}
+
+export interface Field {
+	field: Cell[][]
+	isMinesPlaced: boolean
+	needToOpen: number
+	readonly params: FieldParams
+	placeMines(safeCell: Position): Field
+	getAreaToReveal(target: Position): Position[]
+	openCellImmutable(pos: Position): Field
+	markCellImmutable(pos: Position, draw: boolean): Field
+	getCell(position: Position): Cell
+	getSiblings(position: Position): Position[]
+}

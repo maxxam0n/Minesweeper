@@ -24,15 +24,15 @@ export const GameField = ({
 	openCell,
 	markCell,
 }: IFieldProps) => {
-	if (field.length === 0) return null
-
-	const Field = useMemo(() => {
+	const FieldComponent = useMemo(() => {
 		return [CanvasField, SVGField][Number(type === 'svg')]
 	}, [type])
 
+	if (field.length === 0) return null
+
 	return (
 		<ColorsContext.Provider value={colors}>
-			<Field
+			<FieldComponent
 				field={field}
 				cellSize={cellSize}
 				isGameOver={isGameOver}
