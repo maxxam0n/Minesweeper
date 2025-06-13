@@ -18,25 +18,27 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
-	/* fonts */
 	--font-digital: Digital, monospase;
 	--font-tektur: Tektur, monospase;
 }
 
 @theme inline {
-	/* app colors */
-	--color-primary: var(--primary);
-	--color-secondary: var(--secondary);
-	--color-light: var(--light);
-	--color-light-light: var(--light-light);
-	--color-dark: var(--dark);
-	--color-dark-dark: var(--dark-dark);
-	--color-grey-main: var(--grey-main);
-	--color-grey-light: var(--grey-light);
-	--color-grey-middle: var(--grey-middle);
-	--color-grey-dark: var(--grey-dark);
+	/* Main colors */
+	--color-blue: var(--blue);
+	--color-steel-blue: var(--steel-blue);
+	--color-light-blue: var(--light-blue);
+	--color-white: var(--white);
+	--color-charcoal-blue: var(--charcoal-blue);
+	--color-cosmic-black: var(--cosmic-black);
+	--color-powder-blue: var(--powder-blue);
+	--color-gray: var(--gray);
+	--color-yellow: var(--yellow);
+	--color-red: var(--red);
+	--color-teal: var(--teal);
+	--color-purple: var(--purple);
+	--color-green: var(--green);
 
-	/* layout colors */
-	--color-layout-1: var(--layout-1);
-	--color-layout-2: var(--layout-2);
+	/* Themes */
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
 }

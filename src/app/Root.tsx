@@ -1,15 +1,15 @@
 import { Outlet } from 'react-router-dom'
-import { AppColorsProvider } from '@/providers/ColorsProvider'
-import { ThemeProvider } from '@/providers/ThemeProvider'
+import { GameColorsProvider } from '@/providers/game-colors-provider'
+import { ThemeProvider } from '@/providers/theme-provider'
 
 import './styles/index.css'
 
 export const Root = () => {
 	return (
 		<ThemeProvider>
-			<AppColorsProvider>
+			<GameColorsProvider>
 				<Outlet />
-			</AppColorsProvider>
+			</GameColorsProvider>
 		</ThemeProvider>
 	)
 }

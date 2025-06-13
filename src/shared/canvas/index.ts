@@ -1,0 +1,8 @@
+export { Canvas } from './canvas'
+export { CircleShape } from './components/circle-shape'
+export { EllipseShape } from './components/ellipse-shape'
+export { ImageShape } from './components/image-shape'
+export { LineShape } from './components/line-shape'
+export { PolygonShape } from './components/polygon-shape'
+export { RectShape } from './components/rect-shape'
+export { TextShape } from './components/text-shape'

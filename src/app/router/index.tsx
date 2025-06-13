@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { HomePage } from '@/pages/HomePage'
-import { GamePage } from '@/pages/GamePage/GamePage'
+import { HomePage } from '@/views/home-view'
+import { GameView } from '@/views/game-view'
 import { Root } from '../Root'
 
 export const router = createBrowserRouter([
@@ -15,7 +15,7 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: '/game',
-				Component: GamePage,
+				Component: GameView,
 			},
 		],
 	},
