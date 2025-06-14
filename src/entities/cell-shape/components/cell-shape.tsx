@@ -101,6 +101,7 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 					y={y}
 					size={cellSize}
 					borderWidth={borderWidth}
+					open={true}
 				>
 					<MineShape x={x} y={y} size={cellSize} />
 				</BaseCellShape>

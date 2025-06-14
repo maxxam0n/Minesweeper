@@ -89,7 +89,7 @@ export class CellModel implements Cell {
 				return CellDrawingView.Exploded
 			case this.isEmpty && this.isRevealed:
 				return CellDrawingView.Empty
-			case this.isMine && status === GameStatus.Lost:
+			case this.isMine && !this.isFlagged && status === GameStatus.Lost:
 				return CellDrawingView.Mine
 			case this.isFlagged && !this.isMine && status === GameStatus.Lost:
 				return CellDrawingView.Missed

@@ -13,21 +13,21 @@ export const MissedShape = ({
 		<>
 			{/* Красный крестик */}
 			<LineShape
-				x1={x + size * 0.2}
-				y1={y + size * 0.2}
-				x2={x + size * 0.8}
-				y2={y + size * 0.8}
+				x1={x + size * 0.25}
+				y1={y + size * 0.25}
+				x2={x + size * 0.75}
+				y2={y + size * 0.75}
 				strokeColor="red"
-				lineWidth={3}
+				lineWidth={2}
 				zIndex={2}
 			/>
 			<LineShape
-				x1={x + size * 0.8}
-				y1={y + size * 0.2}
-				x2={x + size * 0.2}
-				y2={y + size * 0.8}
+				x1={x + size * 0.75}
+				y1={y + size * 0.25}
+				x2={x + size * 0.25}
+				y2={y + size * 0.75}
 				strokeColor="red"
-				lineWidth={3}
+				lineWidth={2}
 				zIndex={2}
 			/>
 		</>

@@ -15,8 +15,8 @@
 }
 
 :root[data-theme='light'] {
-	--foreground: var(--white);
-	--background: var(--powder-blue);
+	--foreground: #f7f7f7;
+	--background: var(--white);
 }
 
 :root[data-theme='dark'] {

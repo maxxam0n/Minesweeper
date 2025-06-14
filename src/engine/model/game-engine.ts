@@ -54,7 +54,7 @@ export class GameEngine {
 		const targetCell = this.field.getCell(pos)
 
 		// 2. Основная логика
-		if (this.status === GameStatus.Playing) {
+		if (this.status === GameStatus.Playing && !targetCell.isFlagged) {
 			// Для режима без угадывания, переставляем мину в случае ситуации 50/50 перед основной логикой
 			if (targetCell.isMine && this.noGuessing) {
 				const solver = new Solver(this.field)
@@ -194,6 +194,7 @@ export class GameEngine {
 		return this.revealed === cols * rows - mines
 	}
 
+	// @TODO Возможно стоит перенести метод в сам FieldModel
 	private relocateMine(fromPos: Position): boolean {
 		// 1. Найти подходящее место для новой мины.
 		// Это должна быть закрытая и не заминированная клетка.

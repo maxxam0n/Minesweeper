@@ -21,8 +21,7 @@ export const BaseCellShape = ({
 	missed?: boolean
 	children?: ReactNode
 }) => {
-	const { CLOSED, REVEALED, BORDER, EXPLODED_BORDER, EXPLODED, MISSED } =
-		useGameColors()
+	const { CLOSED, REVEALED, BORDER, EXPLODED, MISSED } = useGameColors()
 
 	const color = missed
 		? MISSED
@@ -32,8 +31,6 @@ export const BaseCellShape = ({
 		? REVEALED
 		: CLOSED
 
-	const borderColor = exploded ? EXPLODED_BORDER : BORDER
-
 	return (
 		<>
 			<RectShape
@@ -42,8 +39,9 @@ export const BaseCellShape = ({
 				width={size}
 				height={size}
 				fillColor={color}
-				strokeColor={borderColor}
+				strokeColor={BORDER}
 				lineWidth={borderWidth}
+				zIndex={Number(exploded)}
 			/>
 			{children}
 		</>

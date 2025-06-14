@@ -1,35 +1,81 @@
 import { useGameColors } from '@/providers/game-colors-provider'
-import { LineShape, PolygonShape } from '@/shared/canvas'
+import { CircleShape, LineShape, PolygonShape } from '@/shared/canvas'
 
-export const FlagShape = ({
-	x,
-	y,
-	size,
-}: {
+interface FlagShapeProps {
 	x: number
 	y: number
 	size: number
-}) => {
+}
+
+export const FlagShape = ({ x, y, size }: FlagShapeProps) => {
 	const { FLAG_SHAFT, FLAG } = useGameColors()
+
+	// --- Параметры для настройки ---
+	// Древко
+	const shaftX = x + size * 0.4 // Смещаем влево, чтобы флаг был главным
+	const shaftTopY = y + size * 0.25
+	const shaftBottomY = y + size * 0.79
+	const shaftWidth = size * 0.08
+
+	// Навершие (шарик)
+	const finialRadius = shaftWidth * 0.6
+
+	// Основание
+	const baseWidth = size * 0.4
+	const baseHeight = shaftWidth * 1.2
+
+	// Полотнище
+	const flagTopY = shaftTopY + finialRadius
+	const flagHeight = size * 0.25
+	const flagWidth = size * 0.35
+	const cutoutDepth = flagWidth * 0.3 // Глубина V-образного выреза
+
+	// Круглая метка на флаге
+	const decorationCenterY = flagTopY + flagHeight / 2
+
+	// --- Сборка флага ---
 
 	return (
 		<>
-			{/* Древко флага */}
+			{/* 1. Древко */}
 			<LineShape
-				x1={x + size / 2}
-				y1={y + size * 0.2}
-				x2={x + size / 2}
-				y2={y + size * 0.8}
+				x1={shaftX}
+				y1={shaftTopY}
+				x2={shaftX}
+				y2={shaftBottomY}
 				strokeColor={FLAG_SHAFT}
-				lineWidth={2}
+				lineWidth={shaftWidth}
+				zIndex={2}
+			/>
+
+			{/* 2. Навершие */}
+			<CircleShape
+				cx={shaftX}
+				cy={shaftTopY}
+				radius={finialRadius}
+				fillColor={FLAG_SHAFT}
 				zIndex={3}
 			/>
-			{/* Сам флаг */}
+
+			{/* 3. Основание */}
+			<LineShape
+				x1={shaftX - baseWidth / 3}
+				y1={shaftBottomY}
+				x2={shaftX + baseWidth / 1.8}
+				y2={shaftBottomY}
+				strokeColor={FLAG_SHAFT}
+				lineWidth={baseHeight}
+				zIndex={1} // Под древком для эффекта объема
+			/>
+
+			{/* 4. Полотнище "ласточкин хвост" */}
 			<PolygonShape
 				points={[
-					{ x: x + size / 2, y: y + size * 0.2 },
-					{ x: x + size / 2, y: y + size * 0.5 },
-					{ x: x + size * 0.2, y: y + size * 0.35 },
+					{ x: shaftX, y: flagTopY }, // Верхняя точка у древка
+					{ x: shaftX + flagWidth, y: flagTopY }, // Верхняя правая точка
+					{ x: shaftX + flagWidth - cutoutDepth, y: decorationCenterY }, // Внутренняя точка выреза
+					{ x: shaftX + flagWidth, y: flagTopY + flagHeight }, // Нижняя правая точка
+					{ x: shaftX, y: flagTopY + flagHeight }, // Нижняя точка у древка
 				]}
 				closed={true}
 				fillColor={FLAG}
