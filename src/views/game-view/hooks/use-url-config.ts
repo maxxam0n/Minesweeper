@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { parseToNumber } from '@/shared/utils/parse-to-number'
 import { FieldType, GameParams } from '@/engine'
-import { GameConfig } from '../lib/types'
+import { GameConfig } from '../../../widgets/game-widget/lib/types'
 
 export const useUrlConfig = ({
 	defaultParams,

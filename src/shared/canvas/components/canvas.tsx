@@ -1,6 +1,6 @@
 import { PropsWithChildren, useEffect, useRef, useCallback } from 'react'
-import { CanvasContext } from './model/canvas-context'
-import { SetShape, ShapeDrawingData, RemoveShape } from './lib/types'
+import { CanvasContext } from '../model/canvas-context'
+import { SetShape, ShapeDrawingData, RemoveShape } from '../lib/types'
 
 interface CanvasProps extends PropsWithChildren {
 	width?: number

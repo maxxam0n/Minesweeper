@@ -1,4 +1,4 @@
-export { Canvas } from './canvas'
+export { Canvas } from './components/canvas'
 export { CircleShape } from './components/circle-shape'
 export { EllipseShape } from './components/ellipse-shape'
 export { ImageShape } from './components/image-shape'

@@ -1,4 +1,4 @@
-import { FieldFactory } from './model/field-factory'
+import { FieldFactory } from './field-factory'
 import {
 	ActionResult,
 	Cell,
@@ -7,7 +7,7 @@ import {
 	GameParams,
 	GameStatus,
 	Position,
-} from './model/types'
+} from './types'
 
 type MineSweeperConfig = {
 	params: GameParams

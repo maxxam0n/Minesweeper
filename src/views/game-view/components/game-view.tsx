@@ -1,5 +1,5 @@
+import { GameWidget } from '@/widgets/game-widget'
 import { useUrlConfig } from '../hooks/use-url-config'
-import { GameLogicWrapper } from './game-logic-wrapper'
 
 export const GameView = () => {
 	const config = useUrlConfig({
@@ -9,7 +9,7 @@ export const GameView = () => {
 
 	return (
 		<div>
-			<GameLogicWrapper config={config}></GameLogicWrapper>
+			<GameWidget config={config}></GameWidget>
 		</div>
 	)
 }

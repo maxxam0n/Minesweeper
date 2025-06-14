@@ -1,4 +1,4 @@
-import { PropsWithChildren, useRef } from 'react'
+import { useRef } from 'react'
 import { GameStatus, Position } from '@/engine'
 import { useGame } from '../hooks/use-game'
 import { useTimer } from '../hooks/use-timer'
@@ -6,11 +6,11 @@ import { useStatistic } from '../hooks/use-statistic'
 import { GameConfig } from '../lib/types'
 import { GameField } from './game-field'
 
-interface IGameProps extends PropsWithChildren {
+interface IGameProps {
 	config: GameConfig
 }
 
-export const GameLogicWrapper = ({ config, children }: IGameProps) => {
+export const GameWidget = ({ config }: IGameProps) => {
 	const { params, type } = config
 
 	const { time, resetTimer, startTimer, stopTimer } = useTimer()

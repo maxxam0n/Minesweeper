@@ -1,8 +1,8 @@
 import { MouseEvent, useCallback, useEffect, useMemo } from 'react'
 import { CellDrawingData, Position } from '@/engine'
 import { useGameColors } from '@/providers/game-colors-provider'
+import { CellShape, ViewConfig } from '@/entities/cell-shape'
 import { Canvas } from '@/shared/canvas'
-import { CellShape } from './cell-shape'
 
 interface IFieldProps {
 	drawingData: CellDrawingData[][]
@@ -20,6 +20,16 @@ export const GameField = ({
 	onToggleFlag,
 }: IFieldProps) => {
 	const { REVEALED } = useGameColors()
+
+	// @TODO Добавить возможность настройки, прокинуть в провайдер
+	const viewConfig = useMemo<ViewConfig>(
+		() => ({
+			font: 'Tektur',
+			bevelWidth: 3,
+			borderWidth: 2,
+		}),
+		[]
+	)
 
 	const rows = drawingData.length
 	const cols = drawingData[0].length
@@ -64,7 +74,7 @@ export const GameField = ({
 	)
 
 	useEffect(() => {
-		document.fonts.load('16px Digital')
+		document.fonts.load(`16px ${viewConfig.font}`)
 	}, [])
 
 	if (drawingData.length === 0) return null
@@ -77,7 +87,12 @@ export const GameField = ({
 		>
 			<Canvas width={width} height={height} bgColor={REVEALED}>
 				{drawingData.flat().map(cell => (
-					<CellShape data={cell} key={cell.key} size={cellSize} />
+					<CellShape
+						data={cell}
+						key={cell.key}
+						size={cellSize}
+						viewConfig={viewConfig}
+					/>
 				))}
 			</Canvas>
 		</div>
