@@ -1,19 +1,31 @@
-import { createGrid, random } from '../lib/utils'
+import seedrandom from 'seedrandom'
+import { createGrid } from '../lib/utils'
 import { CellModel } from './cell'
 import { Cell, Field, GameParams, GameStatus, Position } from './types'
+
+const createEmptyField = (field: Field) => {
+	return createGrid(
+		field.params.rows,
+		field.params.cols,
+		({ col: x, row: y }) => new CellModel(field, { x, y })
+	)
+}
 
 export class FieldModel implements Field {
 	public readonly params: GameParams
 	public data: Cell[][]
 	public isMined: boolean
+	private rng: () => number
 
 	constructor(
-		params: GameParams,
-		data: Cell[][] = this.createEmptyField(params)
+		{ params, seed }: { params: GameParams; seed?: string },
+		data?: Cell[][]
 	) {
 		this.params = params
-		this.data = data
-		this.isMined = data.some(row => row.some(cell => cell.isMine))
+		this.rng = seedrandom(seed)
+		this.data = data || createEmptyField(this)
+
+		this.isMined = this.data.some(row => row.some(cell => cell.isMine))
 	}
 
 	public placeMines(safeCell: Position) {
@@ -26,7 +38,10 @@ export class FieldModel implements Field {
 
 		let minesPlacedCount = 0
 		while (minesPlacedCount < mines) {
-			const position = { x: random(cols), y: random(rows) }
+			const position = {
+				x: Math.floor(this.rng() * cols),
+				y: Math.floor(this.rng() * rows),
+			}
 			const hash = this.getPositionHash(position)
 
 			if (!avoidSet.has(hash)) {
@@ -64,14 +79,6 @@ export class FieldModel implements Field {
 
 	public getDrawingData(status: GameStatus) {
 		return this.data.map(row => row.map(cell => cell.getDrawingData(status)))
-	}
-
-	private createEmptyField({ cols, rows }: GameParams) {
-		return createGrid(
-			rows,
-			cols,
-			({ col: x, row: y }) => new CellModel(this, { x, y })
-		)
 	}
 
 	private getPositionHash(position: Position): string {

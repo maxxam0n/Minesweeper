@@ -2,8 +2,8 @@ import { useRef, useState } from 'react'
 import { GameEngine, GameState, GameStatus, Position } from '@/engine'
 import { GameConfig } from '../lib/types'
 
-export const useGame = ({ params, type }: GameConfig) => {
-	const gameInstance = useRef(new GameEngine({ params, type }))
+export const useGame = ({ params, type, seed }: GameConfig) => {
+	const gameInstance = useRef(new GameEngine({ params, type, seed }))
 	const [gameState, setGameState] = useState<GameState>(
 		gameInstance.current.gameState
 	)
@@ -13,7 +13,7 @@ export const useGame = ({ params, type }: GameConfig) => {
 	const remainingMines = params.mines - flagged
 
 	const resetGame = () => {
-		gameInstance.current = new GameEngine({ params })
+		gameInstance.current = new GameEngine({ params, type, seed })
 		setGameState(gameInstance.current.gameState)
 	}
 

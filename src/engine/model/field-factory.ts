@@ -3,7 +3,7 @@ import { Cell, Field, FieldType, GameParams } from './types'
 
 export class FieldFactory {
 	static create(
-		config: GameParams & { type: FieldType },
+		config: { params: GameParams; type?: FieldType; seed?: string },
 		field?: Cell[][]
 	): Field {
 		switch (config.type) {

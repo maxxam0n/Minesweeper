@@ -11,6 +11,7 @@ import {
 
 type MineSweeperConfig = {
 	params: GameParams
+	seed?: string
 	type?: FieldType
 }
 
@@ -21,9 +22,9 @@ export class GameEngine {
 	private flagged: number
 	private revealed: number
 
-	constructor({ params, type = 'classic' }: MineSweeperConfig) {
+	constructor({ params, type = 'classic', seed }: MineSweeperConfig) {
 		this.params = params
-		this.field = FieldFactory.create({ ...params, type })
+		this.field = FieldFactory.create({ params, type, seed })
 		this.status = GameStatus.Idle
 		this.flagged = 0
 		this.revealed = 0

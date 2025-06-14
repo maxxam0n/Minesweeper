@@ -81,7 +81,7 @@ export const GameField = ({
 
 	return (
 		<div
-			className="w-fit"
+			className="w-fit cursor-pointer"
 			onClick={handleCanvasClick}
 			onContextMenu={handleCanvasRightClick}
 		>
