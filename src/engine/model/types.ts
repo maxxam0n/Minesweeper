@@ -49,6 +49,7 @@ export interface Cell {
 	mine(): void
 	open(): { unflaggedInAction: number; revealedInAction: number }
 	getDrawingData(status: GameStatus): CellDrawingData
+	clone(newField: Field): Cell
 }
 
 export interface Field {
@@ -60,6 +61,7 @@ export interface Field {
 	getCell(position: Position): Cell
 	getSiblings(position: Position): Position[]
 	getDrawingData(status: GameStatus): CellDrawingData[][]
+	createCopy(): Field
 }
 
 export interface GameState {

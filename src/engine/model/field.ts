@@ -1,29 +1,55 @@
 import seedrandom from 'seedrandom'
 import { createGrid } from '../lib/utils'
 import { CellModel } from './cell'
-import { Cell, Field, GameParams, GameStatus, Position } from './types'
-
-const createEmptyField = (field: Field) => {
-	return createGrid(
-		field.params.rows,
-		field.params.cols,
-		({ col: x, row: y }) => new CellModel(field, { x, y })
-	)
-}
+import {
+	Cell,
+	CellDrawingData,
+	Field,
+	GameParams,
+	GameStatus,
+	Position,
+} from './types'
 
 export class FieldModel implements Field {
+	// ---------Методы класса-------------
+	private static createEmptyField(field: Field): Cell[][] {
+		const createCell = ({ col: x, row: y }: { col: number; row: number }) => {
+			return new CellModel(field, { x, y })
+		}
+
+		return createGrid(field.params.rows, field.params.cols, createCell)
+	}
+
+	static createFieldFromData(
+		field: Field,
+		data: CellDrawingData[][]
+	): Cell[][] {
+		return data.map(row =>
+			row.map(cell => CellModel.createFromData(field, cell))
+		)
+	}
+
+	// -------------------------------------
 	public readonly params: GameParams
 	public data: Cell[][]
 	public isMined: boolean
+
 	private rng: () => number
+	private seed?: string
 
 	constructor(
 		{ params, seed }: { params: GameParams; seed?: string },
-		data?: Cell[][]
+		data?: CellDrawingData[][]
 	) {
 		this.params = params
+		this.seed = seed
 		this.rng = seedrandom(seed)
-		this.data = data || createEmptyField(this)
+
+		if (data) {
+			this.data = FieldModel.createFieldFromData(this, data)
+		} else {
+			this.data = FieldModel.createEmptyField(this)
+		}
 
 		this.isMined = this.data.some(row => row.some(cell => cell.isMine))
 	}
@@ -106,5 +132,18 @@ export class FieldModel implements Field {
 			}
 		}
 		return siblings
+	}
+
+	public createCopy(): Field {
+		const newField = new FieldModel({ params: this.params, seed: this.seed })
+
+		const newGrid = this.data.map(row =>
+			row.map(cell => cell.clone(newField))
+		)
+
+		newField.data = newGrid
+		newField.isMined = this.isMined
+
+		return newField
 	}
 }

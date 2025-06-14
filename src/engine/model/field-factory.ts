@@ -1,10 +1,10 @@
 import { FieldModel } from './field'
-import { Cell, Field, FieldType, GameParams } from './types'
+import { CellDrawingData, Field, FieldType, GameParams } from './types'
 
 export class FieldFactory {
 	static create(
 		config: { params: GameParams; type?: FieldType; seed?: string },
-		field?: Cell[][]
+		field?: CellDrawingData[][]
 	): Field {
 		switch (config.type) {
 			case 'classic':

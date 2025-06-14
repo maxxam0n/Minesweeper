@@ -8,6 +8,26 @@ import {
 } from './types'
 
 export class CellModel implements Cell {
+	static createFromData(
+		field: Field,
+		data: {
+			position: Position
+			isMine: boolean
+			isRevealed: boolean
+			isFlagged: boolean
+			adjacentMines: number
+		}
+	) {
+		const newCell = new CellModel(field, data.position)
+
+		newCell.isMine = data.isMine
+		newCell.isRevealed = data.isRevealed
+		newCell.isFlagged = data.isFlagged
+		newCell.adjacentMines = data.adjacentMines
+
+		return newCell
+	}
+
 	private field: Field
 	public readonly key: string
 	public readonly position: Position
@@ -80,5 +100,15 @@ export class CellModel implements Cell {
 			default:
 				return CellDrawingView.Closed
 		}
+	}
+
+	public clone(newField: Field): Cell {
+		return CellModel.createFromData(newField, {
+			position: this.position,
+			isMine: this.isMine,
+			isRevealed: this.isRevealed,
+			isFlagged: this.isFlagged,
+			adjacentMines: this.adjacentMines,
+		})
 	}
 }
