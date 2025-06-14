@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { FieldType, GameParams } from '@/engine'
-import { GameConfig } from '@/widgets/game-widget'
 import { parseToNumber } from '@/shared/utils/parse-to-number'
 
 export const useUrlConfig = ({
@@ -10,7 +9,7 @@ export const useUrlConfig = ({
 }: {
 	defaultParams: GameParams
 	defaultType: FieldType
-}): GameConfig => {
+}) => {
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [cols, rows, mines] = [

@@ -7,14 +7,12 @@ import { Canvas } from '@/shared/canvas'
 interface IFieldProps {
 	drawingData: CellDrawingData[][]
 	isGameOver: boolean
-	cellSize: number
 	onReveal: (pos: Position) => void
 	onToggleFlag: (pos: Position) => void
 }
 
 export const GameField = ({
 	drawingData,
-	cellSize,
 	isGameOver,
 	onReveal,
 	onToggleFlag,
@@ -24,12 +22,15 @@ export const GameField = ({
 	// @TODO Добавить возможность настройки, прокинуть в провайдер
 	const viewConfig = useMemo<ViewConfig>(
 		() => ({
+			cellSize: 30,
 			font: 'Tektur',
 			bevelWidth: 3,
 			borderWidth: 2,
 		}),
 		[]
 	)
+
+	const cellSize = viewConfig.cellSize
 
 	const rows = drawingData.length
 	const cols = drawingData[0].length
@@ -87,12 +88,7 @@ export const GameField = ({
 		>
 			<Canvas width={width} height={height} bgColor={REVEALED}>
 				{drawingData.flat().map(cell => (
-					<CellShape
-						data={cell}
-						key={cell.key}
-						size={cellSize}
-						viewConfig={viewConfig}
-					/>
+					<CellShape data={cell} key={cell.key} viewConfig={viewConfig} />
 				))}
 			</Canvas>
 		</div>

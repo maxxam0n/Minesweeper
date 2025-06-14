@@ -63,7 +63,6 @@ export const GameWidget = ({ config }: IGameProps) => {
 
 	return (
 		<GameField
-			cellSize={30}
 			drawingData={drawingData}
 			isGameOver={gameOver}
 			onReveal={onClick}

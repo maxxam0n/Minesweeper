@@ -10,7 +10,6 @@ import { MissedShape } from './missed-shape'
 
 interface CellProps {
 	data: CellDrawingData
-	size: number
 	viewConfig: ViewConfig
 }
 
@@ -24,22 +23,28 @@ const areCellsEqual = (
 	)
 }
 
-const CellShapeComponent = ({ data, size, viewConfig }: CellProps) => {
+const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 	const { position, view, adjacentMines } = data
-	const { bevelWidth = 3, borderWidth = 1, font = 'Digital' } = viewConfig
+
+	const {
+		cellSize,
+		bevelWidth = 3,
+		borderWidth = 1,
+		font = 'Digital',
+	} = viewConfig
 
 	// Рассчитываем позицию ячейки на холсте
-	const x = position.x * size
-	const y = position.y * size
+	const x = position.x * cellSize
+	const y = position.y * cellSize
 
 	switch (view) {
 		case CellDrawingView.Closed:
 			return (
-				<BevelShape x={x} y={y} size={size} width={bevelWidth}>
+				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
 					<BaseCellShape
 						x={x}
 						y={y}
-						size={size}
+						size={cellSize}
 						borderWidth={borderWidth}
 					/>
 				</BevelShape>
@@ -50,7 +55,7 @@ const CellShapeComponent = ({ data, size, viewConfig }: CellProps) => {
 				<BaseCellShape
 					x={x}
 					y={y}
-					size={size}
+					size={cellSize}
 					open={true}
 					borderWidth={borderWidth}
 				/>
@@ -61,7 +66,7 @@ const CellShapeComponent = ({ data, size, viewConfig }: CellProps) => {
 				<BaseCellShape
 					x={x}
 					y={y}
-					size={size}
+					size={cellSize}
 					open={true}
 					borderWidth={borderWidth}
 				>
@@ -69,7 +74,7 @@ const CellShapeComponent = ({ data, size, viewConfig }: CellProps) => {
 						digit={adjacentMines}
 						x={x}
 						y={y}
-						size={size}
+						size={cellSize}
 						font={font}
 					/>
 				</BaseCellShape>
@@ -77,17 +82,27 @@ const CellShapeComponent = ({ data, size, viewConfig }: CellProps) => {
 
 		case CellDrawingView.Flag:
 			return (
-				<BevelShape x={x} y={y} size={size} width={bevelWidth}>
-					<BaseCellShape x={x} y={y} size={size} borderWidth={borderWidth}>
-						<FlagShape x={x} y={y} size={size} />
+				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
+					<BaseCellShape
+						x={x}
+						y={y}
+						size={cellSize}
+						borderWidth={borderWidth}
+					>
+						<FlagShape x={x} y={y} size={cellSize} />
 					</BaseCellShape>
 				</BevelShape>
 			)
 
 		case CellDrawingView.Mine:
 			return (
-				<BaseCellShape x={x} y={y} size={size} borderWidth={borderWidth}>
-					<MineShape x={x} y={y} size={size} />
+				<BaseCellShape
+					x={x}
+					y={y}
+					size={cellSize}
+					borderWidth={borderWidth}
+				>
+					<MineShape x={x} y={y} size={cellSize} />
 				</BaseCellShape>
 			)
 
@@ -96,25 +111,25 @@ const CellShapeComponent = ({ data, size, viewConfig }: CellProps) => {
 				<BaseCellShape
 					x={x}
 					y={y}
-					size={size}
+					size={cellSize}
 					borderWidth={borderWidth}
 					exploded={true}
 				>
-					<MineShape x={x} y={y} size={size} />
+					<MineShape x={x} y={y} size={cellSize} />
 				</BaseCellShape>
 			)
 
 		case CellDrawingView.Missed:
 			return (
-				<BevelShape x={x} y={y} size={size} width={bevelWidth}>
+				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
 					<BaseCellShape
 						x={x}
 						y={y}
-						size={size}
+						size={cellSize}
 						missed={true}
 						borderWidth={borderWidth}
 					>
-						<MissedShape x={x} y={y} size={size} />
+						<MissedShape x={x} y={y} size={cellSize} />
 					</BaseCellShape>
 				</BevelShape>
 			)

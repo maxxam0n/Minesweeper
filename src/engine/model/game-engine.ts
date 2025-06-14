@@ -1,4 +1,5 @@
 import { FieldFactory } from './field-factory'
+import { Solver } from './solver'
 import {
 	ActionResult,
 	Cell,
@@ -13,6 +14,7 @@ type MineSweeperConfig = {
 	params: GameParams
 	seed?: string
 	type?: FieldType
+	noGuessing?: boolean
 }
 
 export class GameEngine {
@@ -21,13 +23,20 @@ export class GameEngine {
 	private status: GameStatus
 	private flagged: number
 	private revealed: number
+	private noGuessing: boolean
 
-	constructor({ params, type = 'classic', seed }: MineSweeperConfig) {
+	constructor({
+		params,
+		type = 'classic',
+		seed,
+		noGuessing = false,
+	}: MineSweeperConfig) {
 		this.params = params
 		this.field = FieldFactory.create({ params, type, seed })
 		this.status = GameStatus.Idle
 		this.flagged = 0
 		this.revealed = 0
+		this.noGuessing = noGuessing
 	}
 
 	public revealCell(pos: Position): ActionResult {
@@ -46,6 +55,19 @@ export class GameEngine {
 
 		// 2. Основная логика
 		if (this.status === GameStatus.Playing) {
+			// Для режима без угадывания, переставляем мину в случае ситуации 50/50 перед основной логикой
+			if (targetCell.isMine && this.noGuessing) {
+				const solver = new Solver(this.field)
+				if (!solver.hasSafeMove()) {
+					const relocationSuccess = this.relocateMine(pos)
+					if (!relocationSuccess) {
+						// На случай, если переместить мину не удалось (например, все клетки уже открыты)
+						// Ведем себя как обычно - взрываемся.
+						// Этот случай очень редкий, но лучше его обработать.
+					}
+				}
+			}
+
 			if (targetCell.isMine) {
 				targetCell.open()
 				explodedCells.push(targetCell.position)
@@ -170,6 +192,67 @@ export class GameEngine {
 		// В revealed записываются только незаминированные ячейки,
 		// поэтому этого условия достаточно для определения победы
 		return this.revealed === cols * rows - mines
+	}
+
+	private relocateMine(fromPos: Position): boolean {
+		// 1. Найти подходящее место для новой мины.
+		// Это должна быть закрытая и не заминированная клетка.
+		let newMinePos: Position | null = null
+
+		// Итерируемся по всему полю в поиске кандидата
+		for (const row of this.field.data) {
+			for (const cell of row) {
+				if (!cell.isMine && !cell.isRevealed) {
+					newMinePos = cell.position
+					break // Нашли первого кандидата, выходим
+				}
+			}
+			if (newMinePos) break // Выходим из внешнего цикла
+		}
+
+		if (!newMinePos) {
+			// Не нашли куда переместить мину (очень редкий случай)
+			return false
+		}
+
+		// 2. Выполняем перемещение
+		const oldMineCell = this.field.getCell(fromPos)
+		const newMineCell = this.field.getCell(newMinePos)
+
+		// Убираем старую мину и обновляем соседей
+		oldMineCell.isMine = false
+		this.field.getSiblings(fromPos).forEach(pos => {
+			this.field.getCell(pos).adjacentMines -= 1
+		})
+
+		// Ставим новую мину и обновляем соседей
+		newMineCell.isMine = true
+		this.field.getSiblings(newMinePos).forEach(pos => {
+			this.field.getCell(pos).adjacentMines += 1
+		})
+
+		// Важно: нужно также обновить счетчик adjacentMines для самой старой клетки,
+		// так как она теперь пустая, и для новой, так как она стала миной.
+		// Самый простой способ - пересчитать их с нуля.
+		this.recalculateAdjacentMines(oldMineCell)
+		this.recalculateAdjacentMines(newMineCell)
+
+		return true
+	}
+
+	// Вспомогательный метод для пересчета соседей
+	private recalculateAdjacentMines(cell: Cell) {
+		if (cell.isMine) {
+			cell.adjacentMines = 0 // У мины нет этого счетчика
+			return
+		}
+		const siblingMines = this.field
+			.getSiblings(cell.position)
+			.reduce(
+				(sum, pos) => sum + (this.field.getCell(pos).isMine ? 1 : 0),
+				0
+			)
+		cell.adjacentMines = siblingMines
 	}
 
 	get gameState() {

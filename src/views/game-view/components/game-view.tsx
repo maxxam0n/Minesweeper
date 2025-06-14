@@ -8,8 +8,8 @@ export const GameView = () => {
 	})
 
 	return (
-		<div>
-			<GameWidget config={config}></GameWidget>
+		<div className="h-screen flex justify-center items-center">
+			<GameWidget config={{ ...config, noGuessing: false }} />
 		</div>
 	)
 }

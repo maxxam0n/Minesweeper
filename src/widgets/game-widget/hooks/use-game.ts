@@ -2,8 +2,10 @@ import { useRef, useState } from 'react'
 import { GameEngine, GameState, GameStatus, Position } from '@/engine'
 import { GameConfig } from '../lib/types'
 
-export const useGame = ({ params, type, seed }: GameConfig) => {
-	const gameInstance = useRef(new GameEngine({ params, type, seed }))
+export const useGame = ({ params, type, seed, noGuessing }: GameConfig) => {
+	const gameInstance = useRef(
+		new GameEngine({ params, type, seed, noGuessing })
+	)
 	const [gameState, setGameState] = useState<GameState>(
 		gameInstance.current.gameState
 	)
