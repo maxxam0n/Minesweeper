@@ -59,20 +59,20 @@ export class CellModel implements Cell {
 	}
 
 	public open() {
-		let unflaggedInAction = 0
-		let revealedInAction = 0
+		let unflaggedPositions: Position[] = []
+		let revealedPositions: Position[] = []
 		const area = this.field.getAreaToReveal(this.position)
 		area.forEach(areaPos => {
 			const cellToProcess = this.field.getCell(areaPos)
 			if (cellToProcess.isFlagged && !cellToProcess.isMine) {
 				cellToProcess.isFlagged = false
-				unflaggedInAction += 1
+				unflaggedPositions.push(areaPos)
 			} else if (!cellToProcess.isRevealed) {
-				revealedInAction += 1
+				revealedPositions.push(areaPos)
 				cellToProcess.isRevealed = true
 			}
 		})
-		return { revealedInAction, unflaggedInAction }
+		return { unflaggedPositions, revealedPositions }
 	}
 
 	public get isEmpty() {

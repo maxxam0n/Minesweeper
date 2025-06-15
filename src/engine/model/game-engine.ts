@@ -2,6 +2,7 @@ import { FieldFactory } from './field-factory'
 import { Solver } from './solver'
 import {
 	ActionResult,
+	AnimationEvent,
 	Cell,
 	Field,
 	FieldType,
@@ -40,8 +41,10 @@ export class GameEngine {
 	}
 
 	public revealCell(pos: Position): ActionResult {
-		let revealedInAction = 0
-		let unflaggedInAction = 0
+		const animationEvents: AnimationEvent[] = []
+
+		let revealedPositions: Position[] = []
+		let unflaggedPositions: Position[] = []
 
 		const explodedCells: Position[] = []
 
@@ -75,14 +78,24 @@ export class GameEngine {
 			} else if (targetCell.isRevealed) {
 				// chord/chording. Когда кликаем по открытой клетке
 				const result = this.handleRevealedClick(targetCell)
-				revealedInAction += result.revealedInAction
-				unflaggedInAction += result.unflaggedInAction
+				revealedPositions.push(...result.revealedPositions)
+				unflaggedPositions.push(...result.unflaggedPositions)
 				explodedCells.push(...result.exploded)
 			} else {
 				// Невскрытая и не мина
 				const result = this.field.getCell(pos).open()
-				revealedInAction += result.revealedInAction
-				unflaggedInAction += result.unflaggedInAction
+
+				if (result.revealedPositions.length > 1) {
+					animationEvents.push({
+						type: 'cascade',
+						positions: result.revealedPositions,
+					})
+				} else {
+					animationEvents.push({ type: 'press', pos })
+				}
+
+				revealedPositions.push(...result.revealedPositions)
+				unflaggedPositions.push(...result.unflaggedPositions)
 			}
 		} else if (
 			this.status === GameStatus.Lost ||
@@ -92,8 +105,8 @@ export class GameEngine {
 		}
 
 		// 3. Подсчет и проверка на победу
-		this.revealed += revealedInAction
-		this.flagged -= unflaggedInAction
+		this.revealed += revealedPositions.length
+		this.flagged -= unflaggedPositions.length
 
 		if (this.status !== GameStatus.Lost && this.checkForWin()) {
 			this.status = GameStatus.Won
@@ -101,18 +114,19 @@ export class GameEngine {
 
 		return {
 			gameState: this.gameState,
+			animationEvents,
 			actionChanges: {
-				flaggedInAction: 0,
-				unflaggedInAction,
-				revealedInAction,
+				flaggedPositions: [],
+				unflaggedPositions,
+				revealedPositions,
 				explodedCells,
 			},
 		}
 	}
 
 	public toggleFlag(pos: Position): ActionResult {
-		let flaggedInAction = 0
-		let unflaggedInAction = 0
+		let flaggedPositions: Position[] = []
+		let unflaggedPositions: Position[] = []
 
 		const cell = this.field.getCell(pos)
 
@@ -121,11 +135,11 @@ export class GameEngine {
 			if (!willBeMarked) {
 				// Снимаем флаг
 				cell.isFlagged = false
-				unflaggedInAction = 1
+				unflaggedPositions.push(pos)
 			} else if (this.flagged < this.params.mines) {
 				// Ставим флаг
 				cell.isFlagged = true
-				flaggedInAction = 1
+				flaggedPositions.push(pos)
 			}
 		} else if (
 			this.status === GameStatus.Lost ||
@@ -140,22 +154,24 @@ export class GameEngine {
 			console.warn('[Minesweeper]: Game is not started, open cell before!')
 		}
 
-		this.flagged = this.flagged - unflaggedInAction + flaggedInAction
+		this.flagged =
+			this.flagged - unflaggedPositions.length + flaggedPositions.length
 
 		return {
 			gameState: this.gameState,
+			animationEvents: [],
 			actionChanges: {
-				flaggedInAction,
-				unflaggedInAction,
-				revealedInAction: 0,
+				flaggedPositions,
+				unflaggedPositions,
+				revealedPositions: [],
 				explodedCells: [],
 			},
 		}
 	}
 
 	private handleRevealedClick(targetCell: Cell) {
-		let revealedInAction = 0
-		let unflaggedInAction = 0
+		let revealedPositions: Position[] = []
+		let unflaggedPositions: Position[] = []
 
 		const exploded: Position[] = []
 		const siblings = this.field.getSiblings(targetCell.position)
@@ -177,13 +193,13 @@ export class GameEngine {
 				} else {
 					// Открываем безопасную ячейку или пустую область
 					const openResult = sibCell.open()
-					revealedInAction += openResult.revealedInAction
-					unflaggedInAction += openResult.unflaggedInAction
+					revealedPositions.push(...openResult.revealedPositions)
+					unflaggedPositions.push(...openResult.unflaggedPositions)
 				}
 			}
 		}
 
-		return { revealedInAction, unflaggedInAction, exploded }
+		return { revealedPositions, unflaggedPositions, exploded }
 	}
 
 	private checkForWin() {

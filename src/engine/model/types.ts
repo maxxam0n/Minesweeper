@@ -47,7 +47,7 @@ export interface Cell {
 	isFlagged: boolean
 	isEmpty: boolean
 	mine(): void
-	open(): { unflaggedInAction: number; revealedInAction: number }
+	open(): { unflaggedPositions: Position[]; revealedPositions: Position[] }
 	getDrawingData(status: GameStatus): CellDrawingData
 	clone(newField: Field): Cell
 }
@@ -72,13 +72,18 @@ export interface GameState {
 }
 
 export interface ActionChanges {
-	flaggedInAction: number
-	unflaggedInAction: number
-	revealedInAction: number
+	flaggedPositions: Position[]
+	unflaggedPositions: Position[]
+	revealedPositions: Position[]
 	explodedCells: Readonly<Position>[]
 }
+
+export type AnimationEvent =
+	| { type: 'press'; pos: Position }
+	| { type: 'cascade'; positions: Position[] }
 
 export interface ActionResult {
 	gameState: GameState
 	actionChanges: ActionChanges
+	animationEvents: AnimationEvent[]
 }

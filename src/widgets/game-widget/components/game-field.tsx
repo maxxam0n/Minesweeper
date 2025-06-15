@@ -1,10 +1,16 @@
-import { MouseEvent, useCallback, useEffect, useMemo } from 'react'
+import {
+	MouseEvent,
+	PropsWithChildren,
+	useCallback,
+	useEffect,
+	useMemo,
+} from 'react'
 import { CellDrawingData, CellDrawingView, Position } from '@/engine'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { CellShape, ViewConfig } from '@/entities/cell-shape'
 import { Canvas, Layer } from '@/shared/canvas'
 
-interface IFieldProps {
+interface IFieldProps extends PropsWithChildren {
 	drawingData: CellDrawingData[][]
 	isGameOver: boolean
 	onReveal: (pos: Position) => void
@@ -16,13 +22,14 @@ export const GameField = ({
 	isGameOver,
 	onReveal,
 	onToggleFlag,
+	children,
 }: IFieldProps) => {
 	const { REVEALED } = useGameColors()
 
 	// @TODO Добавить возможность настройки, прокинуть в провайдер
 	const viewConfig = useMemo<ViewConfig>(
 		() => ({
-			cellSize: 30,
+			cellSize: 25,
 			font: 'Tektur',
 			bevelWidth: 3,
 			borderWidth: 2,
@@ -107,21 +114,22 @@ export const GameField = ({
 				</Layer>
 
 				<Layer name="mask" zIndex={1}>
-					{!isGameOver && drawingData.flat().map(cell => {
-						if (!cell.isRevealed) {
-							return (
-								<CellShape
-									key={`${cell.key}-mask`}
-									data={{
-										...cell,
-										view: CellDrawingView.Closed,
-									}}
-									viewConfig={viewConfig}
-								/>
-							)
-						}
-						return null
-					})}
+					{!isGameOver &&
+						drawingData.flat().map(cell => {
+							if (!cell.isRevealed) {
+								return (
+									<CellShape
+										key={`${cell.key}-mask`}
+										data={{
+											...cell,
+											view: CellDrawingView.Closed,
+										}}
+										viewConfig={viewConfig}
+									/>
+								)
+							}
+							return null
+						})}
 				</Layer>
 
 				<Layer name="overlay" zIndex={2}>
@@ -143,6 +151,7 @@ export const GameField = ({
 						return null
 					})}
 				</Layer>
+				{children}
 			</Canvas>
 		</div>
 	)

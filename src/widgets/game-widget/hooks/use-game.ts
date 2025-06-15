@@ -20,12 +20,13 @@ export const useGame = ({ params, type, seed, noGuessing }: GameConfig) => {
 	}
 
 	const revealCell = (pos: Position) => {
-		if (gameOver) return gameState
+		if (gameOver) return { gameState, animationEvents: [] }
 
-		const { gameState: actualState } = gameInstance.current.revealCell(pos)
+		const { gameState: actualState, animationEvents } =
+			gameInstance.current.revealCell(pos)
 		setGameState(actualState)
 
-		return actualState
+		return { gameState: actualState, animationEvents }
 	}
 
 	const toggleFlag = (pos: Position) => {
