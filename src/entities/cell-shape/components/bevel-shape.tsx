@@ -1,7 +1,6 @@
-import { ReactNode, useContext } from 'react'
+import { ReactNode } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { PolygonShape } from '@/shared/canvas'
-import { LayerContext } from '../model/layer-context'
 
 export const BevelShape = ({
 	children,
@@ -16,15 +15,12 @@ export const BevelShape = ({
 	width: number
 	children?: ReactNode
 }) => {
-	const layer = useContext(LayerContext)
-
 	const { LIGHT_BEVEL, DARK_BEVEL } = useGameColors()
 
 	return (
 		<>
 			{/* Светлая грань сверху и слева */}
 			<PolygonShape
-				layer={layer}
 				points={[
 					{ x, y },
 					{ x: x + size, y },
@@ -39,7 +35,6 @@ export const BevelShape = ({
 			/>
 			{/* Темная грань снизу и справа */}
 			<PolygonShape
-				layer={layer}
 				points={[
 					{ x: x + size, y: y + size },
 					{ x, y: y + size },

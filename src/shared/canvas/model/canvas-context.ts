@@ -1,10 +1,9 @@
 import { createContext } from 'react'
-import { SetShape, RemoveShape } from '../lib/types'
+import { ShapeDrawingData } from '../lib/types'
 
-export const CanvasContext = createContext<{
-	setShape: SetShape
-	removeShape: RemoveShape
-}>({
-	setShape() {},
-	removeShape() {},
-})
+interface CanvasContext {
+	setShape: (shapeData: ShapeDrawingData) => void
+	removeShape: (shapeData: ShapeDrawingData) => void
+}
+
+export const CanvasContext = createContext<CanvasContext | null>(null)

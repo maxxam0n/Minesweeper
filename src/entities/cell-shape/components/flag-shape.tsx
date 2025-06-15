@@ -1,7 +1,5 @@
-import { useContext } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { CircleShape, LineShape, PolygonShape } from '@/shared/canvas'
-import { LayerContext } from '../model/layer-context'
 
 interface FlagShapeProps {
 	x: number
@@ -10,8 +8,6 @@ interface FlagShapeProps {
 }
 
 export const FlagShape = ({ x, y, size }: FlagShapeProps) => {
-	const layer = useContext(LayerContext)
-
 	const { FLAG_SHAFT, FLAG } = useGameColors()
 
 	// --- Параметры для настройки ---
@@ -43,7 +39,6 @@ export const FlagShape = ({ x, y, size }: FlagShapeProps) => {
 		<>
 			{/* 1. Древко */}
 			<LineShape
-				layer={layer}
 				x1={shaftX}
 				y1={shaftTopY}
 				x2={shaftX}
@@ -55,7 +50,6 @@ export const FlagShape = ({ x, y, size }: FlagShapeProps) => {
 
 			{/* 2. Навершие */}
 			<CircleShape
-				layer={layer}
 				cx={shaftX}
 				cy={shaftTopY}
 				radius={finialRadius}
@@ -65,7 +59,6 @@ export const FlagShape = ({ x, y, size }: FlagShapeProps) => {
 
 			{/* 3. Основание */}
 			<LineShape
-				layer={layer}
 				x1={shaftX - baseWidth / 3}
 				y1={shaftBottomY}
 				x2={shaftX + baseWidth / 1.8}
@@ -77,7 +70,6 @@ export const FlagShape = ({ x, y, size }: FlagShapeProps) => {
 
 			{/* 4. Полотнище "ласточкин хвост" */}
 			<PolygonShape
-				layer={layer}
 				points={[
 					{ x: shaftX, y: flagTopY }, // Верхняя точка у древка
 					{ x: shaftX + flagWidth, y: flagTopY }, // Верхняя правая точка

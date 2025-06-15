@@ -1,12 +1,10 @@
 import { useCallback } from 'react'
 import { useShape } from '../lib/use-shape'
-import { Layer } from '../lib/types'
 
 interface CircleProps {
 	cx: number
 	cy: number
 	radius: number
-	layer?: Layer
 	fillColor?: string
 	strokeColor?: string
 	lineWidth?: number
@@ -17,9 +15,8 @@ export const CircleShape = ({
 	cx,
 	cy,
 	radius,
-	fillColor = 'white',
 	strokeColor,
-	layer = 'dynamic',
+	fillColor = 'white',
 	lineWidth = 1,
 	zIndex = 0,
 }: CircleProps) => {
@@ -38,7 +35,7 @@ export const CircleShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex, layer }, deps)
+	useShape(draw, { zIndex }, deps)
 
 	return null
 }

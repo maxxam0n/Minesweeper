@@ -1,13 +1,11 @@
 import { useCallback } from 'react'
 import { useShape } from '../lib/use-shape'
-import { Layer } from '../lib/types'
 
 interface EllipseProps {
 	cx: number
 	cy: number
 	radiusX: number
 	radiusY: number
-	layer?: Layer
 	rotation?: number
 	fillColor?: string
 	strokeColor?: string
@@ -21,7 +19,6 @@ export const EllipseShape = ({
 	radiusX,
 	radiusY,
 	rotation = 0,
-	layer = 'dynamic',
 	fillColor = 'white',
 	strokeColor,
 	lineWidth = 1,
@@ -44,7 +41,7 @@ export const EllipseShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex, layer }, deps)
+	useShape(draw, { zIndex }, deps)
 
 	return null
 }

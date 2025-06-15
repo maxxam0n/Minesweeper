@@ -1,13 +1,11 @@
 import { useCallback } from 'react'
 import { useShape } from '../lib/use-shape'
-import { Layer } from '../lib/types'
 
 interface RectProps {
 	x: number
 	y: number
 	width: number
 	height: number
-	layer?: Layer
 	fillColor?: string
 	strokeColor?: string
 	lineWidth?: number
@@ -19,9 +17,8 @@ export const RectShape = ({
 	y,
 	width,
 	height,
-	fillColor = 'white',
-	layer = 'dynamic',
 	strokeColor,
+	fillColor = 'white',
 	lineWidth = 1,
 	zIndex = 0,
 }: RectProps) => {
@@ -38,7 +35,7 @@ export const RectShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex, layer }, deps)
+	useShape(draw, { zIndex }, deps)
 
 	return null
 }

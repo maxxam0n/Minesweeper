@@ -1,8 +1,8 @@
 import { MouseEvent, useCallback, useEffect, useMemo } from 'react'
-import { CellDrawingData, Position } from '@/engine'
+import { CellDrawingData, CellDrawingView, Position } from '@/engine'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { CellShape, ViewConfig } from '@/entities/cell-shape'
-import { Canvas } from '@/shared/canvas'
+import { Canvas, Layer } from '@/shared/canvas'
 
 interface IFieldProps {
 	drawingData: CellDrawingData[][]
@@ -25,7 +25,7 @@ export const GameField = ({
 			cellSize: 30,
 			font: 'Tektur',
 			bevelWidth: 3,
-			borderWidth: 1,
+			borderWidth: 2,
 		}),
 		[]
 	)
@@ -74,6 +74,12 @@ export const GameField = ({
 		[isGameOver, onToggleFlag, getCellPositionFromMouseEvent]
 	)
 
+	const getSolutionView = (cellData: CellDrawingData): CellDrawingView => {
+		if (cellData.isMine) return CellDrawingView.Mine
+		if (cellData.adjacentMines > 0) return CellDrawingView.Digit
+		return CellDrawingView.Empty
+	}
+
 	useEffect(() => {
 		document.fonts.load(`16px ${viewConfig.font}`)
 	}, [])
@@ -87,9 +93,56 @@ export const GameField = ({
 			onContextMenu={handleCanvasRightClick}
 		>
 			<Canvas width={width} height={height} bgColor={REVEALED}>
-				{drawingData.flat().map(cell => (
-					<CellShape data={cell} key={cell.key} viewConfig={viewConfig} />
-				))}
+				<Layer name="solution" zIndex={0}>
+					{drawingData.flat().map(cell => (
+						<CellShape
+							key={`${cell.key}-solution`}
+							data={{
+								...cell,
+								view: getSolutionView(cell),
+							}}
+							viewConfig={viewConfig}
+						/>
+					))}
+				</Layer>
+
+				<Layer name="mask" zIndex={1}>
+					{!isGameOver && drawingData.flat().map(cell => {
+						if (!cell.isRevealed) {
+							return (
+								<CellShape
+									key={`${cell.key}-mask`}
+									data={{
+										...cell,
+										view: CellDrawingView.Closed,
+									}}
+									viewConfig={viewConfig}
+								/>
+							)
+						}
+						return null
+					})}
+				</Layer>
+
+				<Layer name="overlay" zIndex={2}>
+					{drawingData.flat().map(cell => {
+						const view = cell.view
+						if (
+							view === CellDrawingView.Flag ||
+							view === CellDrawingView.Exploded ||
+							view === CellDrawingView.Missed
+						) {
+							return (
+								<CellShape
+									key={`${cell.key}-overlay`}
+									data={cell}
+									viewConfig={viewConfig}
+								/>
+							)
+						}
+						return null
+					})}
+				</Layer>
 			</Canvas>
 		</div>
 	)

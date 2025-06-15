@@ -1,12 +1,10 @@
 import { useCallback } from 'react'
 import { useShape } from '../lib/use-shape'
-import { Layer } from '../lib/types'
 
 interface PolygonProps {
 	points: { x: number; y: number }[]
 	closed: boolean
 	zIndex: number
-	layer?: Layer
 	fillColor?: string
 	strokeColor?: string
 	lineWidth?: number
@@ -16,9 +14,8 @@ export const PolygonShape = ({
 	points,
 	closed,
 	zIndex,
-	fillColor = 'white',
 	strokeColor,
-	layer = 'dynamic',
+	fillColor = 'white',
 	lineWidth = 1,
 }: PolygonProps) => {
 	const deps = [points, closed, fillColor, strokeColor, lineWidth]
@@ -48,7 +45,7 @@ export const PolygonShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex, layer }, deps)
+	useShape(draw, { zIndex }, deps)
 
 	return null
 }

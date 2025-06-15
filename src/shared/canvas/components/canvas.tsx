@@ -6,7 +6,8 @@ import {
 	useRef,
 } from 'react'
 import { CanvasContext } from '../model/canvas-context'
-import { SetShape, ShapeDrawingData, RemoveShape } from '../lib/types'
+import { ShapeDrawingData } from '../lib/types'
+import { LayerContext } from '../model/layer-context'
 
 interface CanvasProps extends PropsWithChildren {
 	width?: number
@@ -14,7 +15,11 @@ interface CanvasProps extends PropsWithChildren {
 	bgColor?: string
 }
 
-type Shapes = Map<string, ShapeDrawingData>
+type Layers = Map<string, HTMLCanvasElement>
+type Contexts = Map<string, CanvasRenderingContext2D>
+type LayerShapes = Map<string, ShapeDrawingData>
+type Shapes = Map<string, LayerShapes>
+type Subscribers = Map<string, boolean>
 
 export const Canvas = ({
 	children,
@@ -22,33 +27,17 @@ export const Canvas = ({
 	width = 500,
 	bgColor = 'white',
 }: CanvasProps) => {
-	const staticCanvas = useRef<HTMLCanvasElement | null>(null)
-	const dynamicCanvas = useRef<HTMLCanvasElement | null>(null)
+	const layers = useRef<Layers>(new Map())
+	const contexts = useRef<Contexts>(new Map())
+	const redrawSubscribers = useRef<Subscribers>(new Map())
 
-	const staticContext = useRef<CanvasRenderingContext2D | null>(null)
-	const dynamicContext = useRef<CanvasRenderingContext2D | null>(null)
-
-	const staticShapes = useRef<Shapes>(new Map())
-	const dynamicShapes = useRef<Shapes>(new Map())
-
-	const isStaticRedrawNeeded = useRef(true)
-	const isDynamicRedrawNeeded = useRef(true)
+	const shapes = useRef<Shapes>(new Map())
 
 	const animationFrameId = useRef<number>()
 
-	// --- Инициализация Canvas ---
-	useEffect(() => {
-		const initializeCanvas = (
-			canvas: HTMLCanvasElement | null,
-			context: React.MutableRefObject<CanvasRenderingContext2D | null>
-		) => {
+	const initializeCanvas = useCallback(
+		(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
 			if (canvas instanceof HTMLCanvasElement) {
-				const ctx = canvas.getContext('2d')
-				if (!ctx)
-					throw new Error('Не удалось получить 2D контекст для canvas')
-
-				context.current = ctx
-
 				const dpr = window.devicePixelRatio || 1
 				const logicalWidth = width
 				const logicalHeight = height
@@ -58,19 +47,23 @@ export const Canvas = ({
 				canvas.style.width = `${logicalWidth}px`
 				canvas.style.height = `${logicalHeight}px`
 
-				ctx.scale(dpr, dpr)
+				context.scale(dpr, dpr)
 			}
+		},
+		[width, height]
+	)
 
-			// При изменении размера перерисовываем оба слоя
-			isStaticRedrawNeeded.current = true
-			isDynamicRedrawNeeded.current = true
-		}
+	useEffect(() => {
+		layers.current.forEach((canvas, name) => {
+			const ctx = contexts.current.get(name)
+			if (ctx) {
+				initializeCanvas(canvas, ctx)
+				redrawSubscribers.current.set(name, true)
+			}
+		})
+	}, [width, height, initializeCanvas])
 
-		initializeCanvas(staticCanvas.current, staticContext)
-		initializeCanvas(dynamicCanvas.current, dynamicContext)
-	}, [width, height])
-
-	const drawShapes = (ctx: CanvasRenderingContext2D, shapes: Shapes) => {
+	const drawShapes = (ctx: CanvasRenderingContext2D, shapes: LayerShapes) => {
 		const sortedShapes = Array.from(shapes.values()).sort(
 			(a, b) => (a.shapeParams.zIndex || 0) - (b.shapeParams.zIndex || 0)
 		)
@@ -89,35 +82,17 @@ export const Canvas = ({
 		const redrawLoop = () => {
 			animationFrameId.current = requestAnimationFrame(redrawLoop)
 
-			if (isStaticRedrawNeeded.current || isDynamicRedrawNeeded.current) {
-				console.log(
-					isStaticRedrawNeeded.current,
-					isDynamicRedrawNeeded.current
-				)
-			}
-			// Перерисовка статичного слоя
-			if (isStaticRedrawNeeded.current && staticContext.current) {
-				isStaticRedrawNeeded.current = false
-
-				const ctx = staticContext.current
-				ctx.clearRect(0, 0, width, height) // Очищаем только статичный слой
-				ctx.fillStyle = bgColor // Фон рисуем здесь
-				ctx.fillRect(0, 0, width, height)
-
-				// Рисуем все статичные шейпы
-				drawShapes(ctx, staticShapes.current)
-			}
-
-			// Перерисовка динамичного слоя
-			if (isDynamicRedrawNeeded.current && dynamicContext.current) {
-				isDynamicRedrawNeeded.current = false
-
-				const ctx = dynamicContext.current
-				ctx.clearRect(0, 0, width, height) // Очищаем только динамичный слой
-
-				// Рисуем все динамичные шейпы
-				drawShapes(ctx, dynamicShapes.current)
-			}
+			redrawSubscribers.current.forEach((needRedraw, key, map) => {
+				if (needRedraw) {
+					map.set(key, false)
+					const ctx = contexts.current.get(key)
+					const layerShapes = shapes.current.get(key)
+					if (ctx && layerShapes) {
+						ctx.clearRect(0, 0, width, height)
+						drawShapes(ctx, layerShapes)
+					}
+				}
+			})
 		}
 
 		redrawLoop()
@@ -129,64 +104,84 @@ export const Canvas = ({
 		}
 	}, [bgColor, width, height])
 
-	const setShape: SetShape = useCallback((shapeData: ShapeDrawingData) => {
-		console.log('setShape')
-		if (shapeData.shapeParams.layer === 'static') {
-			if (dynamicShapes.current.has(shapeData.id)) {
-				dynamicShapes.current.delete(shapeData.id)
-				isDynamicRedrawNeeded.current = true
+	const setShape = useCallback((shapeData: ShapeDrawingData) => {
+		const { id, layer } = shapeData
+
+		if (!shapes.current.has(layer)) {
+			shapes.current.set(layer, new Map())
+		}
+
+		shapes.current.forEach((layerShapes, key) => {
+			if (layerShapes.has(id) && layer !== key) {
+				layerShapes.delete(id)
+				redrawSubscribers.current.set(key, true)
 			}
-			staticShapes.current.set(shapeData.id, shapeData)
-			isStaticRedrawNeeded.current = true
-		} else {
-			if (staticShapes.current.has(shapeData.id)) {
-				staticShapes.current.delete(shapeData.id)
-				isStaticRedrawNeeded.current = true
+			if (layer === key) {
+				layerShapes.set(id, shapeData)
+				redrawSubscribers.current.set(key, true)
 			}
-			dynamicShapes.current.set(shapeData.id, shapeData)
-			isDynamicRedrawNeeded.current = true
+		})
+	}, [])
+
+	const removeShape = useCallback((shapeData: ShapeDrawingData) => {
+		const { id, layer } = shapeData
+		const layerShapes = shapes.current.get(layer)
+		if (layerShapes) {
+			layerShapes.delete(id)
+			redrawSubscribers.current.set(layer, true)
 		}
 	}, [])
 
-	const removeShape: RemoveShape = useCallback(
-		(shapeData: ShapeDrawingData) => {
-			if (shapeData.shapeParams.layer === 'dynamic') {
-				dynamicShapes.current.delete(shapeData.id)
-				isDynamicRedrawNeeded.current = true
-			} else {
-				staticShapes.current.delete(shapeData.id)
-				isStaticRedrawNeeded.current = true
-			}
-		},
-		[]
+	const contextValue = useMemo(
+		() => ({ setShape, removeShape }),
+		[setShape, removeShape]
 	)
 
-	const contextValue = { setShape, removeShape }
+	const registerLayer = useCallback(
+		(name: string, canvas: HTMLCanvasElement) => {
+			if (layers.current.has(name)) return
 
-	const containerSize = useMemo(() => {
+			layers.current.set(name, canvas)
+			const ctx = canvas.getContext('2d')
+			if (ctx) {
+				contexts.current.set(name, ctx)
+				initializeCanvas(canvas, ctx)
+				redrawSubscribers.current.set(name, true)
+			}
+		},
+		[initializeCanvas]
+	)
+
+	const unregisterLayer = useCallback((name: string) => {
+		layers.current.delete(name)
+		contexts.current.delete(name)
+		shapes.current.delete(name)
+		redrawSubscribers.current.delete(name)
+	}, [])
+
+	const layerRegistryValue = useMemo(
+		() => ({
+			registerLayer,
+			unregisterLayer,
+		}),
+		[registerLayer, unregisterLayer]
+	)
+
+	const containerStyle = useMemo(() => {
 		return {
 			width: `${width}px`,
 			height: `${height}px`,
+			backgroundColor: bgColor,
 		}
 	}, [width, height])
 
 	return (
 		<CanvasContext.Provider value={contextValue}>
-			{children}
-			<div className="relative" style={containerSize}>
-				<canvas
-					className="absolute top-0 left-0"
-					ref={staticCanvas}
-					width={width}
-					height={height}
-				/>
-				<canvas
-					className="absolute top-0 left-0"
-					ref={dynamicCanvas}
-					width={width}
-					height={height}
-				/>
-			</div>
+			<LayerContext.Provider value={layerRegistryValue}>
+				<div className="relative" style={containerStyle}>
+					{children}
+				</div>
+			</LayerContext.Provider>
 		</CanvasContext.Provider>
 	)
 }

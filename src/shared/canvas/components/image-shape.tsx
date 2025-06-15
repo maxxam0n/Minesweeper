@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useShape } from '../lib/use-shape'
-import { Layer } from '../lib/types'
 
 interface ImageShapeProps {
 	src: string
 	x: number
 	y: number
-	layer?: Layer
 	width?: number
 	height?: number
 	zIndex?: number
@@ -19,7 +17,6 @@ export const ImageShape = ({
 	x,
 	y,
 	width,
-	layer = 'dynamic',
 	height,
 	zIndex = 0,
 }: ImageShapeProps) => {
@@ -66,7 +63,7 @@ export const ImageShape = ({
 		// Если статус 'loading' или 'error', ничего не рисуем
 	}, deps)
 
-	useShape(draw, { zIndex, layer }, deps)
+	useShape(draw, { zIndex }, deps)
 
 	return null
 }

@@ -1,12 +1,10 @@
 import { useCallback } from 'react'
 import { useShape } from '../lib/use-shape'
-import { Layer } from '../lib/types'
 
 interface TextProps {
 	x: number
 	y: number
 	text: string | number
-	layer?: Layer
 	font?: string
 	textAlign?: 'start' | 'end' | 'left' | 'right' | 'center'
 	textBaseline?:
@@ -28,7 +26,6 @@ export const TextShape = ({
 	x,
 	y,
 	text,
-	layer = 'dynamic',
 	font = 'bold 16px sans-serif',
 	textAlign = 'start',
 	textBaseline = 'alphabetic',
@@ -83,7 +80,7 @@ export const TextShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex, layer }, deps)
+	useShape(draw, { zIndex }, deps)
 
 	return null
 }
