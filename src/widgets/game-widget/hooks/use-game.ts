@@ -15,7 +15,11 @@ export const useGame = ({ params, type, seed, noGuessing }: GameConfig) => {
 	const remainingMines = params.mines - flagged
 
 	const resetGame = () => {
-		gameInstance.current = new GameEngine({ params, type, seed })
+		gameInstance.current = new GameEngine({
+			params,
+			type,
+			seed: String(Date.now()),
+		})
 		setGameState(gameInstance.current.gameState)
 	}
 

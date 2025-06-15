@@ -67,18 +67,18 @@ export const GameWidget = ({ config }: IGameProps) => {
 		const { gameState, animationEvents } = revealCell(pos)
 		updateStatistic({ revealed: gameState.revealed, time, params })
 
-		animationEvents.forEach(event => {
-			if (event.type === 'press') {
-				addAnimation('press', { pos: event.pos })
-			}
-			if (event.type === 'cascade') {
-				event.positions.forEach((p, index) => {
-					setTimeout(() => {
-						addAnimation('press', { pos: p })
-					}, index * 15)
-				})
-			}
-		})
+		// animationEvents.forEach(event => {
+		// 	if (event.type === 'press') {
+		// 		addAnimation('press', { pos: event.pos })
+		// 	}
+		// 	if (event.type === 'cascade') {
+		// 		event.positions.forEach((p, index) => {
+		// 			setTimeout(() => {
+		// 				addAnimation('press', { pos: p })
+		// 			}, index * 15)
+		// 		})
+		// 	}
+		// })
 
 		if (gameState.status !== lastStatus.current) {
 			if (gameState.status === GameStatus.Playing) onPlay()
