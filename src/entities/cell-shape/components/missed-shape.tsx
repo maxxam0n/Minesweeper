@@ -1,4 +1,6 @@
+import { useContext } from 'react'
 import { LineShape } from '@/shared/canvas'
+import { LayerContext } from '../model/layer-context'
 
 export const MissedShape = ({
 	x,
@@ -9,10 +11,13 @@ export const MissedShape = ({
 	y: number
 	size: number
 }) => {
+	const layer = useContext(LayerContext)
+
 	return (
 		<>
 			{/* Красный крестик */}
 			<LineShape
+				layer={layer}
 				x1={x + size * 0.25}
 				y1={y + size * 0.25}
 				x2={x + size * 0.75}
@@ -22,6 +27,7 @@ export const MissedShape = ({
 				zIndex={2}
 			/>
 			<LineShape
+				layer={layer}
 				x1={x + size * 0.75}
 				y1={y + size * 0.25}
 				x2={x + size * 0.25}

@@ -8,8 +8,14 @@ if (!domRoot) {
 	throw new Error('Root element not found')
 }
 
+const USE_STRICT = false
+
 ReactDOM.createRoot(domRoot).render(
-	<React.StrictMode>
+	USE_STRICT ? (
+		<React.StrictMode>
+			<RouterProvider router={router} />
+		</React.StrictMode>
+	) : (
 		<RouterProvider router={router} />
-	</React.StrictMode>
+	)
 )

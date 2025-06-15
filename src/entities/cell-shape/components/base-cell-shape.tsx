@@ -1,6 +1,7 @@
-import { ReactNode } from 'react'
+import { ReactNode, useContext } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { RectShape } from '@/shared/canvas'
+import { LayerContext } from '../model/layer-context'
 
 export const BaseCellShape = ({
 	x,
@@ -23,6 +24,8 @@ export const BaseCellShape = ({
 }) => {
 	const { CLOSED, REVEALED, BORDER, EXPLODED, MISSED } = useGameColors()
 
+	const layer = useContext(LayerContext)
+
 	const color = missed
 		? MISSED
 		: exploded
@@ -41,6 +44,7 @@ export const BaseCellShape = ({
 				fillColor={color}
 				strokeColor={BORDER}
 				lineWidth={borderWidth}
+				layer={layer}
 				zIndex={Number(exploded)}
 			/>
 			{children}

@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useShape } from '../lib/use-shape'
+import { Layer } from '../lib/types'
 
 interface LineProps {
 	x1: number
@@ -7,6 +8,7 @@ interface LineProps {
 	y1: number
 	y2: number
 	zIndex: number
+	layer?: Layer
 	strokeColor?: string
 	lineWidth?: number
 }
@@ -18,6 +20,7 @@ export const LineShape = ({
 	y2,
 	zIndex,
 	strokeColor,
+	layer = 'dynamic',
 	lineWidth = 1,
 }: LineProps) => {
 	const deps = [x1, x2, y1, y2, strokeColor, lineWidth]
@@ -33,6 +36,6 @@ export const LineShape = ({
 		ctx.stroke()
 	}, deps)
 
-	useShape(draw, { zIndex }, deps)
+	useShape(draw, { zIndex, layer }, deps)
 	return null
 }

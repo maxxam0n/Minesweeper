@@ -25,7 +25,7 @@ export const GameField = ({
 			cellSize: 30,
 			font: 'Tektur',
 			bevelWidth: 3,
-			borderWidth: 2,
+			borderWidth: 1,
 		}),
 		[]
 	)

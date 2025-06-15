@@ -1,5 +1,7 @@
+import { useContext } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { CircleShape, LineShape } from '@/shared/canvas'
+import { LayerContext } from '../model/layer-context'
 
 interface MineShapeProps {
 	x: number
@@ -8,6 +10,8 @@ interface MineShapeProps {
 }
 
 export const MineShape = ({ x, y, size }: MineShapeProps) => {
+	const layer = useContext(LayerContext)
+
 	const { MINE } = useGameColors()
 
 	// --- Параметры для настройки внешнего вида ---
@@ -25,6 +29,7 @@ export const MineShape = ({ x, y, size }: MineShapeProps) => {
 	// --- Основной шар мины ---
 	const MainBody = (
 		<CircleShape
+			layer={layer}
 			cx={center.x}
 			cy={center.y}
 			radius={mainRadius}
@@ -36,6 +41,7 @@ export const MineShape = ({ x, y, size }: MineShapeProps) => {
 	// --- Блик ---
 	const Glare = (
 		<CircleShape
+			layer={layer}
 			cx={center.x - glareOffset}
 			cy={center.y - glareOffset}
 			radius={glareRadius}
@@ -61,6 +67,7 @@ export const MineShape = ({ x, y, size }: MineShapeProps) => {
 		<>
 			{spikeEndPoints.map((endPoint, index) => (
 				<LineShape
+					layer={layer}
 					key={index}
 					x1={center.x}
 					y1={center.y}

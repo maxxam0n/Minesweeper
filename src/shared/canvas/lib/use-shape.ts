@@ -13,7 +13,14 @@ export const useShape = (
 	useEffect(() => {
 		const shapeData = { id, draw, shapeParams }
 		setShape(shapeData)
-		
+
 		return () => removeShape(shapeData)
-	}, [...deps, id, setShape, removeShape])
+	}, [
+		...deps,
+		shapeParams.layer,
+		shapeParams.zIndex,
+		id,
+		setShape,
+		removeShape,
+	])
 }

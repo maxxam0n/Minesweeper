@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useShape } from '../lib/use-shape'
+import { Layer } from '../lib/types'
 
 interface ImageShapeProps {
 	src: string
 	x: number
 	y: number
+	layer?: Layer
 	width?: number
 	height?: number
 	zIndex?: number
@@ -17,6 +19,7 @@ export const ImageShape = ({
 	x,
 	y,
 	width,
+	layer = 'dynamic',
 	height,
 	zIndex = 0,
 }: ImageShapeProps) => {
@@ -52,7 +55,7 @@ export const ImageShape = ({
 		}
 	}, [src])
 
-	const deps = [image, status, x, y, width, height, zIndex]
+	const deps = [image, status, x, y, width, height]
 
 	const draw = useCallback((ctx: CanvasRenderingContext2D) => {
 		if (status === 'loaded' && image) {
@@ -63,7 +66,7 @@ export const ImageShape = ({
 		// Если статус 'loading' или 'error', ничего не рисуем
 	}, deps)
 
-	useShape(draw, { zIndex }, deps)
+	useShape(draw, { zIndex, layer }, deps)
 
 	return null
 }

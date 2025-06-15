@@ -1,6 +1,8 @@
 export type DrawFun = (ctx: CanvasRenderingContext2D) => void
 
-export type ShapeParams = { zIndex: number } & Record<string, unknown>
+export type ShapeParams = { zIndex: number; layer: Layer }
+
+export type Layer = 'static' | 'dynamic'
 
 export type ShapeDrawingData = {
 	draw: DrawFun

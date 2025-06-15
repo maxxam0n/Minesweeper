@@ -1,6 +1,8 @@
 import { memo } from 'react'
 import { CellDrawingData, CellDrawingView } from '@/engine'
 import { ViewConfig } from '../lib/types'
+import { getLayer } from '../lib/get-layer'
+import { LayerContext } from '../model/layer-context'
 import { BevelShape } from './bevel-shape'
 import { BaseCellShape } from './base-cell-shape'
 import { DigitShape } from './digit-shape'
@@ -37,9 +39,13 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 	const x = position.x * cellSize
 	const y = position.y * cellSize
 
+	const layer = getLayer(view)
+
+	let CellShape = null
+
 	switch (view) {
 		case CellDrawingView.Closed:
-			return (
+			CellShape = (
 				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
 					<BaseCellShape
 						x={x}
@@ -49,9 +55,10 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 					/>
 				</BevelShape>
 			)
+			break
 
 		case CellDrawingView.Empty:
-			return (
+			CellShape = (
 				<BaseCellShape
 					x={x}
 					y={y}
@@ -60,9 +67,10 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 					borderWidth={borderWidth}
 				/>
 			)
+			break
 
 		case CellDrawingView.Digit:
-			return (
+			CellShape = (
 				<BaseCellShape
 					x={x}
 					y={y}
@@ -79,9 +87,10 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 					/>
 				</BaseCellShape>
 			)
+			break
 
 		case CellDrawingView.Flag:
-			return (
+			CellShape = (
 				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
 					<BaseCellShape
 						x={x}
@@ -93,9 +102,10 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 					</BaseCellShape>
 				</BevelShape>
 			)
+			break
 
 		case CellDrawingView.Mine:
-			return (
+			CellShape = (
 				<BaseCellShape
 					x={x}
 					y={y}
@@ -106,9 +116,10 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 					<MineShape x={x} y={y} size={cellSize} />
 				</BaseCellShape>
 			)
+			break
 
 		case CellDrawingView.Exploded:
-			return (
+			CellShape = (
 				<BaseCellShape
 					x={x}
 					y={y}
@@ -119,9 +130,10 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 					<MineShape x={x} y={y} size={cellSize} />
 				</BaseCellShape>
 			)
+			break
 
 		case CellDrawingView.Missed:
-			return (
+			CellShape = (
 				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
 					<BaseCellShape
 						x={x}
@@ -134,10 +146,15 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 					</BaseCellShape>
 				</BevelShape>
 			)
+			break
 
 		default:
-			return null
+			CellShape = null
 	}
+
+	return (
+		<LayerContext.Provider value={layer}>{CellShape}</LayerContext.Provider>
+	)
 }
 
 export const CellShape = memo(CellShapeComponent, areCellsEqual)
