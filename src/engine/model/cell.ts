@@ -17,7 +17,7 @@ export class CellModel implements Cell {
 			isFlagged: boolean
 			adjacentMines: number
 		}
-	) {
+	): Cell {
 		const newCell = new CellModel(field, data.position)
 
 		newCell.isMine = data.isMine
@@ -58,16 +58,25 @@ export class CellModel implements Cell {
 		})
 	}
 
+	public unMine() {
+		this.isMine = false
+		this.field.getSiblings(this.position).forEach(pos => {
+			const sibling = this.field.getCell(pos)
+			sibling.adjacentMines -= 1
+		})
+	}
+
 	public open() {
 		let unflaggedPositions: Position[] = []
 		let revealedPositions: Position[] = []
 		const area = this.field.getAreaToReveal(this.position)
 		area.forEach(areaPos => {
 			const cellToProcess = this.field.getCell(areaPos)
-			if (cellToProcess.isFlagged && !cellToProcess.isMine) {
+			if (cellToProcess.isFlagged) {
 				cellToProcess.isFlagged = false
 				unflaggedPositions.push(areaPos)
-			} else if (!cellToProcess.isRevealed) {
+			}
+			if (!cellToProcess.isRevealed) {
 				revealedPositions.push(areaPos)
 				cellToProcess.isRevealed = true
 			}

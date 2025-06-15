@@ -87,7 +87,7 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 						x={x}
 						y={y}
 						size={cellSize}
-						borderWidth={borderWidth}
+						borderWidth={0}
 					>
 						<FlagShape x={x} y={y} size={cellSize} />
 					</BaseCellShape>

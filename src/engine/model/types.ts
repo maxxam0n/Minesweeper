@@ -47,16 +47,19 @@ export interface Cell {
 	isFlagged: boolean
 	isEmpty: boolean
 	mine(): void
+	unMine(): void
 	open(): { unflaggedPositions: Position[]; revealedPositions: Position[] }
 	getDrawingData(status: GameStatus): CellDrawingData
 	clone(newField: Field): Cell
 }
 
 export interface Field {
-	data: Cell[][]
+	grid: Cell[][]
 	isMined: boolean
 	readonly params: GameParams
+	isInBoundary(position: Position): boolean
 	placeMines(safeCell: Position): void
+	relocateMine(from: Position, to: Position): void
 	getAreaToReveal(target: Position): Position[]
 	getCell(position: Position): Cell
 	getSiblings(position: Position): Position[]

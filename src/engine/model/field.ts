@@ -10,9 +10,19 @@ import {
 	Position,
 } from './types'
 
+interface ConstrutorProps {
+	params: GameParams
+	seed?: string
+	data?: CellDrawingData[][]
+}
+
 export class FieldModel implements Field {
-	// ---------Методы класса-------------
-	private static createEmptyField(field: Field): Cell[][] {
+	// --------- Методы класса -------------
+	static getPositionHash(position: Position): string {
+		return `${position.y}${position.x}`
+	}
+
+	private static createEmptyGrid(field: Field) {
 		const createCell = ({ col: x, row: y }: { col: number; row: number }) => {
 			return new CellModel(field, { x, y })
 		}
@@ -20,10 +30,7 @@ export class FieldModel implements Field {
 		return createGrid(field.params.rows, field.params.cols, createCell)
 	}
 
-	static createFieldFromData(
-		field: Field,
-		data: CellDrawingData[][]
-	): Cell[][] {
+	private static createGridFromData(field: Field, data: CellDrawingData[][]) {
 		return data.map(row =>
 			row.map(cell => CellModel.createFromData(field, cell))
 		)
@@ -31,27 +38,24 @@ export class FieldModel implements Field {
 
 	// -------------------------------------
 	public readonly params: GameParams
-	public data: Cell[][]
+	public grid: Cell[][]
 	public isMined: boolean
 
 	private rng: () => number
 	private seed?: string
 
-	constructor(
-		{ params, seed }: { params: GameParams; seed?: string },
-		data?: CellDrawingData[][]
-	) {
+	constructor({ params, seed, data }: ConstrutorProps) {
 		this.params = params
+		this.isMined = false
 		this.seed = seed
 		this.rng = seedrandom(seed)
 
 		if (data) {
-			this.data = FieldModel.createFieldFromData(this, data)
+			this.grid = FieldModel.createGridFromData(this, data)
+			this.isMined = this.grid.some(row => row.some(cell => cell.isMine))
 		} else {
-			this.data = FieldModel.createEmptyField(this)
+			this.grid = FieldModel.createEmptyGrid(this)
 		}
-
-		this.isMined = this.data.some(row => row.some(cell => cell.isMine))
 	}
 
 	public placeMines(safeCell: Position) {
@@ -60,7 +64,7 @@ export class FieldModel implements Field {
 		this.isMined = true
 		const { cols, rows, mines } = this.params
 		const avoidSet = new Set()
-		avoidSet.add(this.getPositionHash(safeCell))
+		avoidSet.add(FieldModel.getPositionHash(safeCell))
 
 		let minesPlacedCount = 0
 		while (minesPlacedCount < mines) {
@@ -68,7 +72,7 @@ export class FieldModel implements Field {
 				x: Math.floor(this.rng() * cols),
 				y: Math.floor(this.rng() * rows),
 			}
-			const hash = this.getPositionHash(position)
+			const hash = FieldModel.getPositionHash(position)
 
 			if (!avoidSet.has(hash)) {
 				avoidSet.add(hash)
@@ -76,6 +80,16 @@ export class FieldModel implements Field {
 				minesPlacedCount += 1
 			}
 		}
+	}
+
+	public relocateMine(from: Position, to: Position) {
+		this.getCell(from).unMine()
+		this.getCell(to).mine()
+	}
+
+	/* ------------- Вспомогательные методы ------------- */
+	public isInBoundary({ x, y }: Position): boolean {
+		return x >= 0 && y >= 0 && x < this.params.cols && y < this.params.rows
 	}
 
 	public getAreaToReveal(target: Position): Position[] {
@@ -103,21 +117,8 @@ export class FieldModel implements Field {
 		return result
 	}
 
-	public getDrawingData(status: GameStatus) {
-		return this.data.map(row => row.map(cell => cell.getDrawingData(status)))
-	}
-
-	private getPositionHash(position: Position): string {
-		return `${position.y}${position.x}`
-	}
-
-	private isInBoundary({ x, y }: Position): boolean {
-		return x >= 0 && y >= 0 && x < this.params.cols && y < this.params.rows
-	}
-
-	/* ======= Вспомогательные методы ======= */
 	public getCell({ x, y }: Position): Cell {
-		return this.data[y][x]
+		return this.grid[y][x]
 	}
 
 	public getSiblings({ x, y }: Position): Position[] {
@@ -134,14 +135,18 @@ export class FieldModel implements Field {
 		return siblings
 	}
 
+	public getDrawingData(status: GameStatus) {
+		return this.grid.map(row => row.map(cell => cell.getDrawingData(status)))
+	}
+
 	public createCopy(): Field {
 		const newField = new FieldModel({ params: this.params, seed: this.seed })
 
-		const newGrid = this.data.map(row =>
+		const newGrid = this.grid.map(row =>
 			row.map(cell => cell.clone(newField))
 		)
 
-		newField.data = newGrid
+		newField.grid = newGrid
 		newField.isMined = this.isMined
 
 		return newField

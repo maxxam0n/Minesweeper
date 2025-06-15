@@ -1,7 +1,5 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { GameStatus, Position } from '@/engine'
-import { BevelPressAnimation } from '@/entities/cell-shape'
-import { Layer } from '@/shared/canvas'
 import { useGame } from '../hooks/use-game'
 import { useTimer } from '../hooks/use-timer'
 import { useStatistic } from '../hooks/use-statistic'
@@ -13,35 +11,28 @@ interface IGameProps {
 }
 
 export const GameWidget = ({ config }: IGameProps) => {
-	const { params, type } = config
+	const { params } = config
 
-	const { time, resetTimer, startTimer, stopTimer } = useTimer()
-	const { score, efficiency, updateStatistic, resetStatistic } = useStatistic()
+	const { time, startTimer, stopTimer } = useTimer()
+	const { updateStatistic } = useStatistic()
 
-	const {
-		drawingData,
-		gameOver,
-		revealed,
-		status,
-		remainingMines,
-		revealCell,
-		toggleFlag,
-		resetGame,
-	} = useGame(config)
+	const { drawingData, gameOver, status, revealCell, toggleFlag } =
+		useGame(config)
 
 	const lastStatus = useRef(status)
 
-	const reset = () => {
-		resetTimer()
-		resetStatistic()
-		resetGame()
-	}
+	// const reset = () => {
+	// 	resetTimer()
+	// 	resetStatistic()
+	// 	resetGame()
+	// }
 
 	const onPlay = () => {
 		startTimer()
 	}
 
 	const onLose = () => {
+		console.log('lose')
 		stopTimer()
 	}
 
@@ -49,36 +40,12 @@ export const GameWidget = ({ config }: IGameProps) => {
 		stopTimer()
 	}
 
-	const [animations, setAnimations] = useState<any[]>([])
-	const animationIdCounter = useRef(0)
-
-	const addAnimation = (type: string, props: object) => {
-		const id = animationIdCounter.current++
-		setAnimations(prev => [...prev, { id, type, ...props }])
-	}
-
-	const removeAnimation = (id: number) => {
-		setAnimations(prev => prev.filter(anim => anim.id !== id))
-	}
-
 	const onClick = (pos: Position) => {
 		if (gameOver) return
 
-		const { gameState, animationEvents } = revealCell(pos)
-		updateStatistic({ revealed: gameState.revealed, time, params })
+		const { gameState } = revealCell(pos)
 
-		animationEvents.forEach(event => {
-			if (event.type === 'press') {
-				addAnimation('press', { pos: event.pos })
-			}
-			if (event.type === 'cascade') {
-				event.positions.forEach((p, index) => {
-					setTimeout(() => {
-						addAnimation('press', { pos: p })
-					}, index * 15)
-				})
-			}
-		})
+		updateStatistic({ revealed: gameState.revealed, time, params })
 
 		if (gameState.status !== lastStatus.current) {
 			if (gameState.status === GameStatus.Playing) onPlay()
@@ -94,22 +61,6 @@ export const GameWidget = ({ config }: IGameProps) => {
 			isGameOver={gameOver}
 			onReveal={onClick}
 			onToggleFlag={toggleFlag}
-		>
-			<Layer name="animations" zIndex={10}>
-				{animations.map(anim => {
-					if (anim.type === 'press') {
-						return (
-							<BevelPressAnimation
-								key={anim.id}
-								pos={anim.pos}
-								cellSize={30} // или из viewConfig
-								onComplete={() => removeAnimation(anim.id)}
-							/>
-						)
-					}
-					return null
-				})}
-			</Layer>
-		</GameField>
+		/>
 	)
 }
