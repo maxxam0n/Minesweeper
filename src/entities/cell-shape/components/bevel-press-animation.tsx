@@ -19,8 +19,8 @@ export const BevelPressAnimation = ({
 	const { DARK_BEVEL, LIGHT_BEVEL } = useGameColors()
 
 	const draw = (ctx: CanvasRenderingContext2D) => {
-		const x = pos.x * cellSize
-		const y = pos.y * cellSize
+		const x = pos.col * cellSize
+		const y = pos.row * cellSize
 		const width = 3
 
 		// 1-й кадр: рисуем инвертированную фаску
@@ -47,7 +47,7 @@ export const BevelPressAnimation = ({
 	}
 
 	// Регистрируем фигуру на канвасе
-	useShape(draw, { zIndex: 1 }, [pos, cellSize])
+	useShape(draw, { zIndex: 1, opacity: 0 }, [pos, cellSize])
 
 	useEffect(() => {
 		const animate = () => {

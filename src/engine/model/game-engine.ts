@@ -1,10 +1,11 @@
+import { BaseField } from './base-field'
 import { FieldFactory } from './field-factory'
 import {
 	ActionResult,
 	AnimationEvent,
-	Cell,
-	Field,
+	CellData,
 	FieldType,
+	GameMode,
 	GameParams,
 	GameStatus,
 	Position,
@@ -12,31 +13,31 @@ import {
 
 type MineSweeperConfig = {
 	params: GameParams
+	type: FieldType
 	seed?: string
-	type?: FieldType
-	noGuessing?: boolean
+	mode?: GameMode
 }
 
 export class GameEngine {
-	private field: Field
+	private mode: GameMode
+	private field: BaseField<CellData>
 	private params: GameParams
 	private status: GameStatus
 	private flagged: number
 	private revealed: number
-	private noGuessing: boolean
 
 	constructor({
 		params,
-		type = 'classic',
-		seed,
-		noGuessing = false,
+		type,
+		seed = String(Date.now()),
+		mode = 'guessing',
 	}: MineSweeperConfig) {
+		this.mode = mode
 		this.params = params
 		this.field = FieldFactory.create({ params, type, seed })
 		this.status = GameStatus.Idle
 		this.flagged = 0
 		this.revealed = 0
-		this.noGuessing = noGuessing
 	}
 
 	public revealCell(pos: Position): ActionResult {
@@ -82,7 +83,7 @@ export class GameEngine {
 		}
 
 		return {
-			gameState: this.gameState,
+			gameSnapshot: this.gameSnapshot,
 			animationEvents,
 			actionChanges: {
 				flaggedPositions: [],
@@ -116,7 +117,7 @@ export class GameEngine {
 			this.flagged - unflaggedPositions.length + flaggedPositions.length
 
 		return {
-			gameState: this.gameState,
+			gameSnapshot: this.gameSnapshot,
 			animationEvents: [],
 			actionChanges: {
 				flaggedPositions,
@@ -127,7 +128,7 @@ export class GameEngine {
 		}
 	}
 
-	private handleRevealedClick(targetCell: Cell) {
+	private handleRevealedClick(targetCell: CellData) {
 		let revealedPositions: Position[] = []
 		let unflaggedPositions: Position[] = []
 
@@ -186,7 +187,8 @@ export class GameEngine {
 		return this.revealed === cols * rows - mines
 	}
 
-	get gameState() {
+	get gameSnapshot() {
+		console.log('get gameSnapshot', this.field)
 		return {
 			drawingData: this.field.getDrawingData(this.status),
 			status: this.status,

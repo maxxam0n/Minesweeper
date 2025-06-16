@@ -6,6 +6,7 @@ import {
 	useMemo,
 } from 'react'
 import {
+	CellData,
 	CellDrawingData,
 	CellDrawingView,
 	GameStatus,
@@ -59,13 +60,13 @@ export const GameField = ({
 		(event: MouseEvent): Position | null => {
 			const rect = event.currentTarget.getBoundingClientRect()
 
-			const x = Math.floor((event.clientX - rect.left) / cellSize)
-			const y = Math.floor((event.clientY - rect.top) / cellSize)
+			const col = Math.floor((event.clientX - rect.left) / cellSize)
+			const row = Math.floor((event.clientY - rect.top) / cellSize)
 
-			if (x < 0 || x >= cols || y < 0 || y >= rows) {
+			if (col < 0 || col >= cols || row < 0 || row >= rows) {
 				return null
 			}
-			return { x, y }
+			return { col, row }
 		},
 		[cellSize, rows, cols]
 	)
@@ -89,9 +90,9 @@ export const GameField = ({
 		[isGameOver, onToggleFlag, getCellPositionFromMouseEvent]
 	)
 
-	const getSolutionView = (cellData: CellDrawingData): CellDrawingView => {
-		if (cellData.isMine) return CellDrawingView.Mine
-		if (cellData.adjacentMines > 0) return CellDrawingView.Digit
+	const getSolutionView = (data: CellData): CellDrawingView => {
+		if (data.isMine) return CellDrawingView.Mine
+		if (data.adjacentMines > 0) return CellDrawingView.Digit
 		return CellDrawingView.Empty
 	}
 
@@ -109,12 +110,12 @@ export const GameField = ({
 		>
 			<Canvas width={width} height={height} bgColor={REVEALED}>
 				<Layer name="solution" zIndex={0}>
-					{drawingData.flat().map(cell => (
+					{drawingData.flat().map(({ data }) => (
 						<CellShape
-							key={`${cell.key}-solution`}
+							key={`${data.key}-solution`}
 							data={{
-								...cell,
-								view: getSolutionView(cell),
+								...data,
+								view: getSolutionView(data),
 							}}
 							viewConfig={viewConfig}
 						/>
@@ -122,14 +123,14 @@ export const GameField = ({
 				</Layer>
 
 				<Layer name="mask" zIndex={1} opacity={0.3}>
-					{drawingData.flat().map(cell => {
-						if ((cell.isMine && isGameLost) || cell.isRevealed) {
+					{drawingData.flat().map(({ data }) => {
+						if ((data.isMine && isGameLost) || data.isRevealed) {
 							return null
 						}
 						return (
 							<CellShape
-								key={`${cell.key}-mask`}
-								data={{ ...cell, view: CellDrawingView.Closed }}
+								key={`${data.key}-mask`}
+								data={{ ...data, view: CellDrawingView.Closed }}
 								viewConfig={viewConfig}
 							/>
 						)
@@ -137,8 +138,7 @@ export const GameField = ({
 				</Layer>
 
 				<Layer name="overlay" zIndex={2}>
-					{drawingData.flat().map(cell => {
-						const view = cell.view
+					{drawingData.flat().map(({ data, view }) => {
 						if (
 							view === CellDrawingView.Flag ||
 							view === CellDrawingView.Exploded ||
@@ -146,8 +146,8 @@ export const GameField = ({
 						) {
 							return (
 								<CellShape
-									key={`${cell.key}-overlay`}
-									data={cell}
+									key={`${data.key}-overlay`}
+									data={{ ...data, view }}
 									viewConfig={viewConfig}
 								/>
 							)

@@ -1,14 +1,16 @@
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { FieldType, GameParams } from '@/engine'
+import { FieldType, GameMode, GameParams } from '@/engine'
 import { parseToNumber } from '@/shared/utils/parse-to-number'
 
 export const useUrlConfig = ({
 	defaultParams,
-	defaultType = 'classic',
+	defaultType = 'square',
+	defaultMode = 'guessing',
 }: {
 	defaultParams: GameParams
 	defaultType: FieldType
+	defaultMode: GameMode
 }) => {
 	const [searchParams, setSearchParams] = useSearchParams()
 
@@ -18,16 +20,20 @@ export const useUrlConfig = ({
 		parseToNumber(searchParams.get('mines')) || defaultParams.mines,
 	]
 
+	const params = { cols, rows, mines }
 	const type = (searchParams.get('type') as FieldType) || defaultType
 	const seed = searchParams.get('seed') || String(Date.now())
-	const params = { cols, rows, mines }
+	const mode = (searchParams.get('mode') as GameMode) || defaultMode
 
 	useEffect(() => {
-		const newSearchParams = Object.entries({ ...params, type, seed }).map(
-			([k, v]) => [k, String(v)]
-		)
+		const newSearchParams = Object.entries({
+			...params,
+			type,
+			seed,
+			mode,
+		}).map(([k, v]) => [k, String(v)])
 		setSearchParams(new URLSearchParams(newSearchParams))
 	}, [cols, rows, mines, type, seed, setSearchParams])
 
-	return { params, type, seed }
+	return { params, type, seed, mode }
 }

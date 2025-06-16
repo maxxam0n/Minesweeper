@@ -5,11 +5,11 @@ export type GameParams = {
 }
 
 export type Position = {
-	x: number
-	y: number
+	col: number
+	row: number
 }
 
-export type FieldType = 'classic'
+export type FieldType = 'square'
 
 export enum GameStatus {
 	Idle = 'idle',
@@ -17,6 +17,8 @@ export enum GameStatus {
 	Won = 'won',
 	Lost = 'lost',
 }
+
+export type GameMode = 'no-guessing' | 'guessing'
 
 export enum CellDrawingView {
 	Digit = 'Digit',
@@ -28,48 +30,35 @@ export enum CellDrawingView {
 	Missed = 'missed',
 }
 
-export interface CellDrawingData {
+export interface CellData {
 	key: string
 	position: Position
 	isMine: boolean
 	adjacentMines: number
 	isRevealed: boolean
 	isFlagged: boolean
+	isEmpty: boolean
+}
+
+export interface CellDrawingData {
+	data: CellData
 	view: CellDrawingView
 }
 
-export interface Cell {
-	readonly key: string
-	readonly position: Position
-	isMine: boolean
-	adjacentMines: number
-	isRevealed: boolean
-	isFlagged: boolean
-	isEmpty: boolean
-	mine(): void
-	unMine(): void
-	getDrawingData(status: GameStatus): CellDrawingData
-	clone(newField: Field): Cell
+export interface ConstructorCellProps extends Partial<CellData> {
+	position: Position
 }
 
-export interface Field {
-	grid: Cell[][]
-	isMined: boolean
-	readonly params: GameParams
-	isInBoundary(position: Position): boolean
-	placeMines(safeCell: Position): void
-	relocateMine(from: Position, to: Position): void
-	getAreaToReveal(target: Position): Position[]
-	getCell(position: Position): Cell
-	getSiblings(position: Position): Position[]
-	getDrawingData(status: GameStatus): CellDrawingData[][]
-	createCopy(): Field
+export interface ConstrutorFieldProps {
+	params: GameParams
+	seed?: string
+	data?: CellData[][]
 }
 
-export interface GameState {
+export interface GameSnapshot {
 	status: GameStatus
 	flagged: number
-	drawingData: Readonly<CellDrawingData>[][]
+	drawingData: CellDrawingData[][]
 	revealed: number
 }
 
@@ -77,15 +66,13 @@ export interface ActionChanges {
 	flaggedPositions: Position[]
 	unflaggedPositions: Position[]
 	revealedPositions: Position[]
-	explodedCells: Readonly<Position>[]
+	explodedCells: Position[]
 }
 
-export type AnimationEvent =
-	| { type: 'press'; pos: Position }
-	| { type: 'cascade'; positions: Position[] }
+export type AnimationEvent = {}
 
 export interface ActionResult {
-	gameState: GameState
-	actionChanges: ActionChanges
+	gameSnapshot: GameSnapshot
 	animationEvents: AnimationEvent[]
+	actionChanges: ActionChanges
 }

@@ -1,13 +1,11 @@
 import { useRef, useState } from 'react'
-import { GameEngine, GameState, GameStatus, Position } from '@/engine'
+import { GameEngine, GameSnapshot, GameStatus, Position } from '@/engine'
 import { GameConfig } from '../lib/types'
 
-export const useGame = ({ params, type, seed, noGuessing }: GameConfig) => {
-	const gameInstance = useRef(
-		new GameEngine({ params, type, seed, noGuessing })
-	)
-	const [gameState, setGameState] = useState<GameState>(
-		gameInstance.current.gameState
+export const useGame = ({ params, type, seed, mode }: GameConfig) => {
+	const gameInstance = useRef(new GameEngine({ params, type, seed, mode }))
+	const [gameState, setGameState] = useState<GameSnapshot>(
+		gameInstance.current.gameSnapshot
 	)
 
 	const { drawingData, flagged, revealed, status } = gameState
@@ -18,15 +16,16 @@ export const useGame = ({ params, type, seed, noGuessing }: GameConfig) => {
 		gameInstance.current = new GameEngine({
 			params,
 			type,
+			mode,
 			seed: String(Date.now()),
 		})
-		setGameState(gameInstance.current.gameState)
+		setGameState(gameInstance.current.gameSnapshot)
 	}
 
 	const revealCell = (pos: Position) => {
 		if (gameOver) return { gameState, animationEvents: [] }
 
-		const { gameState: actualState, animationEvents } =
+		const { gameSnapshot: actualState, animationEvents } =
 			gameInstance.current.revealCell(pos)
 		setGameState(actualState)
 
@@ -36,7 +35,7 @@ export const useGame = ({ params, type, seed, noGuessing }: GameConfig) => {
 	const toggleFlag = (pos: Position) => {
 		if (gameOver) return gameState
 
-		const { gameState: actualState } = gameInstance.current.toggleFlag(pos)
+		const { gameSnapshot: actualState } = gameInstance.current.toggleFlag(pos)
 		setGameState(actualState)
 
 		return actualState

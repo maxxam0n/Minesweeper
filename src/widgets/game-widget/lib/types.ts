@@ -1,8 +1,8 @@
-import { FieldType, GameParams } from '@/engine'
+import { FieldType, GameMode, GameParams } from '@/engine'
 
 export interface GameConfig {
-	noGuessing: boolean
-	params: GameParams
+	mode: GameMode
 	type: FieldType
+	params: GameParams
 	seed: string
 }

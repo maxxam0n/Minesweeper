@@ -1,19 +1,20 @@
-import { FieldModel } from './field'
-import { CellDrawingData, Field, FieldType, GameParams } from './types'
+import { SquareField } from './square-field'
+import { CellData, FieldType, GameParams } from './types'
 
 interface Config {
 	params: GameParams
-	type?: FieldType
+	type: FieldType
 	seed?: string
+	data?: CellData[][]
 }
 
 export class FieldFactory {
-	static create(config: Config, data?: CellDrawingData[][]): Field {
+	static create(config: Config) {
 		switch (config.type) {
-			case 'classic':
-			default: {
-				return new FieldModel({ ...config, data })
-			}
+			case 'square':
+				const field = new SquareField({ ...config })
+				field.placeMines()
+				return field
 		}
 	}
 }

@@ -34,8 +34,8 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 	} = viewConfig
 
 	// Рассчитываем позицию ячейки на холсте
-	const x = position.x * cellSize
-	const y = position.y * cellSize
+	const x = position.col * cellSize
+	const y = position.row * cellSize
 
 	switch (view) {
 		case CellDrawingView.Closed:
@@ -83,12 +83,7 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 		case CellDrawingView.Flag:
 			return (
 				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
-					<BaseCellShape
-						x={x}
-						y={y}
-						size={cellSize}
-						borderWidth={0}
-					>
+					<BaseCellShape x={x} y={y} size={cellSize} borderWidth={0}>
 						<FlagShape x={x} y={y} size={cellSize} />
 					</BaseCellShape>
 				</BevelShape>
