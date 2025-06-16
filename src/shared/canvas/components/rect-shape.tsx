@@ -6,6 +6,7 @@ interface RectProps {
 	y: number
 	width: number
 	height: number
+	opacity?: number
 	fillColor?: string
 	strokeColor?: string
 	lineWidth?: number
@@ -18,6 +19,7 @@ export const RectShape = ({
 	width,
 	height,
 	strokeColor,
+	opacity = 0,
 	fillColor = 'white',
 	lineWidth = 1,
 	zIndex = 0,
@@ -35,7 +37,7 @@ export const RectShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex }, deps)
+	useShape(draw, { zIndex, opacity }, deps)
 
 	return null
 }

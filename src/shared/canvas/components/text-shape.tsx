@@ -5,6 +5,7 @@ interface TextProps {
 	x: number
 	y: number
 	text: string | number
+	opacity?: number
 	font?: string
 	textAlign?: 'start' | 'end' | 'left' | 'right' | 'center'
 	textBaseline?:
@@ -26,6 +27,7 @@ export const TextShape = ({
 	x,
 	y,
 	text,
+	opacity = 0,
 	font = 'bold 16px sans-serif',
 	textAlign = 'start',
 	textBaseline = 'alphabetic',
@@ -80,7 +82,7 @@ export const TextShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex }, deps)
+	useShape(draw, { zIndex, opacity }, deps)
 
 	return null
 }

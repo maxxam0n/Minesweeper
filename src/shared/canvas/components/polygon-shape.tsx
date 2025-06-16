@@ -5,6 +5,7 @@ interface PolygonProps {
 	points: { x: number; y: number }[]
 	closed: boolean
 	zIndex: number
+	opacity?: number
 	fillColor?: string
 	strokeColor?: string
 	lineWidth?: number
@@ -15,6 +16,7 @@ export const PolygonShape = ({
 	closed,
 	zIndex,
 	strokeColor,
+	opacity = 0,
 	fillColor = 'white',
 	lineWidth = 1,
 }: PolygonProps) => {
@@ -45,7 +47,7 @@ export const PolygonShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex }, deps)
+	useShape(draw, { zIndex, opacity }, deps)
 
 	return null
 }

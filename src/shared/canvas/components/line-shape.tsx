@@ -7,6 +7,7 @@ interface LineProps {
 	y1: number
 	y2: number
 	zIndex: number
+	opacity?: number
 	strokeColor?: string
 	lineWidth?: number
 }
@@ -18,6 +19,7 @@ export const LineShape = ({
 	y2,
 	zIndex,
 	strokeColor,
+	opacity = 0,
 	lineWidth = 1,
 }: LineProps) => {
 	const deps = [x1, x2, y1, y2, strokeColor, lineWidth]
@@ -33,7 +35,7 @@ export const LineShape = ({
 		ctx.stroke()
 	}, deps)
 
-	useShape(draw, { zIndex }, deps)
+	useShape(draw, { zIndex, opacity }, deps)
 
 	return null
 }

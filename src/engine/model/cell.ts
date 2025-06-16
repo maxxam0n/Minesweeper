@@ -66,30 +66,22 @@ export class CellModel implements Cell {
 		})
 	}
 
-	public open() {
-		let unflaggedPositions: Position[] = []
-		let revealedPositions: Position[] = []
-		const area = this.field.getAreaToReveal(this.position)
-		area.forEach(areaPos => {
-			const cellToProcess = this.field.getCell(areaPos)
-			if (cellToProcess.isFlagged) {
-				cellToProcess.isFlagged = false
-				unflaggedPositions.push(areaPos)
-			}
-			if (!cellToProcess.isRevealed) {
-				revealedPositions.push(areaPos)
-				cellToProcess.isRevealed = true
-			}
-		})
-		return { unflaggedPositions, revealedPositions }
-	}
-
 	public get isEmpty() {
 		return !this.isMine && this.adjacentMines === 0
 	}
 
 	public getDrawingData(status: GameStatus): CellDrawingData {
 		return { ...this, view: this.getView(status) }
+	}
+
+	public clone(newField: Field): Cell {
+		return CellModel.createFromData(newField, {
+			position: this.position,
+			isMine: this.isMine,
+			isRevealed: this.isRevealed,
+			isFlagged: this.isFlagged,
+			adjacentMines: this.adjacentMines,
+		})
 	}
 
 	private getView(status: GameStatus): CellDrawingView {
@@ -109,15 +101,5 @@ export class CellModel implements Cell {
 			default:
 				return CellDrawingView.Closed
 		}
-	}
-
-	public clone(newField: Field): Cell {
-		return CellModel.createFromData(newField, {
-			position: this.position,
-			isMine: this.isMine,
-			isRevealed: this.isRevealed,
-			isFlagged: this.isFlagged,
-			adjacentMines: this.adjacentMines,
-		})
 	}
 }

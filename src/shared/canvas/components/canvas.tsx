@@ -71,6 +71,8 @@ export const Canvas = ({
 		sortedShapes.forEach(shape => {
 			if (shape.draw) {
 				ctx!.save()
+				const opacity = shape.layerOpacity + shape.shapeParams.opacity
+				ctx.globalAlpha = Math.max(1 - opacity, 0)
 				shape.draw(ctx!)
 				ctx!.restore()
 			}

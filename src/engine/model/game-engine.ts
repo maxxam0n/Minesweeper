@@ -56,7 +56,7 @@ export class GameEngine {
 		// 2. Основная логика
 		if (this.status === GameStatus.Playing && !targetCell.isFlagged) {
 			if (targetCell.isMine) {
-				targetCell.open()
+				targetCell.isRevealed = true
 				explodedCells.push(targetCell.position)
 				this.status = GameStatus.Lost
 			} else if (targetCell.isRevealed) {
@@ -67,7 +67,7 @@ export class GameEngine {
 				explodedCells.push(...result.exploded)
 			} else {
 				// Невскрытая и не мина
-				const result = this.field.getCell(pos).open()
+				const result = this.openArea(pos)
 				revealedPositions.push(...result.revealedPositions)
 				unflaggedPositions.push(...result.unflaggedPositions)
 			}
@@ -145,12 +145,12 @@ export class GameEngine {
 
 				if (sibCell.isMine && !sibCell.isFlagged) {
 					// Проигрыш внутри аккорда
-					sibCell.open()
+					sibCell.isRevealed = true
 					exploded.push(sibPos)
 					this.status = GameStatus.Lost
 				} else {
 					// Открываем безопасную ячейку или пустую область
-					const openResult = sibCell.open()
+					const openResult = this.openArea(sibPos)
 					revealedPositions.push(...openResult.revealedPositions)
 					unflaggedPositions.push(...openResult.unflaggedPositions)
 				}
@@ -158,6 +158,26 @@ export class GameEngine {
 		}
 
 		return { revealedPositions, unflaggedPositions, exploded }
+	}
+
+	private openArea(pos: Position) {
+		let unflaggedPositions: Position[] = []
+		let revealedPositions: Position[] = []
+
+		const area = this.field.getAreaToReveal(pos)
+
+		area.forEach(areaPos => {
+			const cellToProcess = this.field.getCell(areaPos)
+			if (cellToProcess.isFlagged) {
+				cellToProcess.isFlagged = false
+				unflaggedPositions.push(areaPos)
+			}
+			if (!cellToProcess.isRevealed) {
+				revealedPositions.push(areaPos)
+				cellToProcess.isRevealed = true
+			}
+		})
+		return { unflaggedPositions, revealedPositions }
 	}
 
 	private checkForWin() {

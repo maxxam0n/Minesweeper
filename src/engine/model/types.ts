@@ -48,7 +48,6 @@ export interface Cell {
 	isEmpty: boolean
 	mine(): void
 	unMine(): void
-	open(): { unflaggedPositions: Position[]; revealedPositions: Position[] }
 	getDrawingData(status: GameStatus): CellDrawingData
 	clone(newField: Field): Cell
 }

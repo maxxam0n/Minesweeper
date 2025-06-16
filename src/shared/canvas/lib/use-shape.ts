@@ -21,7 +21,13 @@ export const useShape = (
 	const id = useId()
 
 	useEffect(() => {
-		const shapeData = { id, draw, layer, shapeParams }
+		const shapeData = {
+			id,
+			draw,
+			layer: layer.name,
+			layerOpacity: layer.opacity,
+			shapeParams,
+		}
 		setShape(shapeData)
 
 		return () => removeShape(shapeData)

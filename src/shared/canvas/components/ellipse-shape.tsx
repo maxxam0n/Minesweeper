@@ -6,6 +6,7 @@ interface EllipseProps {
 	cy: number
 	radiusX: number
 	radiusY: number
+	opacity?: number
 	rotation?: number
 	fillColor?: string
 	strokeColor?: string
@@ -18,6 +19,7 @@ export const EllipseShape = ({
 	cy,
 	radiusX,
 	radiusY,
+	opacity = 0,
 	rotation = 0,
 	fillColor = 'white',
 	strokeColor,
@@ -41,7 +43,7 @@ export const EllipseShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex }, deps)
+	useShape(draw, { zIndex, opacity }, deps)
 
 	return null
 }

@@ -1,3 +1,8 @@
 import { createContext } from 'react'
 
-export const ShapeLayerContext = createContext<string | null>(null)
+interface ShapeLayerContext {
+	name: string
+	opacity: number
+}
+
+export const ShapeLayerContext = createContext<ShapeLayerContext | null>(null)

@@ -58,7 +58,7 @@ export const GameWidget = ({ config }: IGameProps) => {
 	return (
 		<GameField
 			drawingData={drawingData}
-			isGameOver={gameOver}
+			gameStatus={status}
 			onReveal={onClick}
 			onToggleFlag={toggleFlag}
 		/>

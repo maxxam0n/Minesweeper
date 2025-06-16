@@ -5,6 +5,7 @@ interface ImageShapeProps {
 	src: string
 	x: number
 	y: number
+	opacity?: number
 	width?: number
 	height?: number
 	zIndex?: number
@@ -18,6 +19,7 @@ export const ImageShape = ({
 	y,
 	width,
 	height,
+	opacity = 0,
 	zIndex = 0,
 }: ImageShapeProps) => {
 	const [image, setImage] = useState<HTMLImageElement | null>(null)
@@ -63,7 +65,7 @@ export const ImageShape = ({
 		// Если статус 'loading' или 'error', ничего не рисуем
 	}, deps)
 
-	useShape(draw, { zIndex }, deps)
+	useShape(draw, { zIndex, opacity }, deps)
 
 	return null
 }
