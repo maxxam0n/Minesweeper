@@ -6,7 +6,7 @@ import {
 	useRef,
 } from 'react'
 import { CanvasContext } from '../model/canvas-context'
-import { ShapeDrawingData } from '../lib/types'
+import { LayerRemovalStrategy, ShapeDrawingData } from '../lib/types'
 import { LayerContext } from '../model/layer-context'
 
 interface CanvasProps extends PropsWithChildren {
@@ -16,6 +16,7 @@ interface CanvasProps extends PropsWithChildren {
 }
 
 type Layers = Map<string, HTMLCanvasElement>
+type LayerStrategies = Map<string, LayerRemovalStrategy>
 type Contexts = Map<string, CanvasRenderingContext2D>
 type LayerShapes = Map<string, ShapeDrawingData>
 type Shapes = Map<string, LayerShapes>
@@ -28,6 +29,7 @@ export const Canvas = ({
 	bgColor = 'white',
 }: CanvasProps) => {
 	const layers = useRef<Layers>(new Map())
+	const layerStrategies = useRef<LayerStrategies>(new Map())
 	const contexts = useRef<Contexts>(new Map())
 	const redrawSubscribers = useRef<Subscribers>(new Map())
 
@@ -126,9 +128,18 @@ export const Canvas = ({
 	}, [])
 
 	const removeShape = useCallback((shapeData: ShapeDrawingData) => {
-		const { id, layer } = shapeData
+		const { id, layer, clear } = shapeData
+
 		const layerShapes = shapes.current.get(layer)
-		if (layerShapes) {
+		const strategy = layerStrategies.current.get(layer)
+		const ctx = contexts.current.get(layer)
+
+		if (!layerShapes || !strategy || !ctx) return
+
+		if (strategy === 'clear') {
+			clear(ctx)
+			layerShapes.delete(id)
+		} else if (strategy === 'redraw') {
 			layerShapes.delete(id)
 			redrawSubscribers.current.set(layer, true)
 		}
@@ -140,10 +151,15 @@ export const Canvas = ({
 	)
 
 	const registerLayer = useCallback(
-		(name: string, canvas: HTMLCanvasElement) => {
+		(
+			name: string,
+			canvas: HTMLCanvasElement,
+			strategy: LayerRemovalStrategy
+		) => {
 			if (layers.current.has(name)) return
 
 			layers.current.set(name, canvas)
+			layerStrategies.current.set(name, strategy)
 			const ctx = canvas.getContext('2d')
 			if (ctx) {
 				contexts.current.set(name, ctx)
@@ -156,6 +172,7 @@ export const Canvas = ({
 
 	const unregisterLayer = useCallback((name: string) => {
 		layers.current.delete(name)
+		layerStrategies.current.delete(name)
 		contexts.current.delete(name)
 		shapes.current.delete(name)
 		redrawSubscribers.current.delete(name)

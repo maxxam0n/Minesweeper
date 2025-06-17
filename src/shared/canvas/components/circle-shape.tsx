@@ -37,7 +37,19 @@ export const CircleShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex, opacity }, deps)
+	const clear = useCallback(
+		(ctx: CanvasRenderingContext2D) => {
+			const margin = (lineWidth || 0) > 0 ? 1 : 0
+			const diameter = radius * 2 + margin * 2
+			const x = cx - radius - margin
+			const y = cy - radius - margin
+
+			ctx.clearRect(x, y, diameter, diameter)
+		},
+		[cx, cy, radius, lineWidth]
+	)
+
+	useShape(draw, clear, { zIndex, opacity }, deps)
 
 	return null
 }

@@ -82,7 +82,9 @@ export const TextShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex, opacity }, deps)
+	const clear = useCallback((ctx: CanvasRenderingContext2D) => {}, [])
+
+	useShape(draw, clear, { zIndex, opacity }, deps)
 
 	return null
 }

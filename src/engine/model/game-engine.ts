@@ -188,7 +188,6 @@ export class GameEngine {
 	}
 
 	get gameSnapshot() {
-		console.log('get gameSnapshot', this.field)
 		return {
 			drawingData: this.field.getDrawingData(this.status),
 			status: this.status,

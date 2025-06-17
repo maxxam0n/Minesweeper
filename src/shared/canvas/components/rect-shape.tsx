@@ -37,7 +37,20 @@ export const RectShape = ({
 		}
 	}, deps)
 
-	useShape(draw, { zIndex, opacity }, deps)
+	const clear = useCallback(
+		(ctx: CanvasRenderingContext2D) => {
+			const margin = (lineWidth || 0) > 0 ? 1 : 0
+			ctx.clearRect(
+				x - margin,
+				y - margin,
+				width + margin * 2,
+				height + margin * 2
+			)
+		},
+		[x, y, width, height, lineWidth]
+	)
+
+	useShape(draw, clear, { zIndex, opacity }, deps)
 
 	return null
 }

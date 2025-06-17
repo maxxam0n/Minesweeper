@@ -7,9 +7,11 @@ import {
 } from 'react'
 import { LayerContext } from '../model/layer-context'
 import { ShapeLayerContext } from '../model/shape-layer-context'
+import { LayerRemovalStrategy } from '../lib/types'
 
 interface LayerProps extends PropsWithChildren {
 	name: string
+	removalStrategy?: LayerRemovalStrategy
 	opacity?: number
 	zIndex?: number
 }
@@ -17,6 +19,7 @@ interface LayerProps extends PropsWithChildren {
 export const Layer = ({
 	name,
 	children,
+	removalStrategy = 'redraw',
 	opacity = 0,
 	zIndex = 0,
 }: LayerProps) => {
@@ -33,7 +36,7 @@ export const Layer = ({
 	const refCallback = useCallback(
 		(canvasElement: HTMLCanvasElement | null) => {
 			if (canvasElement && registry) {
-				registry.registerLayer(name, canvasElement)
+				registry.registerLayer(name, canvasElement, removalStrategy)
 			}
 		},
 		[name, registry]

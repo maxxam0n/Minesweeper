@@ -38,7 +38,7 @@ export const GameField = ({
 	// @TODO Добавить возможность настройки, прокинуть в провайдер
 	const viewConfig = useMemo<ViewConfig>(
 		() => ({
-			cellSize: 25,
+			cellSize: 30,
 			font: 'Tektur',
 			bevelWidth: 3,
 			borderWidth: 2,
@@ -122,7 +122,7 @@ export const GameField = ({
 					))}
 				</Layer>
 
-				<Layer name="mask" zIndex={1} opacity={0.3}>
+				<Layer name="mask" zIndex={1} opacity={0.3} removalStrategy="clear">
 					{drawingData.flat().map(({ data }) => {
 						if ((data.isMine && isGameLost) || data.isRevealed) {
 							return null
