@@ -39,6 +39,7 @@ export const useShape = (
 		layer,
 		shapeParams.zIndex,
 		shapeParams.opacity,
+		shapeParams.box,
 		setShape,
 		removeShape,
 		draw,

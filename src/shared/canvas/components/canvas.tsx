@@ -6,7 +6,7 @@ import {
 	useRef,
 } from 'react'
 import { CanvasContext } from '../model/canvas-context'
-import { LayerRemovalStrategy, ShapeDrawingData } from '../lib/types'
+import { BoundingBox, ShapeDrawingData } from '../lib/types'
 import { LayerContext } from '../model/layer-context'
 
 interface CanvasProps extends PropsWithChildren {
@@ -16,11 +16,10 @@ interface CanvasProps extends PropsWithChildren {
 }
 
 type Layers = Map<string, HTMLCanvasElement>
-type LayerStrategies = Map<string, LayerRemovalStrategy>
 type Contexts = Map<string, CanvasRenderingContext2D>
+type DirtyArea = Map<string, BoundingBox[]>
 type LayerShapes = Map<string, ShapeDrawingData>
 type Shapes = Map<string, LayerShapes>
-type Subscribers = Map<string, boolean>
 
 export const Canvas = ({
 	children,
@@ -29,15 +28,13 @@ export const Canvas = ({
 	bgColor = 'white',
 }: CanvasProps) => {
 	const layers = useRef<Layers>(new Map())
-	const layerStrategies = useRef<LayerStrategies>(new Map())
 	const contexts = useRef<Contexts>(new Map())
-	const redrawSubscribers = useRef<Subscribers>(new Map())
-
 	const shapes = useRef<Shapes>(new Map())
+	const dirtyArea = useRef<DirtyArea>(new Map())
 
 	const animationFrameId = useRef<number>()
 
-	const initializeCanvas = useCallback(
+	const initializeLayer = useCallback(
 		(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
 			if (canvas instanceof HTMLCanvasElement) {
 				const dpr = window.devicePixelRatio || 1
@@ -55,15 +52,28 @@ export const Canvas = ({
 		[width, height]
 	)
 
+	const requestDrawLayer = useCallback((layer: string) => {
+		dirtyArea.current.set(layer, [{ x: 0, y: 0, width, height }])
+	}, [])
+
+	const requestDrawLayerArea = useCallback(
+		(layer: string, area: BoundingBox) => {
+			const layerAreas = dirtyArea.current.get(layer)
+			if (!layerAreas) requestDrawLayer(layer)
+			else layerAreas.push(area)
+		},
+		[requestDrawLayer]
+	)
+
 	useEffect(() => {
 		layers.current.forEach((canvas, name) => {
 			const ctx = contexts.current.get(name)
 			if (ctx) {
-				initializeCanvas(canvas, ctx)
-				redrawSubscribers.current.set(name, true)
+				initializeLayer(canvas, ctx)
+				requestDrawLayer(name)
 			}
 		})
-	}, [width, height, initializeCanvas])
+	}, [width, height, initializeLayer, requestDrawLayer])
 
 	const drawShapes = (ctx: CanvasRenderingContext2D, shapes: LayerShapes) => {
 		const sortedShapes = Array.from(shapes.values()).sort(
@@ -86,14 +96,14 @@ export const Canvas = ({
 		const redrawLoop = () => {
 			animationFrameId.current = requestAnimationFrame(redrawLoop)
 
-			redrawSubscribers.current.forEach((needRedraw, key, map) => {
-				if (needRedraw) {
-					map.set(key, false)
+			dirtyArea.current.forEach((areas, key, map) => {
+				if (areas.length > 0) {
+					map.set(key, [])
 					const ctx = contexts.current.get(key)
 					const layerShapes = shapes.current.get(key)
+
 					if (ctx && layerShapes) {
-						ctx.clearRect(0, 0, width, height)
-						drawShapes(ctx, layerShapes)
+						// Получить задетые фигуры и вызвать drawShapes
 					}
 				}
 			})
@@ -108,42 +118,43 @@ export const Canvas = ({
 		}
 	}, [bgColor, width, height])
 
-	const setShape = useCallback((shapeData: ShapeDrawingData) => {
-		const { id, layer } = shapeData
+	const setShape = useCallback(
+		(shapeData: ShapeDrawingData) => {
+			const { id, layer } = shapeData
 
-		if (!shapes.current.has(layer)) {
-			shapes.current.set(layer, new Map())
-		}
+			if (!shapes.current.has(layer)) {
+				shapes.current.set(layer, new Map())
+			}
 
-		shapes.current.forEach((layerShapes, key) => {
-			if (layerShapes.has(id) && layer !== key) {
+			shapes.current.forEach((layerShapes, key) => {
+				if (layerShapes.has(id) && layer !== key) {
+					layerShapes.delete(id)
+					requestDrawLayerArea(key, shapeData.shapeParams.box)
+				}
+				if (layer === key) {
+					layerShapes.set(id, shapeData)
+					requestDrawLayerArea(layer, shapeData.shapeParams.box)
+				}
+			})
+		},
+		[requestDrawLayerArea]
+	)
+
+	const removeShape = useCallback(
+		(shapeData: ShapeDrawingData) => {
+			const { id, layer, shapeParams, clear } = shapeData
+
+			const ctx = contexts.current.get(layer)
+			const layerShapes = shapes.current.get(layer)
+
+			if (ctx && layerShapes) {
+				clear(ctx)
 				layerShapes.delete(id)
-				redrawSubscribers.current.set(key, true)
+				requestDrawLayerArea(layer, shapeParams.box)
 			}
-			if (layer === key) {
-				layerShapes.set(id, shapeData)
-				redrawSubscribers.current.set(key, true)
-			}
-		})
-	}, [])
-
-	const removeShape = useCallback((shapeData: ShapeDrawingData) => {
-		const { id, layer, clear } = shapeData
-
-		const layerShapes = shapes.current.get(layer)
-		const strategy = layerStrategies.current.get(layer)
-		const ctx = contexts.current.get(layer)
-
-		if (!layerShapes || !strategy || !ctx) return
-
-		if (strategy === 'clear') {
-			clear(ctx)
-			layerShapes.delete(id)
-		} else if (strategy === 'redraw') {
-			layerShapes.delete(id)
-			redrawSubscribers.current.set(layer, true)
-		}
-	}, [])
+		},
+		[requestDrawLayerArea]
+	)
 
 	const contextValue = useMemo(
 		() => ({ setShape, removeShape }),
@@ -151,31 +162,26 @@ export const Canvas = ({
 	)
 
 	const registerLayer = useCallback(
-		(
-			name: string,
-			canvas: HTMLCanvasElement,
-			strategy: LayerRemovalStrategy
-		) => {
+		(name: string, canvas: HTMLCanvasElement) => {
 			if (layers.current.has(name)) return
 
 			layers.current.set(name, canvas)
-			layerStrategies.current.set(name, strategy)
 			const ctx = canvas.getContext('2d')
+
 			if (ctx) {
 				contexts.current.set(name, ctx)
-				initializeCanvas(canvas, ctx)
-				redrawSubscribers.current.set(name, true)
+				requestDrawLayer(name)
+				initializeLayer(canvas, ctx)
 			}
 		},
-		[initializeCanvas]
+		[initializeLayer, requestDrawLayer]
 	)
 
 	const unregisterLayer = useCallback((name: string) => {
 		layers.current.delete(name)
-		layerStrategies.current.delete(name)
 		contexts.current.delete(name)
 		shapes.current.delete(name)
-		redrawSubscribers.current.delete(name)
+		dirtyArea.current.delete(name)
 	}, [])
 
 	const layerRegistryValue = useMemo(
