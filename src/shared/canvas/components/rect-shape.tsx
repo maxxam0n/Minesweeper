@@ -1,5 +1,6 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useShape } from '../lib/use-shape'
+import { BoundingBox, ShapeParams } from '../lib/types'
 
 interface RectProps {
 	x: number
@@ -18,39 +19,49 @@ export const RectShape = ({
 	y,
 	width,
 	height,
-	strokeColor,
 	opacity = 0,
-	fillColor = 'white',
+	fillColor,
+	strokeColor,
 	lineWidth = 1,
 	zIndex = 0,
 }: RectProps) => {
-	const deps = [x, y, width, height, fillColor, strokeColor, lineWidth]
-
-	const draw = useCallback((ctx: CanvasRenderingContext2D) => {
-		ctx.fillStyle = fillColor
-		ctx.fillRect(x, y, width, height)
-
-		if (strokeColor && lineWidth > 0) {
-			ctx.strokeStyle = strokeColor
-			ctx.lineWidth = lineWidth
-			ctx.strokeRect(x, y, width, height)
-		}
-	}, deps)
-
-	const clear = useCallback(
+	const draw = useCallback(
 		(ctx: CanvasRenderingContext2D) => {
-			const margin = (lineWidth || 0) > 0 ? 1 : 0
-			ctx.clearRect(
-				x - margin,
-				y - margin,
-				width + margin * 2,
-				height + margin * 2
-			)
+			if (fillColor) {
+				ctx.fillStyle = fillColor
+				ctx.fillRect(x, y, width, height)
+			}
+
+			if (strokeColor && lineWidth > 0) {
+				ctx.strokeStyle = strokeColor
+				ctx.lineWidth = lineWidth
+				ctx.strokeRect(x, y, width, height)
+			}
 		},
-		[x, y, width, height, lineWidth]
+		[x, y, width, height, fillColor, strokeColor, lineWidth]
 	)
 
-	useShape(draw, clear, { zIndex, opacity }, deps)
+	const boundingBox = useMemo<BoundingBox>(() => {
+		const halfLineWidth = strokeColor && lineWidth > 0 ? lineWidth / 2 : 0
+
+		return {
+			x: x - halfLineWidth,
+			y: y - halfLineWidth,
+			width: width + lineWidth * (strokeColor && lineWidth > 0 ? 1 : 0),
+			height: height + lineWidth * (strokeColor && lineWidth > 0 ? 1 : 0),
+		}
+	}, [x, y, width, height, strokeColor, lineWidth])
+
+	const shapeParams = useMemo<ShapeParams>(
+		() => ({
+			zIndex,
+			opacity,
+			box: boundingBox,
+		}),
+		[zIndex, opacity, boundingBox]
+	)
+
+	useShape(draw, shapeParams)
 
 	return null
 }

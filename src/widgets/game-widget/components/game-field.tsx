@@ -122,7 +122,7 @@ export const GameField = ({
 					))}
 				</Layer>
 
-				<Layer name="mask" zIndex={1} opacity={0.3} removalStrategy="clear">
+				<Layer name="mask" zIndex={1} opacity={0.3}>
 					{drawingData.flat().map(({ data }) => {
 						if ((data.isMine && isGameLost) || data.isRevealed) {
 							return null

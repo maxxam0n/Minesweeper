@@ -6,20 +6,24 @@ import {
 	useRef,
 } from 'react'
 import { CanvasContext } from '../model/canvas-context'
-import { BoundingBox, ShapeDrawingData } from '../lib/types'
 import { LayerContext } from '../model/layer-context'
+import {
+	BoundingBox,
+	Contexts,
+	DirtyArea,
+	Layers,
+	LayerShapes,
+	ShapeDrawingData,
+	Shapes,
+} from '../lib/types'
+import { findDirtyShapes } from '../lib/find-dirty-shapes'
+import { MeasureContext } from '../model/measure-context'
 
 interface CanvasProps extends PropsWithChildren {
 	width?: number
 	height?: number
 	bgColor?: string
 }
-
-type Layers = Map<string, HTMLCanvasElement>
-type Contexts = Map<string, CanvasRenderingContext2D>
-type DirtyArea = Map<string, BoundingBox[]>
-type LayerShapes = Map<string, ShapeDrawingData>
-type Shapes = Map<string, LayerShapes>
 
 export const Canvas = ({
 	children,
@@ -33,6 +37,7 @@ export const Canvas = ({
 	const dirtyArea = useRef<DirtyArea>(new Map())
 
 	const animationFrameId = useRef<number>()
+	const measureContextRef = useRef<CanvasRenderingContext2D | null>(null)
 
 	const initializeLayer = useCallback(
 		(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
@@ -51,6 +56,11 @@ export const Canvas = ({
 		},
 		[width, height]
 	)
+
+	useEffect(() => {
+		const canvas = document.createElement('canvas')
+		measureContextRef.current = canvas.getContext('2d')
+	}, [])
 
 	const requestDrawLayer = useCallback((layer: string) => {
 		dirtyArea.current.set(layer, [{ x: 0, y: 0, width, height }])
@@ -96,14 +106,22 @@ export const Canvas = ({
 		const redrawLoop = () => {
 			animationFrameId.current = requestAnimationFrame(redrawLoop)
 
-			dirtyArea.current.forEach((areas, key, map) => {
-				if (areas.length > 0) {
-					map.set(key, [])
-					const ctx = contexts.current.get(key)
-					const layerShapes = shapes.current.get(key)
+			dirtyArea.current.forEach((areasToRedraw, layerName, dirtyMap) => {
+				if (areasToRedraw.length > 0) {
+					dirtyMap.set(layerName, [])
+					const ctx = contexts.current.get(layerName)
+					const allShapesOnLayer = shapes.current.get(layerName)
 
-					if (ctx && layerShapes) {
-						// Получить задетые фигуры и вызвать drawShapes
+					if (ctx && allShapesOnLayer) {
+						areasToRedraw.forEach(area => {
+							ctx.clearRect(area.x, area.y, area.width, area.height)
+						})
+
+						const shapesToRedraw = findDirtyShapes(
+							allShapesOnLayer,
+							areasToRedraw
+						)
+						drawShapes(ctx, shapesToRedraw)
 					}
 				}
 			})
@@ -142,13 +160,12 @@ export const Canvas = ({
 
 	const removeShape = useCallback(
 		(shapeData: ShapeDrawingData) => {
-			const { id, layer, shapeParams, clear } = shapeData
+			const { id, layer, shapeParams } = shapeData
 
 			const ctx = contexts.current.get(layer)
 			const layerShapes = shapes.current.get(layer)
 
 			if (ctx && layerShapes) {
-				clear(ctx)
 				layerShapes.delete(id)
 				requestDrawLayerArea(layer, shapeParams.box)
 			}
@@ -201,12 +218,14 @@ export const Canvas = ({
 	}, [width, height])
 
 	return (
-		<CanvasContext.Provider value={contextValue}>
-			<LayerContext.Provider value={layerRegistryValue}>
-				<div className="relative" style={containerStyle}>
-					{children}
-				</div>
-			</LayerContext.Provider>
-		</CanvasContext.Provider>
+		<MeasureContext.Provider value={measureContextRef.current}>
+			<CanvasContext.Provider value={contextValue}>
+				<LayerContext.Provider value={layerRegistryValue}>
+					<div className="relative" style={containerStyle}>
+						{children}
+					</div>
+				</LayerContext.Provider>
+			</CanvasContext.Provider>
+		</MeasureContext.Provider>
 	)
 }

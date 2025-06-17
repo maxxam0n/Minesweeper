@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useShape } from '../lib/use-shape'
+import { BoundingBox } from '../lib/types'
 
 interface ImageShapeProps {
 	src: string
 	x: number
 	y: number
 	opacity?: number
-	width?: number
-	height?: number
+	width?: number // Если не указаны, используется натуральный размер изображения
+	height?: number // Если не указаны, используется натуральный размер изображения
 	zIndex?: number
 }
 
@@ -28,8 +29,13 @@ export const ImageShape = ({
 	useEffect(() => {
 		if (!src) {
 			setStatus('error')
+			setImage(null) // Явно сбрасываем изображение
 			return
 		}
+
+		// Сбрасываем состояние при смене src, чтобы показать загрузку нового изображения
+		setStatus('loading')
+		setImage(null)
 
 		const img = new Image()
 		img.src = src
@@ -48,26 +54,45 @@ export const ImageShape = ({
 		img.addEventListener('load', handleLoad)
 		img.addEventListener('error', handleError)
 
+		// Очистка при размонтировании или смене src
 		return () => {
 			img.removeEventListener('load', handleLoad)
 			img.removeEventListener('error', handleError)
 		}
-	}, [src])
+	}, [src]) // Зависимость только от src
 
-	const deps = [image, status, x, y, width, height]
+	const actualWidth = useMemo(() => {
+		return width ?? (status === 'loaded' && image ? image.naturalWidth : 0)
+	}, [width, image, status])
 
-	const draw = useCallback((ctx: CanvasRenderingContext2D) => {
-		if (status === 'loaded' && image) {
-			const w = width ?? image.naturalWidth
-			const h = height ?? image.naturalHeight
-			ctx.drawImage(image, x, y, w, h)
+	const actualHeight = useMemo(() => {
+		return height ?? (status === 'loaded' && image ? image.naturalHeight : 0)
+	}, [height, image, status])
+
+	const boundingBox = useMemo<BoundingBox>(() => {
+		return {
+			x,
+			y,
+			width: actualWidth,
+			height: actualHeight,
 		}
-		// Если статус 'loading' или 'error', ничего не рисуем
-	}, deps)
+	}, [x, y, actualWidth, actualHeight])
 
-	const clear = useCallback((ctx: CanvasRenderingContext2D) => {}, [])
+	const draw = useCallback(
+		(ctx: CanvasRenderingContext2D) => {
+			if (status === 'loaded' && image) {
+				ctx.drawImage(image, x, y, actualWidth, actualHeight)
+			}
+		},
+		[status, image, x, y, actualWidth, actualHeight]
+	)
 
-	useShape(draw, clear, { zIndex, opacity }, deps)
+	const shapeParams = useMemo(
+		() => ({ zIndex, opacity, box: boundingBox }),
+		[zIndex, opacity, boundingBox]
+	)
+
+	useShape(draw, shapeParams)
 
 	return null
 }

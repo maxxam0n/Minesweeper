@@ -7,8 +7,6 @@ export type BoundingBox = {
 
 export type DrawFun = (ctx: CanvasRenderingContext2D) => void
 
-export type ClearFun = (ctx: CanvasRenderingContext2D) => void
-
 export type ShapeParams = {
 	zIndex: number
 	opacity: number
@@ -17,9 +15,14 @@ export type ShapeParams = {
 
 export type ShapeDrawingData = {
 	draw: DrawFun
-	clear: ClearFun
 	shapeParams: ShapeParams
 	layer: string
 	layerOpacity: number
 	id: string
 }
+
+export type Layers = Map<string, HTMLCanvasElement>
+export type Contexts = Map<string, CanvasRenderingContext2D>
+export type DirtyArea = Map<string, BoundingBox[]>
+export type LayerShapes = Map<string, ShapeDrawingData>
+export type Shapes = Map<string, LayerShapes>

@@ -1,5 +1,7 @@
-import { useCallback } from 'react'
+import { useMemo, useCallback, useEffect, useState, useContext } from 'react'
+import { BoundingBox, ShapeParams } from '../lib/types'
 import { useShape } from '../lib/use-shape'
+import { MeasureContext } from '../model/measure-context'
 
 interface TextProps {
 	x: number
@@ -7,15 +9,9 @@ interface TextProps {
 	text: string | number
 	opacity?: number
 	font?: string
-	textAlign?: 'start' | 'end' | 'left' | 'right' | 'center'
-	textBaseline?:
-		| 'top'
-		| 'hanging'
-		| 'middle'
-		| 'alphabetic'
-		| 'ideographic'
-		| 'bottom'
-	direction?: 'ltr' | 'rtl' | 'inherit'
+	textAlign?: CanvasTextAlign
+	textBaseline?: CanvasTextBaseline
+	direction?: CanvasDirection
 	maxWidth?: number
 	fillColor?: string
 	strokeColor?: string
@@ -28,63 +24,160 @@ export const TextShape = ({
 	y,
 	text,
 	opacity = 0,
-	font = 'bold 16px sans-serif',
+	font = '16px sans-serif',
 	textAlign = 'start',
 	textBaseline = 'alphabetic',
 	direction = 'inherit',
-	fillColor = 'transparent',
-	strokeColor = 'transparent',
-	lineWidth = 0,
+	fillColor,
+	strokeColor,
+	lineWidth = 1,
 	maxWidth,
 	zIndex = 0,
 }: TextProps) => {
-	const deps = [
+	// Сохраняем ссылку на временный контекст для измерения текста
+	// Это нужно, чтобы не создавать его на каждый ререндер
+	const measureCtx = useContext(MeasureContext)
+	const [textMetrics, setTextMetrics] = useState<TextMetrics | null>(null)
+
+	const textToDraw = String(text)
+
+	// Пересчитываем метрики текста, когда меняется текст или шрифт
+	useEffect(() => {
+		if (measureCtx && textToDraw) {
+			measureCtx.font = font
+			// Важно: остальные свойства, влияющие на метрики, как textAlign, textBaseline, direction
+			// не влияют на `measureText` напрямую, но влияют на то, как `fillText`
+			// позиционирует текст относительно точки (x,y). BoundingBox должен это учесть.
+			setTextMetrics(measureCtx.measureText(textToDraw))
+		} else {
+			setTextMetrics(null)
+		}
+	}, [textToDraw, font, measureCtx])
+
+	const draw = useCallback(
+		(ctx: CanvasRenderingContext2D) => {
+			if (!textToDraw) return // Не рисуем пустой текст
+
+			ctx.font = font
+			ctx.textAlign = textAlign
+			ctx.textBaseline = textBaseline
+			ctx.direction = direction
+
+			// Отрисовка с заливкой
+			if (fillColor) {
+				ctx.fillStyle = fillColor
+				if (maxWidth !== undefined) {
+					ctx.fillText(textToDraw, x, y, maxWidth)
+				} else {
+					ctx.fillText(textToDraw, x, y)
+				}
+			}
+
+			// Отрисовка с обводкой
+			if (strokeColor && lineWidth > 0) {
+				ctx.strokeStyle = strokeColor
+				ctx.lineWidth = lineWidth
+				if (maxWidth !== undefined) {
+					ctx.strokeText(textToDraw, x, y, maxWidth)
+				} else {
+					ctx.strokeText(textToDraw, x, y)
+				}
+			}
+		},
+		[
+			x,
+			y,
+			textToDraw,
+			font,
+			textAlign,
+			textBaseline,
+			direction,
+			fillColor,
+			strokeColor,
+			lineWidth,
+			maxWidth,
+		]
+	)
+
+	const boundingBox = useMemo<BoundingBox>(() => {
+		if (!textMetrics) {
+			return { x, y, width: 0, height: 0 }
+		}
+
+		// TextMetrics предоставляет много информации, но для BoundingBox нам нужны
+		// actualBoundingBoxLeft, actualBoundingBoxRight,
+		// actualBoundingBoxAscent, actualBoundingBoxDescent.
+		// `width` из measureText() - это advanceWidth, он не всегда равен видимой ширине.
+
+		let boxX = x
+		let boxY = y
+		let boxWidth = textMetrics.width // Используем advanceWidth как базовую ширину
+		let boxHeight =
+			textMetrics.actualBoundingBoxAscent +
+			textMetrics.actualBoundingBoxDescent
+
+		// Корректировка x в зависимости от textAlign
+		// (x,y) - это точка привязки текста
+		if (textAlign === 'center') {
+			boxX -= boxWidth / 2
+		} else if (textAlign === 'end' || textAlign === 'right') {
+			boxX -= boxWidth
+		}
+		// Для 'start' или 'left' корректировка не нужна, так как x уже левая граница (или начало)
+
+		// Корректировка y в зависимости от textBaseline
+		if (textBaseline === 'middle') {
+			boxY -= boxHeight / 2
+		} else if (textBaseline === 'bottom' || textBaseline === 'ideographic') {
+			boxY -= boxHeight
+		} else if (textBaseline === 'top' || textBaseline === 'hanging') {
+			// y уже верхняя граница
+		} else {
+			// alphabetic (дефолт)
+			boxY -= textMetrics.actualBoundingBoxAscent
+		}
+
+		// Если задан maxWidth и он меньше вычисленной ширины, используем его
+		if (maxWidth !== undefined && maxWidth < boxWidth) {
+			// Если текст обрезается, нужно скорректировать x для textAlign='center' или 'end'/'right'
+			if (textAlign === 'center') {
+				boxX += (boxWidth - maxWidth) / 2
+			} else if (textAlign === 'end' || textAlign === 'right') {
+				boxX += boxWidth - maxWidth
+			}
+			boxWidth = maxWidth
+		}
+
+		// Учитываем обводку, если она есть
+		const halfLineWidth = strokeColor && lineWidth > 0 ? lineWidth / 2 : 0
+
+		return {
+			x: boxX - halfLineWidth,
+			y: boxY - halfLineWidth,
+			width: boxWidth + lineWidth * (strokeColor && lineWidth > 0 ? 1 : 0),
+			height: boxHeight + lineWidth * (strokeColor && lineWidth > 0 ? 1 : 0),
+		}
+	}, [
 		x,
 		y,
-		text,
-		font,
+		textMetrics,
 		textAlign,
 		textBaseline,
-		direction,
-		fillColor,
+		maxWidth,
 		strokeColor,
 		lineWidth,
-		maxWidth,
-	]
+	])
 
-	const draw = useCallback((ctx: CanvasRenderingContext2D) => {
-		ctx.font = font
-		ctx.textAlign = textAlign
-		ctx.textBaseline = textBaseline
-		ctx.direction = direction
+	const shapeParams = useMemo<ShapeParams>(
+		() => ({
+			zIndex,
+			opacity,
+			box: boundingBox,
+		}),
+		[zIndex, opacity, boundingBox]
+	)
 
-		const textToDraw = String(text)
-
-		// Отрисовка с заливкой
-		if (fillColor) {
-			ctx.fillStyle = fillColor
-			if (maxWidth !== undefined) {
-				ctx.fillText(textToDraw, x, y, maxWidth)
-			} else {
-				ctx.fillText(textToDraw, x, y)
-			}
-		}
-
-		// Отрисовка с обводкой
-		if (strokeColor && lineWidth > 0) {
-			ctx.strokeStyle = strokeColor
-			ctx.lineWidth = lineWidth
-			if (maxWidth !== undefined) {
-				ctx.strokeText(textToDraw, x, y, maxWidth)
-			} else {
-				ctx.strokeText(textToDraw, x, y)
-			}
-		}
-	}, deps)
-
-	const clear = useCallback((ctx: CanvasRenderingContext2D) => {}, [])
-
-	useShape(draw, clear, { zIndex, opacity }, deps)
+	useShape(draw, shapeParams)
 
 	return null
 }

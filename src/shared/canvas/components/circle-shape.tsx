@@ -1,5 +1,6 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useShape } from '../lib/use-shape'
+import { BoundingBox } from '../lib/types'
 
 interface CircleProps {
 	cx: number
@@ -22,34 +23,47 @@ export const CircleShape = ({
 	lineWidth = 1,
 	zIndex = 0,
 }: CircleProps) => {
-	const deps = [cx, cy, radius, fillColor, strokeColor, lineWidth]
-
-	const draw = useCallback((ctx: CanvasRenderingContext2D) => {
-		ctx.beginPath()
-		ctx.arc(cx, cy, radius, 0, Math.PI * 2)
-		ctx.fillStyle = fillColor
-		ctx.fill()
-
-		if (strokeColor && lineWidth > 0) {
-			ctx.strokeStyle = strokeColor
-			ctx.lineWidth = lineWidth
-			ctx.stroke()
-		}
-	}, deps)
-
-	const clear = useCallback(
+	const draw = useCallback(
 		(ctx: CanvasRenderingContext2D) => {
-			const margin = (lineWidth || 0) > 0 ? 1 : 0
-			const diameter = radius * 2 + margin * 2
-			const x = cx - radius - margin
-			const y = cy - radius - margin
+			ctx.beginPath()
+			ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+			ctx.fillStyle = fillColor
+			ctx.fill()
 
-			ctx.clearRect(x, y, diameter, diameter)
+			if (strokeColor && lineWidth > 0) {
+				ctx.strokeStyle = strokeColor
+				ctx.lineWidth = lineWidth
+				ctx.stroke()
+			}
 		},
-		[cx, cy, radius, lineWidth]
+		[cx, cy, radius, fillColor, strokeColor, lineWidth]
 	)
 
-	useShape(draw, clear, { zIndex, opacity }, deps)
+	const boundingBox = useMemo<BoundingBox>(() => {
+		// Используем половину толщины линии для margin
+		const halfLineWidth = (lineWidth || 0) / 2
+
+		// x, y - это верхний левый угол bounding box
+		const x = cx - radius - halfLineWidth
+		const y = cy - radius - halfLineWidth
+
+		// Ширина и высота bounding box включают полный диаметр + всю толщину линии
+		const diameterWithStroke = radius * 2 + (lineWidth || 0)
+
+		return {
+			x,
+			y,
+			height: diameterWithStroke,
+			width: diameterWithStroke,
+		}
+	}, [lineWidth, radius, cx, cy])
+
+	const shapeParams = useMemo(
+		() => ({ zIndex, opacity, box: boundingBox }),
+		[zIndex, opacity, boundingBox]
+	)
+
+	useShape(draw, shapeParams)
 
 	return null
 }
