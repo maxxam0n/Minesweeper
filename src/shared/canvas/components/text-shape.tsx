@@ -1,7 +1,7 @@
-import { useMemo, useCallback, useEffect, useState, useContext } from 'react'
+import { useMemo, useCallback } from 'react'
 import { BoundingBox, ShapeParams } from '../lib/types'
 import { useShape } from '../lib/use-shape'
-import { MeasureContext } from '../model/measure-context'
+import { useCachedTextMetrics } from '../lib/use-cached-text-metrics'
 
 interface TextProps {
 	x: number
@@ -34,25 +34,8 @@ export const TextShape = ({
 	maxWidth,
 	zIndex = 0,
 }: TextProps) => {
-	// Сохраняем ссылку на временный контекст для измерения текста
-	// Это нужно, чтобы не создавать его на каждый ререндер
-	const measureCtx = useContext(MeasureContext)
-	const [textMetrics, setTextMetrics] = useState<TextMetrics | null>(null)
-
 	const textToDraw = String(text)
-
-	// Пересчитываем метрики текста, когда меняется текст или шрифт
-	useEffect(() => {
-		if (measureCtx && textToDraw) {
-			measureCtx.font = font
-			// Важно: остальные свойства, влияющие на метрики, как textAlign, textBaseline, direction
-			// не влияют на `measureText` напрямую, но влияют на то, как `fillText`
-			// позиционирует текст относительно точки (x,y). BoundingBox должен это учесть.
-			setTextMetrics(measureCtx.measureText(textToDraw))
-		} else {
-			setTextMetrics(null)
-		}
-	}, [textToDraw, font, measureCtx])
+	const textMetrics = useCachedTextMetrics(textToDraw, font)
 
 	const draw = useCallback(
 		(ctx: CanvasRenderingContext2D) => {

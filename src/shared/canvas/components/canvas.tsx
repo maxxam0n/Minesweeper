@@ -18,6 +18,7 @@ import {
 } from '../lib/types'
 import { findDirtyShapes } from '../lib/find-dirty-shapes'
 import { MeasureContext } from '../model/measure-context'
+import { TextMetricsCacheContext } from '../model/metrics-cache-context'
 
 interface CanvasProps extends PropsWithChildren {
 	width?: number
@@ -36,8 +37,10 @@ export const Canvas = ({
 	const shapes = useRef<Shapes>(new Map())
 	const dirtyArea = useRef<DirtyArea>(new Map())
 
-	const animationFrameId = useRef<number>()
 	const measureContextRef = useRef<CanvasRenderingContext2D | null>(null)
+	const textMetricsCacheRef = useRef(new Map<string, TextMetrics>())
+
+	const animationFrameId = useRef<number>()
 
 	const initializeLayer = useCallback(
 		(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
@@ -219,13 +222,15 @@ export const Canvas = ({
 
 	return (
 		<MeasureContext.Provider value={measureContextRef.current}>
-			<CanvasContext.Provider value={contextValue}>
-				<LayerContext.Provider value={layerRegistryValue}>
-					<div className="relative" style={containerStyle}>
-						{children}
-					</div>
-				</LayerContext.Provider>
-			</CanvasContext.Provider>
+			<TextMetricsCacheContext.Provider value={textMetricsCacheRef.current}>
+				<CanvasContext.Provider value={contextValue}>
+					<LayerContext.Provider value={layerRegistryValue}>
+						<div className="relative" style={containerStyle}>
+							{children}
+						</div>
+					</LayerContext.Provider>
+				</CanvasContext.Provider>
+			</TextMetricsCacheContext.Provider>
 		</MeasureContext.Provider>
 	)
 }
