@@ -16,13 +16,18 @@ export type ShapeParams = {
 export type ShapeDrawingData = {
 	draw: DrawFun
 	shapeParams: ShapeParams
-	layer: string
-	layerOpacity: number
 	id: string
+	layerName: string
 }
 
-export type Layers = Map<string, HTMLCanvasElement>
-export type Contexts = Map<string, CanvasRenderingContext2D>
-export type DirtyArea = Map<string, BoundingBox[]>
 export type LayerShapes = Map<string, ShapeDrawingData>
-export type Shapes = Map<string, LayerShapes>
+
+export interface Layer {
+	canvas: HTMLCanvasElement
+	ctx: CanvasRenderingContext2D
+	opacity: number
+	shapes: LayerShapes
+	dirtyAreas: BoundingBox[]
+}
+
+export type Layers = Map<string, Layer>

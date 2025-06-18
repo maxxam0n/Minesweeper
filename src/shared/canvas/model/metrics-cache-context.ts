@@ -1,6 +1,5 @@
 import { createContext } from 'react'
 
-export const TextMetricsCacheContext = createContext<Map<
-	string,
-	TextMetrics
-> | null>(null)
+type MetricsCache = Map<string, TextMetrics>
+
+export const MetricsCacheContext = createContext<MetricsCache | null>(null)

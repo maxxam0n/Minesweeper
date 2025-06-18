@@ -6,4 +6,4 @@ interface CanvasContext {
 	removeShape: (shapeData: ShapeDrawingData) => void
 }
 
-export const CanvasContext = createContext<CanvasContext | null>(null)
+export const ShapeRegistryContext = createContext<CanvasContext | null>(null)

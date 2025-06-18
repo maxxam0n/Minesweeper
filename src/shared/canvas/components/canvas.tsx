@@ -5,20 +5,11 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { CanvasContext } from '../model/canvas-context'
-import { LayerContext } from '../model/layer-context'
-import {
-	BoundingBox,
-	Contexts,
-	DirtyArea,
-	Layers,
-	LayerShapes,
-	ShapeDrawingData,
-	Shapes,
-} from '../lib/types'
+import { Layer, Layers, LayerShapes, ShapeDrawingData } from '../lib/types'
 import { findDirtyShapes } from '../lib/find-dirty-shapes'
-import { MeasureContext } from '../model/measure-context'
-import { TextMetricsCacheContext } from '../model/metrics-cache-context'
+import { LayerRegistryContext } from '../model/layer-registry-context'
+import { ShapeRegistryContext } from '../model/shape-registry-context'
+import { MetricsProvider } from '../model/metricts-provider'
 
 interface CanvasProps extends PropsWithChildren {
 	width?: number
@@ -33,12 +24,6 @@ export const Canvas = ({
 	bgColor = 'white',
 }: CanvasProps) => {
 	const layers = useRef<Layers>(new Map())
-	const contexts = useRef<Contexts>(new Map())
-	const shapes = useRef<Shapes>(new Map())
-	const dirtyArea = useRef<DirtyArea>(new Map())
-
-	const measureContext = useRef<CanvasRenderingContext2D | null>(null)
-	const textMetricsCache = useRef(new Map<string, TextMetrics>())
 
 	const animationFrameId = useRef<number>()
 
@@ -60,47 +45,32 @@ export const Canvas = ({
 		[width, height]
 	)
 
-	useEffect(() => {
-		const canvas = document.createElement('canvas')
-		measureContext.current = canvas.getContext('2d')
-	}, [])
-
-	const requestDrawLayer = useCallback((layer: string) => {
-		dirtyArea.current.set(layer, [{ x: 0, y: 0, width, height }])
-	}, [])
-
-	const requestDrawLayerArea = useCallback(
-		(layer: string, area: BoundingBox) => {
-			const layerAreas = dirtyArea.current.get(layer)
-			if (!layerAreas) requestDrawLayer(layer)
-			else layerAreas.push(area)
+	const requestDrawLayer = useCallback(
+		(layer: Layer) => {
+			initializeLayer(layer.canvas, layer.ctx)
+			layer.dirtyAreas = [{ x: 0, y: 0, width, height }]
 		},
-		[requestDrawLayer]
+		[initializeLayer]
 	)
 
 	useEffect(() => {
-		layers.current.forEach((canvas, name) => {
-			const ctx = contexts.current.get(name)
-			if (ctx) {
-				initializeLayer(canvas, ctx)
-				requestDrawLayer(name)
-			}
-		})
-	}, [width, height, initializeLayer, requestDrawLayer])
+		layers.current.forEach(requestDrawLayer)
+	}, [width, height, requestDrawLayer])
 
-	const drawShapes = (ctx: CanvasRenderingContext2D, shapes: LayerShapes) => {
+	const drawShapes = (
+		ctx: CanvasRenderingContext2D,
+		shapes: LayerShapes,
+		opacity: number
+	) => {
 		const sortedShapes = Array.from(shapes.values()).sort(
 			(a, b) => (a.shapeParams.zIndex || 0) - (b.shapeParams.zIndex || 0)
 		)
-
-		sortedShapes.forEach(shape => {
-			if (shape.draw) {
-				ctx!.save()
-				const opacity = shape.layerOpacity + shape.shapeParams.opacity
-				ctx.globalAlpha = Math.max(1 - opacity, 0)
-				shape.draw(ctx!)
-				ctx!.restore()
-			}
+		sortedShapes.forEach(({ draw, shapeParams }) => {
+			ctx.save()
+			const summaryOpacity = opacity + shapeParams.opacity
+			ctx.globalAlpha = Math.max(1 - summaryOpacity, 0)
+			draw(ctx)
+			ctx.restore()
 		})
 	}
 
@@ -109,24 +79,27 @@ export const Canvas = ({
 		const redrawLoop = () => {
 			animationFrameId.current = requestAnimationFrame(redrawLoop)
 
-			dirtyArea.current.forEach((areasToRedraw, layerName, dirtyMap) => {
-				if (areasToRedraw.length > 0) {
-					dirtyMap.set(layerName, [])
-					const ctx = contexts.current.get(layerName)
-					const allShapesOnLayer = shapes.current.get(layerName)
-
-					if (ctx && allShapesOnLayer) {
-						areasToRedraw.forEach(area => {
+			layers.current.forEach(layer => {
+				const { dirtyAreas, shapes, ctx, opacity } = layer
+				if (shapes.size > 0 && dirtyAreas.length > 0) {
+					// Пока что отрубил мод отрисовки грязных областей.
+					// Сейчас он работает не стабильно.
+					// Задетые фигуры рисуются с правильным z-index,
+					// но они в свою очередь могут закрывать другие фигуры, у которых z-индекс больше,
+					// но которые не попали в грязную область
+					// Так же не корректно работает с прозрачными слоями
+					if (true) {
+						ctx.clearRect(0, 0, width, height)
+						drawShapes(ctx, shapes, opacity)
+					} else {
+						dirtyAreas.forEach(area => {
 							ctx.clearRect(area.x, area.y, area.width, area.height)
 						})
-
-						const shapesToRedraw = findDirtyShapes(
-							allShapesOnLayer,
-							areasToRedraw
-						)
-						drawShapes(ctx, shapesToRedraw)
+						const shapesToRedraw = findDirtyShapes(shapes, dirtyAreas)
+						drawShapes(layer.ctx, shapesToRedraw, layer.opacity)
 					}
 				}
+				layer.dirtyAreas = []
 			})
 		}
 
@@ -137,44 +110,32 @@ export const Canvas = ({
 				cancelAnimationFrame(animationFrameId.current)
 			}
 		}
-	}, [bgColor, width, height])
+	}, [width, height])
 
-	const setShape = useCallback(
-		(shapeData: ShapeDrawingData) => {
-			const { id, layer } = shapeData
+	const setShape = useCallback((shapeData: ShapeDrawingData) => {
+		const { id, layerName, shapeParams } = shapeData
 
-			if (!shapes.current.has(layer)) {
-				shapes.current.set(layer, new Map())
+		layers.current.forEach((layer, key) => {
+			if (layer.shapes.has(id) && layerName !== key) {
+				layer.shapes.delete(id)
+				layer.dirtyAreas.push(shapeParams.box)
 			}
-
-			shapes.current.forEach((layerShapes, key) => {
-				if (layerShapes.has(id) && layer !== key) {
-					layerShapes.delete(id)
-					requestDrawLayerArea(key, shapeData.shapeParams.box)
-				}
-				if (layer === key) {
-					layerShapes.set(id, shapeData)
-					requestDrawLayerArea(layer, shapeData.shapeParams.box)
-				}
-			})
-		},
-		[requestDrawLayerArea]
-	)
-
-	const removeShape = useCallback(
-		(shapeData: ShapeDrawingData) => {
-			const { id, layer, shapeParams } = shapeData
-
-			const ctx = contexts.current.get(layer)
-			const layerShapes = shapes.current.get(layer)
-
-			if (ctx && layerShapes) {
-				layerShapes.delete(id)
-				requestDrawLayerArea(layer, shapeParams.box)
+			if (layerName === key) {
+				layer.shapes.set(id, shapeData)
+				layer.dirtyAreas.push(shapeParams.box)
 			}
-		},
-		[requestDrawLayerArea]
-	)
+		})
+	}, [])
+
+	const removeShape = useCallback((shapeData: ShapeDrawingData) => {
+		const { id, layerName, shapeParams } = shapeData
+
+		const layer = layers.current.get(layerName)
+		if (layer) {
+			layer.shapes.delete(id)
+			layer.dirtyAreas.push(shapeParams.box)
+		}
+	}, [])
 
 	const contextValue = useMemo(
 		() => ({ setShape, removeShape }),
@@ -182,26 +143,29 @@ export const Canvas = ({
 	)
 
 	const registerLayer = useCallback(
-		(name: string, canvas: HTMLCanvasElement) => {
+		(name: string, canvas: HTMLCanvasElement, opacity: number = 0) => {
 			if (layers.current.has(name)) return
 
-			layers.current.set(name, canvas)
 			const ctx = canvas.getContext('2d')
-
-			if (ctx) {
-				contexts.current.set(name, ctx)
-				requestDrawLayer(name)
-				initializeLayer(canvas, ctx)
+			if (!ctx) {
+				console.error(`Невозможно зарегестрировать слой ${name}`)
+				return
 			}
+			const layer = {
+				canvas,
+				ctx,
+				dirtyAreas: [],
+				opacity,
+				shapes: new Map(),
+			}
+			layers.current.set(name, layer)
+			requestDrawLayer(layer)
 		},
-		[initializeLayer, requestDrawLayer]
+		[requestDrawLayer]
 	)
 
 	const unregisterLayer = useCallback((name: string) => {
 		layers.current.delete(name)
-		contexts.current.delete(name)
-		shapes.current.delete(name)
-		dirtyArea.current.delete(name)
 	}, [])
 
 	const layerRegistryValue = useMemo(
@@ -221,16 +185,14 @@ export const Canvas = ({
 	}, [width, height])
 
 	return (
-		<MeasureContext.Provider value={measureContext.current}>
-			<TextMetricsCacheContext.Provider value={textMetricsCache.current}>
-				<CanvasContext.Provider value={contextValue}>
-					<LayerContext.Provider value={layerRegistryValue}>
-						<div className="relative" style={containerStyle}>
-							{children}
-						</div>
-					</LayerContext.Provider>
-				</CanvasContext.Provider>
-			</TextMetricsCacheContext.Provider>
-		</MeasureContext.Provider>
+		<MetricsProvider>
+			<LayerRegistryContext.Provider value={layerRegistryValue}>
+				<ShapeRegistryContext.Provider value={contextValue}>
+					<div className="relative" style={containerStyle}>
+						{children}
+					</div>
+				</ShapeRegistryContext.Provider>
+			</LayerRegistryContext.Provider>
+		</MetricsProvider>
 	)
 }

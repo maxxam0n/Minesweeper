@@ -1,31 +1,23 @@
 import { useContext, useEffect, useId } from 'react'
 import { DrawFun, ShapeParams } from './types'
-import { CanvasContext } from '../model/canvas-context'
-import { ShapeLayerContext } from '../model/shape-layer-context'
+import { ShapeRegistryContext } from '../model/shape-registry-context'
+import { layerNameContext } from '../model/layer-name-context'
 
 export const useShape = (draw: DrawFun, shapeParams: ShapeParams) => {
-	const registry = useContext(CanvasContext)
-	const layer = useContext(ShapeLayerContext)
+	const registry = useContext(ShapeRegistryContext)
+	const layerName = useContext(layerNameContext)
 
-	if (!registry || !layer) {
-		throw new Error(
-			'useShape должнен быть использован внутри Canvas и Layer компонент'
-		)
+	if (!registry || !layerName) {
+		throw new Error(`Ошибка регистрации фигуры, отсутствует registry`)
 	}
 
 	const { removeShape, setShape } = registry
 	const id = useId()
 
 	useEffect(() => {
-		const shapeData = {
-			id,
-			draw,
-			layer: layer.name,
-			layerOpacity: layer.opacity,
-			shapeParams,
-		}
+		const shapeData = { id, draw, layerName, shapeParams }
 		setShape(shapeData)
 
 		return () => removeShape(shapeData)
-	}, [id, layer, shapeParams, setShape, removeShape, draw])
+	}, [id, layerName, shapeParams, setShape, removeShape, draw])
 }

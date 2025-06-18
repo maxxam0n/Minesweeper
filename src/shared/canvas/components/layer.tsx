@@ -1,12 +1,12 @@
 import {
+	useMemo,
 	PropsWithChildren,
 	useCallback,
 	useContext,
 	useEffect,
-	useMemo,
 } from 'react'
-import { LayerContext } from '../model/layer-context'
-import { ShapeLayerContext } from '../model/shape-layer-context'
+import { LayerRegistryContext } from '../model/layer-registry-context'
+import { layerNameContext } from '../model/layer-name-context'
 
 interface LayerProps extends PropsWithChildren {
 	name: string
@@ -14,47 +14,35 @@ interface LayerProps extends PropsWithChildren {
 	zIndex?: number
 }
 
-export const Layer = ({
-	name,
-	children,
-	opacity = 0,
-	zIndex = 0,
-}: LayerProps) => {
-	const registry = useContext(LayerContext)
+export const Layer = ({ name, children, opacity, zIndex = 0 }: LayerProps) => {
+	const registry = useContext(LayerRegistryContext)
 
 	if (!registry) {
-		throw new Error(
-			'Ошибка регистрации слоя, Layer может быть использован только внутри Canvas компонента'
-		)
+		throw new Error('Ошибка регистрации слоя')
 	}
-
-	const style = useMemo(() => ({ zIndex }), [zIndex])
+	const { registerLayer, unregisterLayer } = registry
 
 	const refCallback = useCallback(
 		(canvasElement: HTMLCanvasElement | null) => {
-			if (canvasElement && registry) {
-				registry.registerLayer(name, canvasElement)
+			if (canvasElement) {
+				registerLayer(name, canvasElement, opacity)
 			}
 		},
-		[name, registry]
+		[name, registerLayer]
 	)
 
 	useEffect(() => {
-		return () => {
-			registry.unregisterLayer(name)
-		}
-	}, [name, registry])
-
-	const shapeLayerData = useMemo(() => ({ opacity, name }), [name, opacity])
+		return () => unregisterLayer(name)
+	}, [name, unregisterLayer])
 
 	return (
-		<ShapeLayerContext.Provider value={shapeLayerData}>
+		<layerNameContext.Provider value={name}>
 			<canvas
 				className="absolute top-0 left-0"
 				ref={refCallback}
-				style={style}
+				style={useMemo(() => ({ zIndex }), [zIndex])}
 			/>
 			{children}
-		</ShapeLayerContext.Provider>
+		</layerNameContext.Provider>
 	)
 }
