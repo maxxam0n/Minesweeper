@@ -5,8 +5,13 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { Layer, Layers, LayerShapes, ShapeDrawingData } from '../lib/types'
-import { findDirtyShapes } from '../lib/find-dirty-shapes'
+import {
+	Layer,
+	LayerRenderer,
+	Layers,
+	LayerShapes,
+	ShapeDrawingData,
+} from '../lib/types'
 import { LayerRegistryContext } from '../model/layer-registry-context'
 import { ShapeRegistryContext } from '../model/shape-registry-context'
 import { MetricsProvider } from '../model/metricts-provider'
@@ -83,6 +88,10 @@ export const Canvas = ({
 				const { dirtyAreas, shapes, ctx, opacity } = layer
 				if (dirtyAreas.length > 0) {
 					const USE_DYRTY_APPROACH = false
+
+					if (layer.renderer) {
+						layer.renderer({ ...layer, drawShapes })
+					}
 					// Пока что отрубил мод отрисовки грязных областей.
 					// Сейчас он работает не стабильно:
 					// Не корректно работает с прозрачными слоями,
@@ -90,12 +99,7 @@ export const Canvas = ({
 					// Если какие либо фигуры входят,
 					// но они в свою очередь могут закрывать другие фигуры, у которых z-индекс больше,
 					// но которые не попали в грязную область
-					if (USE_DYRTY_APPROACH) {
-						dirtyAreas.forEach(area => {
-							ctx.clearRect(area.x, area.y, area.width, area.height)
-						})
-						const shapesToRedraw = findDirtyShapes(shapes, dirtyAreas)
-						drawShapes(layer.ctx, shapesToRedraw, layer.opacity)
+					else if (USE_DYRTY_APPROACH) {
 					} else {
 						ctx.clearRect(0, 0, width, height)
 						drawShapes(ctx, shapes, opacity)
@@ -145,7 +149,12 @@ export const Canvas = ({
 	)
 
 	const registerLayer = useCallback(
-		(name: string, canvas: HTMLCanvasElement, opacity: number = 0) => {
+		(
+			name: string,
+			canvas: HTMLCanvasElement,
+			opacity: number = 0,
+			renderer?: LayerRenderer
+		) => {
 			if (layers.current.has(name)) return
 
 			const ctx = canvas.getContext('2d')
@@ -159,6 +168,7 @@ export const Canvas = ({
 				dirtyAreas: [],
 				opacity,
 				shapes: new Map(),
+				renderer,
 			}
 			layers.current.set(name, layer)
 			requestDrawLayer(layer)

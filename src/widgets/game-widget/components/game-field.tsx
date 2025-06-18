@@ -9,6 +9,7 @@ import {
 import { useGameColors } from '@/providers/game-colors-provider'
 import { CellShape, ViewConfig } from '@/entities/cell-shape'
 import { Canvas, Layer } from '@/shared/canvas'
+import { useMaskRender } from '../hooks/use-mask-render'
 
 interface IFieldProps extends PropsWithChildren {
 	drawingData: CellDrawingData[][]
@@ -139,6 +140,8 @@ export const GameField = ({
 		return { solutionShapes, maskShapes, overlayShapes }
 	}, [drawingData, isGameLost, viewConfig])
 
+	const { maskRenderer } = useMaskRender()
+
 	return (
 		<div
 			className="w-fit cursor-pointer"
@@ -150,7 +153,7 @@ export const GameField = ({
 					{layersContent.solutionShapes}
 				</Layer>
 
-				<Layer name="mask" zIndex={1} opacity={0.3}>
+				<Layer name="mask" zIndex={1} opacity={0.3} renderer={maskRenderer}>
 					{layersContent.maskShapes}
 				</Layer>
 

@@ -7,14 +7,22 @@ import {
 } from 'react'
 import { LayerRegistryContext } from '../model/layer-registry-context'
 import { layerNameContext } from '../model/layer-name-context'
+import { LayerRenderer } from '../lib/types'
 
 interface LayerProps extends PropsWithChildren {
 	name: string
+	renderer?: LayerRenderer
 	opacity?: number
 	zIndex?: number
 }
 
-export const Layer = ({ name, children, opacity, zIndex = 0 }: LayerProps) => {
+export const Layer = ({
+	name,
+	children,
+	renderer,
+	opacity,
+	zIndex = 0,
+}: LayerProps) => {
 	const registry = useContext(LayerRegistryContext)
 
 	if (!registry) {
@@ -25,7 +33,7 @@ export const Layer = ({ name, children, opacity, zIndex = 0 }: LayerProps) => {
 	const refCallback = useCallback(
 		(canvasElement: HTMLCanvasElement | null) => {
 			if (canvasElement) {
-				registerLayer(name, canvasElement, opacity)
+				registerLayer(name, canvasElement, opacity, renderer)
 			}
 		},
 		[name, registerLayer]

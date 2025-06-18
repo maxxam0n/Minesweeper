@@ -5,7 +5,19 @@ export type BoundingBox = {
 	height: number
 }
 
-export type DrawFun = (ctx: CanvasRenderingContext2D) => void
+export type ShapeRenderer = (ctx: CanvasRenderingContext2D) => void
+
+export type LayerRenderer = (layerData: {
+	shapes: LayerShapes
+	dirtyAreas: BoundingBox[]
+	opacity: number
+	ctx: CanvasRenderingContext2D
+	drawShapes: (
+		ctx: CanvasRenderingContext2D,
+		shapes: LayerShapes,
+		opacity: number
+	) => void
+}) => void
 
 export type ShapeParams = {
 	zIndex: number
@@ -14,7 +26,7 @@ export type ShapeParams = {
 }
 
 export type ShapeDrawingData = {
-	draw: DrawFun
+	draw: ShapeRenderer
 	shapeParams: ShapeParams
 	id: string
 	layerName: string
@@ -28,6 +40,7 @@ export interface Layer {
 	opacity: number
 	shapes: LayerShapes
 	dirtyAreas: BoundingBox[]
+	renderer?: LayerRenderer
 }
 
 export type Layers = Map<string, Layer>

@@ -1,10 +1,12 @@
 import { createContext } from 'react'
+import { LayerRenderer } from '../lib/types'
 
 interface LayerContext {
 	registerLayer: (
 		name: string,
 		canvas: HTMLCanvasElement,
-		opacity?: number
+		opacity?: number,
+		renderer?: LayerRenderer
 	) => void
 	unregisterLayer: (name: string) => void
 }

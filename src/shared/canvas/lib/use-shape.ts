@@ -1,9 +1,9 @@
 import { useContext, useEffect, useId } from 'react'
-import { DrawFun, ShapeParams } from './types'
+import { ShapeRenderer, ShapeParams } from './types'
 import { ShapeRegistryContext } from '../model/shape-registry-context'
 import { layerNameContext } from '../model/layer-name-context'
 
-export const useShape = (draw: DrawFun, shapeParams: ShapeParams) => {
+export const useShape = (draw: ShapeRenderer, shapeParams: ShapeParams) => {
 	const registry = useContext(ShapeRegistryContext)
 	const layerName = useContext(layerNameContext)
 
