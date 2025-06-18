@@ -1,10 +1,4 @@
-import {
-	MouseEvent,
-	PropsWithChildren,
-	useCallback,
-	useEffect,
-	useMemo,
-} from 'react'
+import { MouseEvent, PropsWithChildren, useCallback, useMemo } from 'react'
 import {
 	CellData,
 	CellDrawingData,
@@ -95,10 +89,6 @@ export const GameField = ({
 		if (data.adjacentMines > 0) return CellDrawingView.Digit
 		return CellDrawingView.Empty
 	}
-
-	useEffect(() => {
-		document.fonts.load(`16px ${viewConfig.font}`)
-	}, [])
 
 	if (drawingData.length === 0) return null
 

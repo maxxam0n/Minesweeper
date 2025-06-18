@@ -39,8 +39,7 @@ export const TextShape = ({
 
 	const draw = useCallback(
 		(ctx: CanvasRenderingContext2D) => {
-			if (!textToDraw) return // Не рисуем пустой текст
-
+			if (!textToDraw) return
 			ctx.font = font
 			ctx.textAlign = textAlign
 			ctx.textBaseline = textBaseline

@@ -37,8 +37,8 @@ export const Canvas = ({
 	const shapes = useRef<Shapes>(new Map())
 	const dirtyArea = useRef<DirtyArea>(new Map())
 
-	const measureContextRef = useRef<CanvasRenderingContext2D | null>(null)
-	const textMetricsCacheRef = useRef(new Map<string, TextMetrics>())
+	const measureContext = useRef<CanvasRenderingContext2D | null>(null)
+	const textMetricsCache = useRef(new Map<string, TextMetrics>())
 
 	const animationFrameId = useRef<number>()
 
@@ -62,7 +62,7 @@ export const Canvas = ({
 
 	useEffect(() => {
 		const canvas = document.createElement('canvas')
-		measureContextRef.current = canvas.getContext('2d')
+		measureContext.current = canvas.getContext('2d')
 	}, [])
 
 	const requestDrawLayer = useCallback((layer: string) => {
@@ -221,8 +221,8 @@ export const Canvas = ({
 	}, [width, height])
 
 	return (
-		<MeasureContext.Provider value={measureContextRef.current}>
-			<TextMetricsCacheContext.Provider value={textMetricsCacheRef.current}>
+		<MeasureContext.Provider value={measureContext.current}>
+			<TextMetricsCacheContext.Provider value={textMetricsCache.current}>
 				<CanvasContext.Provider value={contextValue}>
 					<LayerContext.Provider value={layerRegistryValue}>
 						<div className="relative" style={containerStyle}>
