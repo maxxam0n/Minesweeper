@@ -92,6 +92,53 @@ export const GameField = ({
 
 	if (drawingData.length === 0) return null
 
+	const layersContent = useMemo(() => {
+		const solutionShapes: JSX.Element[] = []
+		const maskShapes: JSX.Element[] = []
+		const overlayShapes: JSX.Element[] = []
+
+		drawingData.flat().forEach(({ data, view }) => {
+			const cellKey = data.key
+
+			// 1. Слой "solution" - рисуется всегда
+			solutionShapes.push(
+				<CellShape
+					key={`${cellKey}-solution`}
+					data={{ ...data, view: getSolutionView(data) }}
+					viewConfig={viewConfig}
+				/>
+			)
+
+			// 2. Слой "mask"
+			if (!((data.isMine && isGameLost) || data.isRevealed)) {
+				maskShapes.push(
+					<CellShape
+						key={`${cellKey}-mask`}
+						data={{ ...data, view: CellDrawingView.Closed }}
+						viewConfig={viewConfig}
+					/>
+				)
+			}
+
+			// 3. Слой "overlay"
+			if (
+				view === CellDrawingView.Flag ||
+				view === CellDrawingView.Exploded ||
+				view === CellDrawingView.Missed
+			) {
+				overlayShapes.push(
+					<CellShape
+						key={`${cellKey}-overlay`}
+						data={{ ...data, view }}
+						viewConfig={viewConfig}
+					/>
+				)
+			}
+		})
+
+		return { solutionShapes, maskShapes, overlayShapes }
+	}, [drawingData, isGameLost, viewConfig])
+
 	return (
 		<div
 			className="w-fit cursor-pointer"
@@ -100,50 +147,15 @@ export const GameField = ({
 		>
 			<Canvas width={width} height={height} bgColor={REVEALED}>
 				<Layer name="solution" zIndex={0}>
-					{drawingData.flat().map(({ data }) => (
-						<CellShape
-							key={`${data.key}-solution`}
-							data={{
-								...data,
-								view: getSolutionView(data),
-							}}
-							viewConfig={viewConfig}
-						/>
-					))}
+					{layersContent.solutionShapes}
 				</Layer>
 
-				<Layer name="mask" zIndex={1} opacity={0}>
-					{drawingData.flat().map(({ data }) => {
-						if ((data.isMine && isGameLost) || data.isRevealed) {
-							return null
-						}
-						return (
-							<CellShape
-								key={`${data.key}-mask`}
-								data={{ ...data, view: CellDrawingView.Closed }}
-								viewConfig={viewConfig}
-							/>
-						)
-					})}
+				<Layer name="mask" zIndex={1} opacity={0.3}>
+					{layersContent.maskShapes}
 				</Layer>
 
 				<Layer name="overlay" zIndex={2}>
-					{drawingData.flat().map(({ data, view }) => {
-						if (
-							view === CellDrawingView.Flag ||
-							view === CellDrawingView.Exploded ||
-							view === CellDrawingView.Missed
-						) {
-							return (
-								<CellShape
-									key={`${data.key}-overlay`}
-									data={{ ...data, view }}
-									viewConfig={viewConfig}
-								/>
-							)
-						}
-						return null
-					})}
+					{layersContent.overlayShapes}
 				</Layer>
 				{children}
 			</Canvas>

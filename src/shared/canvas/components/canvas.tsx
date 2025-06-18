@@ -81,22 +81,24 @@ export const Canvas = ({
 
 			layers.current.forEach(layer => {
 				const { dirtyAreas, shapes, ctx, opacity } = layer
-				if (shapes.size > 0 && dirtyAreas.length > 0) {
+				if (dirtyAreas.length > 0) {
+					const USE_DYRTY_APPROACH = false
 					// Пока что отрубил мод отрисовки грязных областей.
-					// Сейчас он работает не стабильно.
-					// Задетые фигуры рисуются с правильным z-index,
+					// Сейчас он работает не стабильно:
+					// Не корректно работает с прозрачными слоями,
+					// При большом количестве dirtyAreas, скорость отрисовки сильно снижается (выгода только при маленьком количестве)
+					// Если какие либо фигуры входят,
 					// но они в свою очередь могут закрывать другие фигуры, у которых z-индекс больше,
 					// но которые не попали в грязную область
-					// Так же не корректно работает с прозрачными слоями
-					if (true) {
-						ctx.clearRect(0, 0, width, height)
-						drawShapes(ctx, shapes, opacity)
-					} else {
+					if (USE_DYRTY_APPROACH) {
 						dirtyAreas.forEach(area => {
 							ctx.clearRect(area.x, area.y, area.width, area.height)
 						})
 						const shapesToRedraw = findDirtyShapes(shapes, dirtyAreas)
 						drawShapes(layer.ctx, shapesToRedraw, layer.opacity)
+					} else {
+						ctx.clearRect(0, 0, width, height)
+						drawShapes(ctx, shapes, opacity)
 					}
 				}
 				layer.dirtyAreas = []
