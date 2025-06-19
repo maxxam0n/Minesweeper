@@ -1,33 +1,35 @@
+import { memo } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
+import { useViewConfig } from '@/providers/game-view-provider'
 import { CircleShape, LineShape, PolygonShape } from '@/shared/canvas'
 
 interface FlagShapeProps {
 	x: number
 	y: number
-	size: number
 }
 
-export const FlagShape = ({ x, y, size }: FlagShapeProps) => {
+export const FlagShape = memo(({ x, y }: FlagShapeProps) => {
 	const { FLAG_SHAFT, FLAG } = useGameColors()
+	const { cellSize } = useViewConfig()
 
 	// --- Параметры для настройки ---
 	// Древко
-	const shaftX = x + size * 0.4 // Смещаем влево, чтобы флаг был главным
-	const shaftTopY = y + size * 0.25
-	const shaftBottomY = y + size * 0.79
-	const shaftWidth = size * 0.08
+	const shaftX = x + cellSize * 0.4 // Смещаем влево, чтобы флаг был главным
+	const shaftTopY = y + cellSize * 0.25
+	const shaftBottomY = y + cellSize * 0.79
+	const shaftWidth = cellSize * 0.08
 
 	// Навершие (шарик)
 	const finialRadius = shaftWidth * 0.6
 
 	// Основание
-	const baseWidth = size * 0.4
+	const baseWidth = cellSize * 0.4
 	const baseHeight = shaftWidth * 1.2
 
 	// Полотнище
 	const flagTopY = shaftTopY + finialRadius
-	const flagHeight = size * 0.25
-	const flagWidth = size * 0.35
+	const flagHeight = cellSize * 0.25
+	const flagWidth = cellSize * 0.35
 	const cutoutDepth = flagWidth * 0.3 // Глубина V-образного выреза
 
 	// Круглая метка на флаге
@@ -83,4 +85,4 @@ export const FlagShape = ({ x, y, size }: FlagShapeProps) => {
 			/>
 		</>
 	)
-}
+})

@@ -1,23 +1,23 @@
 import { useRef } from 'react'
 import { GameStatus, Position } from '@/engine'
-import { useGame } from '../hooks/use-game'
-import { useTimer } from '../hooks/use-timer'
-import { useStatistic } from '../hooks/use-statistic'
+import { useGame } from '../lib/use-game'
+import { useTimer } from '../lib/use-timer'
+import { useStatistic } from '../lib/use-statistic'
 import { GameConfig } from '../lib/types'
 import { GameField } from './game-field'
 
 interface IGameProps {
-	config: GameConfig
+	gameConfig: GameConfig
 }
 
-export const GameWidget = ({ config }: IGameProps) => {
-	const { params } = config
+export const GameWidget = ({ gameConfig }: IGameProps) => {
+	const { params } = gameConfig
 
 	const { time, startTimer, stopTimer } = useTimer()
 	const { updateStatistic } = useStatistic()
 
 	const { drawingData, gameOver, status, revealCell, toggleFlag } =
-		useGame(config)
+		useGame(gameConfig)
 
 	const lastStatus = useRef(status)
 

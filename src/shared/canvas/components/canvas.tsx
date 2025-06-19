@@ -67,6 +67,7 @@ export const Canvas = ({
 		shapes: LayerShapes,
 		opacity: number
 	) => {
+		console.log('draw', shapes)
 		const sortedShapes = Array.from(shapes.values()).sort(
 			(a, b) => (a.shapeParams.zIndex || 0) - (b.shapeParams.zIndex || 0)
 		)

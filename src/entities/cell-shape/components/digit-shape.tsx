@@ -1,31 +1,26 @@
 import { GameColorsEnum, useGameColors } from '@/providers/game-colors-provider'
+import { useViewConfig } from '@/providers/game-view-provider'
 import { TextShape } from '@/shared/canvas'
+import { memo } from 'react'
 
-export const DigitShape = ({
-	x,
-	y,
-	size,
-	font,
-	digit,
-}: {
-	x: number
-	y: number
-	size: number
-	font: string
-	digit: number
-}) => {
-	const colors = useGameColors()
+export const DigitShape = memo(
+	({ x, y, digit }: { x: number; y: number; digit: number }) => {
+		const colors = useGameColors()
+		const { cellSize, font } = useViewConfig()
 
-	return (
-		<TextShape
-			text={String(digit)}
-			x={x + size / 2}
-			y={y + size / 2}
-			font={`${size * 0.6}px ${font}, monospace`}
-			textAlign="center"
-			textBaseline="middle"
-			fillColor={colors[String(digit) as unknown as GameColorsEnum]}
-			zIndex={2}
-		/>
-	)
-}
+		const safeFont = font ? `${font}, monospace` : 'monospace'
+
+		return (
+			<TextShape
+				text={String(digit)}
+				x={x + cellSize / 2}
+				y={y + cellSize / 2}
+				font={`${cellSize * 0.6}px ${safeFont}`}
+				textAlign="center"
+				textBaseline="middle"
+				fillColor={colors[String(digit) as unknown as GameColorsEnum]}
+				zIndex={2}
+			/>
+		)
+	}
+)

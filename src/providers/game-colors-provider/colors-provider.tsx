@@ -9,7 +9,7 @@ export const GameColorsProvider = ({ children }: PropsWithChildren) => {
 	const colors: GameColors = useMemo(() => ({
 		CLOSED: isDark ? '#1f2e3c' : '#c0c0c0',
 		REVEALED: isDark ? '#303a48' : '#ffffff',
-		BORDER: isDark ? '#4a5466' : '#808080',
+		BORDER: isDark ? '#414d5e' : '#808080',
 		EXPLODED: isDark ? '#660000' : '#ff4444',
 		EXPLODED_BORDER: isDark ? '#770000' : '#ff0000',
 		MISSED: isDark ? '#333338' : '#d0b0b0',

@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { CellDrawingView } from '@/engine'
-import { CellData, ViewConfig } from '../lib/types'
+import { useViewConfig } from '@/providers/game-view-provider'
+import { CellData } from '../lib/types'
 import { BevelShape } from './bevel-shape'
 import { BaseCellShape } from './base-cell-shape'
 import { DigitShape } from './digit-shape'
@@ -10,28 +11,18 @@ import { MissedShape } from './missed-shape'
 
 interface CellProps {
 	data: CellData
-	viewConfig: ViewConfig
 }
 
 const areCellsEqual = (
 	prevProps: Readonly<CellProps>,
 	nextProps: Readonly<CellProps>
 ): boolean => {
-	return (
-		prevProps.data.view === nextProps.data.view &&
-		prevProps.viewConfig === nextProps.viewConfig
-	)
+	return prevProps.data.view === nextProps.data.view
 }
 
-const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
+const CellShapeComponent = ({ data }: CellProps) => {
 	const { position, view, adjacentMines } = data
-
-	const {
-		cellSize,
-		bevelWidth = 3,
-		borderWidth = 1,
-		font = 'Digital',
-	} = viewConfig
+	const { cellSize } = useViewConfig()
 
 	// Рассчитываем позицию ячейки на холсте
 	const x = position.col * cellSize
@@ -40,92 +31,49 @@ const CellShapeComponent = ({ data, viewConfig }: CellProps) => {
 	switch (view) {
 		case CellDrawingView.Closed:
 			return (
-				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
-					<BaseCellShape
-						x={x}
-						y={y}
-						size={cellSize}
-						borderWidth={borderWidth}
-					/>
+				<BevelShape x={x} y={y}>
+					<BaseCellShape x={x} y={y} />
 				</BevelShape>
 			)
 
 		case CellDrawingView.Empty:
-			return (
-				<BaseCellShape
-					x={x}
-					y={y}
-					size={cellSize}
-					open={true}
-					borderWidth={borderWidth}
-				/>
-			)
+			return <BaseCellShape x={x} y={y} open={true} />
 
 		case CellDrawingView.Digit:
 			return (
-				<BaseCellShape
-					x={x}
-					y={y}
-					size={cellSize}
-					open={true}
-					borderWidth={borderWidth}
-				>
-					<DigitShape
-						digit={adjacentMines}
-						x={x}
-						y={y}
-						size={cellSize}
-						font={font}
-					/>
+				<BaseCellShape x={x} y={y} open={true}>
+					<DigitShape digit={adjacentMines} x={x} y={y} />
 				</BaseCellShape>
 			)
 
 		case CellDrawingView.Flag:
 			return (
-				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
-					<BaseCellShape x={x} y={y} size={cellSize} borderWidth={0}>
-						<FlagShape x={x} y={y} size={cellSize} />
+				<BevelShape x={x} y={y}>
+					<BaseCellShape x={x} y={y}>
+						<FlagShape x={x} y={y} />
 					</BaseCellShape>
 				</BevelShape>
 			)
 
 		case CellDrawingView.Mine:
 			return (
-				<BaseCellShape
-					x={x}
-					y={y}
-					size={cellSize}
-					borderWidth={borderWidth}
-					open={true}
-				>
-					<MineShape x={x} y={y} size={cellSize} />
+				<BaseCellShape x={x} y={y} open={true}>
+					<MineShape x={x} y={y} />
 				</BaseCellShape>
 			)
 
 		case CellDrawingView.Exploded:
 			return (
-				<BaseCellShape
-					x={x}
-					y={y}
-					size={cellSize}
-					borderWidth={borderWidth}
-					exploded={true}
-				>
-					<MineShape x={x} y={y} size={cellSize} />
+				<BaseCellShape x={x} y={y} exploded={true}>
+					<MineShape x={x} y={y} />
 				</BaseCellShape>
 			)
 
 		case CellDrawingView.Missed:
 			return (
-				<BevelShape x={x} y={y} size={cellSize} width={bevelWidth}>
-					<BaseCellShape
-						x={x}
-						y={y}
-						size={cellSize}
-						missed={true}
-						borderWidth={borderWidth}
-					>
-						<MissedShape x={x} y={y} size={cellSize} />
+				<BevelShape x={x} y={y}>
+					<BaseCellShape x={x} y={y} missed={true}>
+						<MissedShape x={x} y={y} />
 					</BaseCellShape>
 				</BevelShape>
 			)

@@ -1,49 +1,49 @@
-import { ReactNode } from 'react'
+import { memo, ReactNode } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
+import { useViewConfig } from '@/providers/game-view-provider'
 import { RectShape } from '@/shared/canvas'
 
-export const BaseCellShape = ({
-	x,
-	y,
-	size,
-	open = false,
-	exploded = false,
-	missed = false,
-	borderWidth,
-	children,
-}: {
-	x: number
-	y: number
-	size: number
-	borderWidth: number
-	open?: boolean
-	exploded?: boolean
-	missed?: boolean
-	children?: ReactNode
-}) => {
-	const { CLOSED, REVEALED, BORDER, EXPLODED, MISSED } = useGameColors()
+export const BaseCellShape = memo(
+	({
+		x,
+		y,
+		open = false,
+		exploded = false,
+		missed = false,
+		children,
+	}: {
+		x: number
+		y: number
+		open?: boolean
+		exploded?: boolean
+		missed?: boolean
+		children?: ReactNode
+	}) => {
+		const { cellSize, borderWidth } = useViewConfig()
+		const { CLOSED, REVEALED, BORDER, EXPLODED, MISSED } = useGameColors()
 
-	const color = missed
-		? MISSED
-		: exploded
-		? EXPLODED
-		: open
-		? REVEALED
-		: CLOSED
+		const color = missed
+			? MISSED
+			: exploded
+			? EXPLODED
+			: open
+			? REVEALED
+			: CLOSED
 
-	return (
-		<>
-			<RectShape
-				x={x}
-				y={y}
-				width={size}
-				height={size}
-				fillColor={color}
-				strokeColor={BORDER}
-				lineWidth={borderWidth}
-				zIndex={Number(exploded)}
-			/>
-			{children}
-		</>
-	)
-}
+		return (
+			<>
+				<RectShape
+					x={x}
+					y={y}
+					width={cellSize}
+					height={cellSize}
+					fillColor={color}
+					strokeColor={BORDER}
+					lineWidth={borderWidth}
+					zIndex={Number(exploded)}
+				/>
+				{children}
+			</>
+		)
+	}
+)

@@ -1,4 +1,6 @@
 import { GameWidget } from '@/widgets/game-widget'
+import { GameViewProvider } from '@/providers/game-view-provider'
+import { GameColorsProvider } from '@/providers/game-colors-provider'
 import { useUrlConfig } from '../hooks/use-url-config'
 
 export const GameViewContent = () => {
@@ -10,7 +12,11 @@ export const GameViewContent = () => {
 
 	return (
 		<div className="bg-background h-screen flex justify-center items-center">
-			<GameWidget config={config} />
+			<GameColorsProvider>
+				<GameViewProvider>
+					<GameWidget gameConfig={config} />
+				</GameViewProvider>
+			</GameColorsProvider>
 		</div>
 	)
 }
