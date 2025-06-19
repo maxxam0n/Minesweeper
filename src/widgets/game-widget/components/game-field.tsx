@@ -1,4 +1,10 @@
-import { MouseEvent, PropsWithChildren, useCallback, useMemo } from 'react'
+import {
+	Fragment,
+	MouseEvent,
+	PropsWithChildren,
+	useCallback,
+	useMemo,
+} from 'react'
 import {
 	CellDrawingData,
 	CellDrawingView,
@@ -16,7 +22,7 @@ import {
 	MissedShape,
 } from '@/entities/cell-shape'
 import { Canvas, Layer, LineShape, RectShape } from '@/shared/canvas'
-import { useMaskRender } from '../lib/use-mask-render'
+import { useIncrementalRender } from '../lib/use-incremental-render'
 
 interface IFieldProps extends PropsWithChildren {
 	drawingData: CellDrawingData[][]
@@ -117,7 +123,10 @@ export const GameField = ({
 			// 3. Слой "overlay"
 			if (view === CellDrawingView.Flag) {
 				overlayElements.push(
-					<FlagShape key={`${cellKey}-flag`} x={x} y={y} />
+					<Fragment key={`${cellKey}-flag`}>
+						<RectShape width={cellSize} height={cellSize} x={x} y={y} />
+						<FlagShape x={x} y={y} />
+					</Fragment>
 				)
 			} else if (view === CellDrawingView.Exploded) {
 				overlayElements.push(
@@ -209,7 +218,9 @@ export const GameField = ({
 		[width, height, CLOSED]
 	)
 
-	const { maskRenderer } = useMaskRender()
+	const { renderer: maskRenderer } = useIncrementalRender()
+
+	const { renderer: overlayRenderer } = useIncrementalRender()
 
 	if (drawingData.length === 0) return null
 
@@ -233,7 +244,7 @@ export const GameField = ({
 				</Layer>
 
 				{/* Слой 4: Флажки, взорвавшиеся мины, промахи */}
-				<Layer name="overlay" zIndex={2}>
+				<Layer name="overlay" zIndex={2} renderer={overlayRenderer}>
 					{layersContent.overlayElements}
 				</Layer>
 

@@ -1,13 +1,12 @@
 import { useCallback, useRef } from 'react'
 import { LayerRenderer, LayerShapes } from '@/shared/canvas'
 
-export const useMaskRender = () => {
+export const useIncrementalRender = () => {
 	const previousShapes = useRef<LayerShapes>(new Map())
 
-	const maskRenderer = useCallback<LayerRenderer>(
+	const renderer = useCallback<LayerRenderer>(
 		({ ctx, shapes, drawShapes, opacity }) => {
 			previousShapes.current.forEach(shape => {
-				// Открыли клетку (кусочек маски)
 				if (!shapes.has(shape.id)) {
 					const { x, y, width, height } = shape.shapeParams.box
 					ctx.clearRect(x, y, width, height)
@@ -18,7 +17,6 @@ export const useMaskRender = () => {
 			const shapesToDraw: LayerShapes = new Map()
 
 			shapes.forEach(shape => {
-				// Отрисовка маски
 				if (!previousShapes.current.has(shape.id)) {
 					previousShapes.current.set(shape.id, shape)
 					shapesToDraw.set(shape.id, shape)
@@ -30,5 +28,5 @@ export const useMaskRender = () => {
 		[]
 	)
 
-	return { maskRenderer }
+	return { renderer }
 }
