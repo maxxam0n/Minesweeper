@@ -1,3 +1,4 @@
+export { CellRevealEffect } from './components/cell-reveal-effect'
 export { MissedShape } from './components/missed-shape'
 export { BaseCellShape } from './components/base-cell-shape'
 export { FlagShape } from './components/flag-shape'

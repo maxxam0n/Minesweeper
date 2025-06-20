@@ -85,6 +85,28 @@ export const GameField = ({
 		[isGameOver, getCellPositionFromMouseEvent, onCellPress]
 	)
 
+	const handlePointerMove = useCallback(
+		(event: PointerEvent<HTMLDivElement>) => {
+			if (isGameOver || !pressedCellRef.current) return
+			const pos = getCellPositionFromMouseEvent(event)
+
+			if (pos) {
+				const { col: prevCol, row: prevRow } = pressedCellRef.current
+
+				if (pos.col !== prevCol || pos.row !== prevRow) {
+					onCellRelease(false)
+					pressedCellRef.current = pos
+					onCellPress(pos)
+				}
+			} else {
+				// Курсор ушел за пределы поля с зажатой кнопкой
+				onCellRelease(false)
+				pressedCellRef.current = null
+			}
+		},
+		[isGameOver, getCellPositionFromMouseEvent, onCellPress]
+	)
+
 	const handlePointerUp = useCallback(
 		(event: PointerEvent<HTMLDivElement>) => {
 			if (event.button !== 0) return // Только левая кнопка
@@ -264,6 +286,7 @@ export const GameField = ({
 			onPointerUp={handlePointerUp}
 			onPointerLeave={handlePointerLeave}
 			onContextMenu={handleCanvasRightClick}
+			onPointerMove={handlePointerMove}
 		>
 			<Canvas width={width} height={height} bgColor={REVEALED}>
 				{/* Слой 1: Фон открытых клеток + Цифры и Мины */}

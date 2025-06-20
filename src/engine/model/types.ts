@@ -63,6 +63,7 @@ export interface GameSnapshot {
 }
 
 export interface ActionChanges {
+	targetPosition: Position
 	flaggedPositions: Position[]
 	unflaggedPositions: Position[]
 	revealedPositions: Position[]

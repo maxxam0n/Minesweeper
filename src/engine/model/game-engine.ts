@@ -101,6 +101,7 @@ export class GameEngine {
 					status: actionStatus,
 				},
 				actionChanges: {
+					targetPosition: pos,
 					flaggedPositions: [],
 					unflaggedPositions,
 					revealedPositions,
