@@ -1,19 +1,11 @@
-import seedrandom from 'seedrandom'
 import { createGrid } from '../lib/utils'
 import { CellData, ConstrutorFieldProps, GameStatus, Position } from './types'
 import { BaseField } from './base-field'
 import { SimpleCell } from './simple-cell'
 
 export class SquareField extends BaseField<SimpleCell> {
-	private rng: () => number
-
-	constructor({
-		params,
-		seed = String(Date.now()),
-		data,
-	}: ConstrutorFieldProps) {
-		super({ params, data })
-		this.rng = seedrandom(seed)
+	constructor({ params, seed, data }: ConstrutorFieldProps) {
+		super({ params, data, seed })
 	}
 
 	protected createGrid(data?: CellData[][]) {
@@ -122,5 +114,13 @@ export class SquareField extends BaseField<SimpleCell> {
 
 	public getDrawingData(status: GameStatus) {
 		return this.grid.map(row => row.map(cell => cell.getDrawingData(status)))
+	}
+
+	public cloneSelf() {
+		return new SquareField({
+			params: this.params,
+			seed: this.seed,
+			data: this.grid,
+		})
 	}
 }

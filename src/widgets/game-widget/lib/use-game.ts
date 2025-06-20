@@ -23,22 +23,27 @@ export const useGame = ({ params, type, seed, mode }: GameConfig) => {
 	}
 
 	const revealCell = (pos: Position) => {
-		if (gameOver) return { gameState, animationEvents: [] }
+		if (gameOver) return null
 
-		const { gameSnapshot: actualState, animationEvents } =
-			gameInstance.current.revealCell(pos)
-		setGameState(actualState)
+		const { data, apply } = gameInstance.current.revealCell(pos)
+		const applyAction = () => {
+			setGameState(data.actionSnapshot)
+			apply()
+		}
 
-		return { gameState: actualState, animationEvents }
+		return {
+			data,
+			applyAction,
+		}
 	}
 
 	const toggleFlag = (pos: Position) => {
 		if (gameOver) return gameState
 
-		const { gameSnapshot: actualState } = gameInstance.current.toggleFlag(pos)
-		setGameState(actualState)
+		gameInstance.current.toggleFlag(pos)
+		setGameState(gameInstance.current.gameSnapshot)
 
-		return actualState
+		return gameInstance.current.gameSnapshot
 	}
 
 	return {

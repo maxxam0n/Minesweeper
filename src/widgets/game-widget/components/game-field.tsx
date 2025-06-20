@@ -1,9 +1,11 @@
 import {
 	Fragment,
 	MouseEvent,
+	PointerEvent,
 	PropsWithChildren,
 	useCallback,
 	useMemo,
+	useRef,
 } from 'react'
 import {
 	CellDrawingData,
@@ -27,15 +29,17 @@ import { useIncrementalRender } from '../lib/use-incremental-render'
 interface IFieldProps extends PropsWithChildren {
 	drawingData: CellDrawingData[][]
 	gameStatus: GameStatus
-	onReveal: (pos: Position) => void
 	onToggleFlag: (pos: Position) => void
+	onCellPress: (pos: Position) => void
+	onCellRelease: (isClick: boolean) => void
 }
 
 export const GameField = ({
 	drawingData,
 	gameStatus,
-	onReveal,
 	onToggleFlag,
+	onCellPress,
+	onCellRelease,
 	children,
 }: IFieldProps) => {
 	const { REVEALED, CLOSED, BORDER } = useGameColors()
@@ -52,6 +56,8 @@ export const GameField = ({
 		[rows, cols]
 	)
 
+	const pressedCellRef = useRef<Position | null>(null)
+
 	const getCellPositionFromMouseEvent = useCallback(
 		(event: MouseEvent): Position | null => {
 			const rect = event.currentTarget.getBoundingClientRect()
@@ -67,14 +73,41 @@ export const GameField = ({
 		[cellSize, rows, cols]
 	)
 
-	const handleCanvasClick = useCallback(
-		(event: MouseEvent) => {
-			if (isGameOver) return
+	const handlePointerDown = useCallback(
+		(event: PointerEvent<HTMLDivElement>) => {
+			if (isGameOver || event.button !== 0) return // Только левая кнопка
 			const pos = getCellPositionFromMouseEvent(event)
-			if (pos) onReveal(pos)
+			if (pos) {
+				pressedCellRef.current = pos
+				onCellPress(pos)
+			}
 		},
-		[isGameOver, onReveal, getCellPositionFromMouseEvent]
+		[isGameOver, getCellPositionFromMouseEvent, onCellPress]
 	)
+
+	const handlePointerUp = useCallback(
+		(event: PointerEvent<HTMLDivElement>) => {
+			if (event.button !== 0) return // Только левая кнопка
+
+			const releasedPos = getCellPositionFromMouseEvent(event)
+
+			if (releasedPos) {
+				// Если отпустили на той же клетке - это потенциальный клик
+				const { col, row } = pressedCellRef.current ?? {}
+				const isClick = releasedPos.col === col && releasedPos.row === row
+				onCellRelease(isClick)
+			}
+			pressedCellRef.current = null
+		},
+		[getCellPositionFromMouseEvent, onCellRelease]
+	)
+
+	const handlePointerLeave = useCallback(() => {
+		if (pressedCellRef.current) {
+			onCellRelease(false)
+			pressedCellRef.current = null
+		}
+	}, [onCellRelease])
 
 	const handleCanvasRightClick = useCallback(
 		(event: MouseEvent) => {
@@ -227,7 +260,9 @@ export const GameField = ({
 	return (
 		<div
 			className="w-fit cursor-pointer"
-			onClick={handleCanvasClick}
+			onPointerDown={handlePointerDown}
+			onPointerUp={handlePointerUp}
+			onPointerLeave={handlePointerLeave}
 			onContextMenu={handleCanvasRightClick}
 		>
 			<Canvas width={width} height={height} bgColor={REVEALED}>

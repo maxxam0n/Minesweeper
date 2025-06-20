@@ -66,13 +66,14 @@ export interface ActionChanges {
 	flaggedPositions: Position[]
 	unflaggedPositions: Position[]
 	revealedPositions: Position[]
+	previewPressPositions: Position[]
 	explodedCells: Position[]
 }
 
-export type AnimationEvent = {}
-
-export interface ActionResult {
-	gameSnapshot: GameSnapshot
-	animationEvents: AnimationEvent[]
-	actionChanges: ActionChanges
+export interface RevealActionResult {
+	apply: () => void
+	data: {
+		actionSnapshot: GameSnapshot
+		actionChanges: ActionChanges
+	}
 }

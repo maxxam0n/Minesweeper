@@ -1,14 +1,13 @@
 import { BaseField } from './base-field'
 import { FieldFactory } from './field-factory'
 import {
-	ActionResult,
-	AnimationEvent,
 	CellData,
 	FieldType,
 	GameMode,
 	GameParams,
 	GameStatus,
 	Position,
+	RevealActionResult,
 } from './types'
 
 type MineSweeperConfig = {
@@ -40,61 +39,80 @@ export class GameEngine {
 		this.revealed = 0
 	}
 
-	public revealCell(pos: Position): ActionResult {
+	public revealCell(pos: Position): RevealActionResult {
+		const operetadField = this.field.cloneSelf()
+		let actionStatus: GameStatus = this.status
+
 		const revealedPositions: Position[] = []
 		const unflaggedPositions: Position[] = []
-		const animationEvents: AnimationEvent[] = []
 		const explodedCells: Position[] = []
+		const previewPressPositions: Position[] = []
 
 		// 1. Обработка первого клика / начала игры
-		if (!this.field.isMined || this.status === GameStatus.Idle) {
-			this.field.placeMines(pos)
-			this.status = GameStatus.Playing
+		if (!operetadField.isMined || actionStatus === GameStatus.Idle) {
+			operetadField.placeMines(pos)
+			actionStatus = GameStatus.Playing
 		}
 
-		const targetCell = this.field.getCell(pos)
+		const targetCell = operetadField.getCell(pos)
 
 		// 2. Основная логика
-		if (this.status === GameStatus.Playing && !targetCell.isFlagged) {
+		if (actionStatus === GameStatus.Playing && !targetCell.isFlagged) {
 			if (targetCell.isMine) {
+				previewPressPositions.push(pos)
 				targetCell.isRevealed = true
 				explodedCells.push(targetCell.position)
-				this.status = GameStatus.Lost
 			} else if (targetCell.isRevealed) {
 				// chord/chording. Когда кликаем по открытой клетке
-				const result = this.handleRevealedClick(targetCell)
+				const result = this.handleRevealedClick(targetCell, operetadField)
 				revealedPositions.push(...result.revealedPositions)
 				unflaggedPositions.push(...result.unflaggedPositions)
 				explodedCells.push(...result.exploded)
+				previewPressPositions.push(...result.previewPressPositions)
 			} else {
 				// Невскрытая и не мина
-				const result = this.openArea(pos)
+				const result = this.openArea(pos, operetadField)
+				previewPressPositions.push(pos)
 				revealedPositions.push(...result.revealedPositions)
 				unflaggedPositions.push(...result.unflaggedPositions)
 			}
 		}
 
-		// 3. Подсчет и проверка на победу
-		this.revealed += revealedPositions.length
-		this.flagged -= unflaggedPositions.length
+		const revealed = this.revealed + revealedPositions.length
+		const flagged = this.flagged - unflaggedPositions.length
 
-		if (this.status !== GameStatus.Lost && this.checkForWin()) {
-			this.status = GameStatus.Won
+		// 3. Подсчет и проверка на победу
+		if (explodedCells.length > 0) actionStatus = GameStatus.Lost
+		else if (this.checkForWin(revealed)) actionStatus = GameStatus.Won
+
+		const applyAction = () => {
+			this.flagged = flagged
+			this.revealed = revealed
+			this.status = actionStatus
+			this.field = operetadField
 		}
 
 		return {
-			gameSnapshot: this.gameSnapshot,
-			animationEvents,
-			actionChanges: {
-				flaggedPositions: [],
-				unflaggedPositions,
-				revealedPositions,
-				explodedCells,
+			data: {
+				actionSnapshot: {
+					drawingData: operetadField.getDrawingData(actionStatus),
+					flagged,
+					revealed,
+					status: actionStatus,
+				},
+				actionChanges: {
+					flaggedPositions: [],
+					unflaggedPositions,
+					revealedPositions,
+					explodedCells,
+					previewPressPositions,
+				},
 			},
+			apply: applyAction,
 		}
 	}
 
-	public toggleFlag(pos: Position): ActionResult {
+	public toggleFlag(pos: Position) {
 		let flaggedPositions: Position[] = []
 		let unflaggedPositions: Position[] = []
 
@@ -115,60 +133,63 @@ export class GameEngine {
 
 		this.flagged =
 			this.flagged - unflaggedPositions.length + flaggedPositions.length
-
-		return {
-			gameSnapshot: this.gameSnapshot,
-			animationEvents: [],
-			actionChanges: {
-				flaggedPositions,
-				unflaggedPositions,
-				revealedPositions: [],
-				explodedCells: [],
-			},
-		}
 	}
 
-	private handleRevealedClick(targetCell: CellData) {
-		let revealedPositions: Position[] = []
-		let unflaggedPositions: Position[] = []
+	private handleRevealedClick(
+		targetCell: CellData,
+		operatedField: BaseField<CellData>
+	) {
+		const revealedPositions: Position[] = []
+		const unflaggedPositions: Position[] = []
+		const previewPressPositions: Position[] = []
 
 		const exploded: Position[] = []
-		const siblings = this.field.getSiblings(targetCell.position)
+		const siblings = operatedField.getSiblings(targetCell.position)
+		const closedSiblings = siblings.filter(sib => {
+			const sibCell = operatedField.getCell(sib)
+			return !sibCell.isRevealed && !sibCell.isFlagged
+		})
 		const adjacentFlags = siblings.reduce(
-			(sum, pos) => sum + Number(this.field.getCell(pos).isFlagged),
+			(sum, pos) => sum + Number(operatedField.getCell(pos).isFlagged),
 			0
 		)
 
 		if (adjacentFlags === targetCell.adjacentMines) {
+			previewPressPositions.push(...closedSiblings)
+
 			for (const sibPos of siblings) {
-				const sibCell = this.field.getCell(sibPos)
+				const sibCell = operatedField.getCell(sibPos)
 				if (sibCell.isFlagged || sibCell.isRevealed) continue
 
 				if (sibCell.isMine && !sibCell.isFlagged) {
 					// Проигрыш внутри аккорда
 					sibCell.isRevealed = true
 					exploded.push(sibPos)
-					this.status = GameStatus.Lost
 				} else {
 					// Открываем безопасную ячейку или пустую область
-					const openResult = this.openArea(sibPos)
+					const openResult = this.openArea(sibPos, operatedField)
 					revealedPositions.push(...openResult.revealedPositions)
 					unflaggedPositions.push(...openResult.unflaggedPositions)
 				}
 			}
 		}
 
-		return { revealedPositions, unflaggedPositions, exploded }
+		return {
+			revealedPositions,
+			unflaggedPositions,
+			exploded,
+			previewPressPositions,
+		}
 	}
 
-	private openArea(pos: Position) {
+	private openArea(pos: Position, operatedField: BaseField<CellData>) {
 		let unflaggedPositions: Position[] = []
 		let revealedPositions: Position[] = []
 
-		const area = this.field.getAreaToReveal(pos)
+		const area = operatedField.getAreaToReveal(pos)
 
 		area.forEach(areaPos => {
-			const cellToProcess = this.field.getCell(areaPos)
+			const cellToProcess = operatedField.getCell(areaPos)
 			if (cellToProcess.isFlagged) {
 				cellToProcess.isFlagged = false
 				unflaggedPositions.push(areaPos)
@@ -181,10 +202,10 @@ export class GameEngine {
 		return { unflaggedPositions, revealedPositions }
 	}
 
-	private checkForWin() {
+	private checkForWin(revealedCount: number) {
 		const { cols, mines, rows } = this.params
 
-		return this.revealed === cols * rows - mines
+		return revealedCount === cols * rows - mines
 	}
 
 	get gameSnapshot() {
