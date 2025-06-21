@@ -57,9 +57,13 @@ export interface ConstrutorFieldProps {
 
 export interface GameSnapshot {
 	status: GameStatus
-	flagged: number
 	field: CellDrawingData[][]
-	revealed: number
+	flaggedPositions: Position[]
+	revealedPositions: Position[]
+	minesPositions: Position[]
+	missedFlags: Position[]
+	unmarkedMines: Position[]
+	explodedCells: Position[]
 }
 
 export interface ActionChanges {

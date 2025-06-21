@@ -1,5 +1,4 @@
 import { useViewConfig } from '@/providers/game-view-provider'
-import { GameStatus } from '@/engine'
 import { Canvas } from '@/shared/canvas'
 import { useGame } from '../lib/use-game'
 import { useTimer } from '../lib/use-timer'
@@ -29,31 +28,40 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 
 	const { score, efficiency, updateStatistic, resetStatistic } = useStatistic()
 
-	const { updateStatus } = useGameLifecycle(gameData.status, {
-		onPlay() {
+	const {
+		animations,
+		addAnimations,
+		addStaggeredAnimations,
+		removeAnimations,
+	} = useAnimations(animationsEnabled)
+
+	const { updateStatus, resetStatus } = useGameLifecycle(gameData.status, {
+		onPlay(actionSnapshot) {
 			startTimer()
 		},
-		onLose() {
+		onLose(actionSnapshot) {
 			stopTimer()
 		},
-		onWin() {
+		onWin(actionSnapshot) {
 			stopTimer()
 		},
 	})
-
-	const { animations, addAnimations, removeAnimations } =
-		useAnimations(animationsEnabled)
 
 	const reset = () => {
 		resetTimer()
 		resetStatistic()
 		resetGame()
-		updateStatus(GameStatus.Idle)
+		resetStatus()
 	}
 
 	const onApplyReveal: ApplyRevealFunction = ({ actionSnapshot }) => {
-		updateStatistic({ revealed: actionSnapshot.revealed, time, params })
-		updateStatus(actionSnapshot.status)
+		updateStatistic({
+			revealed: actionSnapshot.revealedPositions.length,
+			time,
+			params,
+		})
+
+		updateStatus(actionSnapshot)
 	}
 
 	const animatedHandlers = useAnimatedInteraction({

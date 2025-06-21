@@ -17,6 +17,14 @@ export const useAnimations = (animationsEnabled: boolean) => {
 		setAnimations(prevAnimations => [...prevAnimations, ...newAnimations])
 	}
 
+	const addStaggeredAnimations = (anims: AnimationQuery[], delay: number) => {
+		anims.forEach((anim, index) => {
+			setTimeout(() => {
+				addAnimations([anim])
+			}, index * delay)
+		})
+	}
+
 	const removeAnimations = (animationIds: string[]) => {
 		if (!animationsEnabled) return
 
@@ -34,5 +42,6 @@ export const useAnimations = (animationsEnabled: boolean) => {
 		animations,
 		addAnimations,
 		removeAnimations,
+		addStaggeredAnimations,
 	}
 }

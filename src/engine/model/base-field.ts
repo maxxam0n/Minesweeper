@@ -44,4 +44,5 @@ export abstract class BaseField<T extends CellData> {
 	public abstract getSiblings(pos: Position): Position[]
 	public abstract getDrawingData(status: GameStatus): CellDrawingData[][]
 	public abstract cloneSelf(): BaseField<T>
+	public abstract getMinesPositions(): Position[]
 }

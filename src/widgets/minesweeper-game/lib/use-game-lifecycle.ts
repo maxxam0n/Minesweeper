@@ -1,10 +1,10 @@
 import { useRef } from 'react'
-import { GameStatus } from '@/engine'
+import { GameSnapshot, GameStatus } from '@/engine'
 
 interface LifecycleMethods {
-	onPlay: () => void
-	onWin: () => void
-	onLose: () => void
+	onPlay: (actionSnapshot: GameSnapshot) => void
+	onWin: (actionSnapshot: GameSnapshot) => void
+	onLose: (actionSnapshot: GameSnapshot) => void
 }
 
 export const useGameLifecycle = (
@@ -13,14 +13,22 @@ export const useGameLifecycle = (
 ) => {
 	const lastStatus = useRef(initialStatus)
 
-	const updateStatus = (status: GameStatus) => {
-		if (lastStatus.current !== status) {
-			if (status === GameStatus.Playing) onPlay()
-			else if (status === GameStatus.Won) onWin()
-			else if (status === GameStatus.Lost) onLose()
-			lastStatus.current = status
+	const updateStatus = (actionSnapshot: GameSnapshot) => {
+		if (lastStatus.current !== actionSnapshot.status) {
+			lastStatus.current = actionSnapshot.status
+			if (actionSnapshot.status === GameStatus.Playing) {
+				onPlay(actionSnapshot)
+			} else if (actionSnapshot.status === GameStatus.Won) {
+				onWin(actionSnapshot)
+			} else if (actionSnapshot.status === GameStatus.Lost) {
+				onLose(actionSnapshot)
+			}
 		}
 	}
 
-	return { updateStatus }
+	const resetStatus = () => {
+		lastStatus.current = initialStatus
+	}
+
+	return { updateStatus, resetStatus }
 }

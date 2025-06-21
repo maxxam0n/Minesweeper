@@ -94,6 +94,13 @@ export class SquareField extends BaseField<SimpleCell> {
 		return result
 	}
 
+	public getMinesPositions() {
+		return this.grid
+			.flat()
+			.filter(cell => cell.isMine)
+			.map(cell => cell.position)
+	}
+
 	public getCell({ row, col }: Position) {
 		return this.grid[row][col]
 	}

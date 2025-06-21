@@ -9,10 +9,10 @@ export const useGame = ({ params, type, seed, mode }: GameConfig) => {
 		gameInstance.current.gameSnapshot
 	)
 
-	const { field, flagged, revealed, status } = gameState
+	const { status, flaggedPositions, ...otherData } = gameState
 
 	const gameOver = status == GameStatus.Won || status == GameStatus.Lost
-	const remainingMines = params.mines - flagged
+	const remainingMines = params.mines - flaggedPositions.length
 
 	const resetGame = () => {
 		gameInstance.current = new GameEngine({
@@ -49,12 +49,11 @@ export const useGame = ({ params, type, seed, mode }: GameConfig) => {
 	}
 
 	return {
-		field,
-		flagged,
-		revealed,
 		status,
 		gameOver,
+		flaggedPositions,
 		remainingMines,
+		...otherData,
 		resetGame,
 		revealCell,
 		toggleFlag,

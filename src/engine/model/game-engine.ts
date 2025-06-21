@@ -8,6 +8,7 @@ import {
 	GameStatus,
 	Position,
 	ActionResult,
+	GameSnapshot,
 } from './types'
 
 type MineSweeperConfig = {
@@ -22,8 +23,12 @@ export class GameEngine {
 	private field: BaseField<CellData>
 	private params: GameParams
 	private status: GameStatus
-	private flagged: number
-	private revealed: number
+
+	private flaggedPositions: Position[]
+	private revealedPositions: Position[]
+	private explodedCells: Position[]
+	private missedFlags: Position[]
+	private unmarkedMines: Position[]
 
 	constructor({
 		params,
@@ -35,8 +40,11 @@ export class GameEngine {
 		this.params = params
 		this.field = FieldFactory.create({ params, type, seed })
 		this.status = GameStatus.Idle
-		this.flagged = 0
-		this.revealed = 0
+		this.flaggedPositions = []
+		this.revealedPositions = []
+		this.explodedCells = []
+		this.missedFlags = []
+		this.unmarkedMines = []
 	}
 
 	public revealCell(pos: Position): ActionResult {
@@ -78,27 +86,45 @@ export class GameEngine {
 			}
 		}
 
-		const revealed = this.revealed + revealedPositions.length
-		const flagged = this.flagged - unflaggedPositions.length
+		const summaryRevealedPositions = [
+			...this.revealedPositions,
+			...revealedPositions,
+		]
+
+		const flaggedPositions = this.flaggedPositions.filter(
+			pos => !unflaggedPositions.includes(pos)
+		)
+
+		const missedFlags = flaggedPositions.filter(
+			pos => !operetadField.getCell(pos).isMine
+		)
 
 		// 3. Подсчет и проверка на победу
 		if (explodedCells.length > 0) actionStatus = GameStatus.Lost
-		else if (this.checkForWin(revealed)) actionStatus = GameStatus.Won
+		else if (this.checkForWin(summaryRevealedPositions.length)) {
+			actionStatus = GameStatus.Won
+		}
 
 		const applyAction = () => {
-			this.flagged = flagged
-			this.revealed = revealed
 			this.status = actionStatus
 			this.field = operetadField
+			this.revealedPositions = summaryRevealedPositions
+			this.flaggedPositions = flaggedPositions
+			this.explodedCells = explodedCells
+			this.missedFlags = missedFlags
 		}
 
 		return {
 			data: {
 				actionSnapshot: {
-					field: operetadField.getDrawingData(actionStatus),
-					flagged,
-					revealed,
 					status: actionStatus,
+					field: operetadField.getDrawingData(actionStatus),
+					flaggedPositions: flaggedPositions,
+					revealedPositions: summaryRevealedPositions,
+					minesPositions: operetadField.getMinesPositions(),
+					unmarkedMines: this.unmarkedMines,
+					explodedCells,
+					missedFlags,
 				},
 				actionChanges: {
 					targetPosition: pos,
@@ -126,23 +152,45 @@ export class GameEngine {
 				// Снимаем флаг
 				cell.isFlagged = false
 				unflaggedPositions.push(pos)
-			} else if (this.flagged < this.params.mines) {
+			} else if (this.flaggedPositions.length < this.params.mines) {
 				// Ставим флаг
 				cell.isFlagged = true
 				flaggedPositions.push(pos)
 			}
 		}
 
-		const flagged =
-			this.flagged - unflaggedPositions.length + flaggedPositions.length
+		const summaryFlaggedPositions = this.flaggedPositions
+			.filter(pos => !unflaggedPositions.includes(pos))
+			.concat(flaggedPositions)
+
+		const missedFlags = summaryFlaggedPositions.filter(
+			pos => !operetadField.getCell(pos).isMine
+		)
+
+		const unmarkedMines = this.unmarkedMines
+			.filter(pos => !unflaggedPositions.includes(pos))
+			.concat(flaggedPositions)
+			.filter(pos => operetadField.getCell(pos).isMine)
 
 		const applyAction = () => {
-			this.flagged = flagged
+			this.flaggedPositions = summaryFlaggedPositions
+			this.missedFlags = missedFlags
+			this.unmarkedMines = unmarkedMines
 			this.field = operetadField
 		}
 
 		return {
 			data: {
+				actionSnapshot: {
+					status: this.status,
+					field: operetadField.getDrawingData(this.status),
+					revealedPositions: this.revealedPositions,
+					flaggedPositions: summaryFlaggedPositions,
+					minesPositions: operetadField.getMinesPositions(),
+					missedFlags: missedFlags,
+					unmarkedMines: unmarkedMines,
+					explodedCells: this.explodedCells,
+				},
 				actionChanges: {
 					explodedCells: [],
 					flaggedPositions,
@@ -150,12 +198,6 @@ export class GameEngine {
 					revealedPositions: [],
 					targetPosition: pos,
 					unflaggedPositions,
-				},
-				actionSnapshot: {
-					field: operetadField.getDrawingData(this.status),
-					flagged,
-					revealed: this.revealed,
-					status: this.status,
 				},
 			},
 			apply: applyAction,
@@ -235,12 +277,16 @@ export class GameEngine {
 		return revealedCount === cols * rows - mines
 	}
 
-	get gameSnapshot() {
+	get gameSnapshot(): GameSnapshot {
 		return {
 			field: this.field.getDrawingData(this.status),
 			status: this.status,
-			flagged: this.flagged,
-			revealed: this.revealed,
+			flaggedPositions: this.flaggedPositions,
+			revealedPositions: this.revealedPositions,
+			minesPositions: this.field.getMinesPositions(),
+			unmarkedMines: this.unmarkedMines,
+			explodedCells: this.explodedCells,
+			missedFlags: this.missedFlags,
 		}
 	}
 }
