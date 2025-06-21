@@ -4,7 +4,14 @@ import { ViewConfig } from './types'
 
 export const GameViewProvider = ({ children }: PropsWithChildren) => {
 	const viewConfig = useMemo<ViewConfig>(
-		() => ({ cellSize: 30, font: 'Tektur', bevelWidth: 3, borderWidth: 0.5 }),
+		() => ({
+			cellSize: 30,
+			font: 'Tektur',
+			animationDuration: 300,
+			bevelWidth: 3,
+			borderWidth: 0.5,
+			animationsEnabled: true,
+		}),
 		[]
 	)
 

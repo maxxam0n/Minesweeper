@@ -40,8 +40,8 @@ export class GameEngine {
 	}
 
 	public revealCell(pos: Position): RevealActionResult {
-		const operetadField = this.field.cloneSelf()
 		let actionStatus: GameStatus = this.status
+		const operetadField = this.field.cloneSelf()
 
 		const revealedPositions: Position[] = []
 		const unflaggedPositions: Position[] = []
@@ -95,7 +95,7 @@ export class GameEngine {
 		return {
 			data: {
 				actionSnapshot: {
-					drawingData: operetadField.getDrawingData(actionStatus),
+					field: operetadField.getDrawingData(actionStatus),
 					flagged,
 					revealed,
 					status: actionStatus,
@@ -211,7 +211,7 @@ export class GameEngine {
 
 	get gameSnapshot() {
 		return {
-			drawingData: this.field.getDrawingData(this.status),
+			field: this.field.getDrawingData(this.status),
 			status: this.status,
 			flagged: this.flagged,
 			revealed: this.revealed,

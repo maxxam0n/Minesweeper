@@ -188,13 +188,11 @@ export const Canvas = ({
 		[registerLayer, unregisterLayer]
 	)
 
-	const containerStyle = useMemo(() => {
-		return {
-			width: `${width}px`,
-			height: `${height}px`,
-			backgroundColor: bgColor,
-		}
-	}, [width, height])
+	const containerStyle = {
+		width: `${width}px`,
+		height: `${height}px`,
+		backgroundColor: bgColor,
+	}
 
 	return (
 		<MetricsProvider>

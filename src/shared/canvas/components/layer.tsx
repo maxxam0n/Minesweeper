@@ -36,7 +36,7 @@ export const Layer = ({
 				registerLayer(name, canvasElement, opacity, renderer)
 			}
 		},
-		[name, registerLayer]
+		[name, opacity, registerLayer, renderer]
 	)
 
 	useEffect(() => {

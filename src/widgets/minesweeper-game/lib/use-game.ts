@@ -1,14 +1,16 @@
 import { useRef, useState } from 'react'
 import { GameEngine, GameSnapshot, GameStatus, Position } from '@/engine'
-import { GameConfig } from '../lib/types'
+import { GameConfig } from './types'
 
 export const useGame = ({ params, type, seed, mode }: GameConfig) => {
 	const gameInstance = useRef(new GameEngine({ params, type, seed, mode }))
+
 	const [gameState, setGameState] = useState<GameSnapshot>(
 		gameInstance.current.gameSnapshot
 	)
 
-	const { drawingData, flagged, revealed, status } = gameState
+	const { field, flagged, revealed, status } = gameState
+
 	const gameOver = status == GameStatus.Won || status == GameStatus.Lost
 	const remainingMines = params.mines - flagged
 
@@ -23,23 +25,18 @@ export const useGame = ({ params, type, seed, mode }: GameConfig) => {
 	}
 
 	const revealCell = (pos: Position) => {
-		if (gameOver) return null
-
 		const { data, apply } = gameInstance.current.revealCell(pos)
-		const applyAction = () => {
-			setGameState(data.actionSnapshot)
-			apply()
-		}
 
 		return {
 			data,
-			applyAction,
+			apply() {
+				setGameState(data.actionSnapshot)
+				apply()
+			},
 		}
 	}
 
 	const toggleFlag = (pos: Position) => {
-		if (gameOver) return gameState
-
 		gameInstance.current.toggleFlag(pos)
 		setGameState(gameInstance.current.gameSnapshot)
 
@@ -47,7 +44,7 @@ export const useGame = ({ params, type, seed, mode }: GameConfig) => {
 	}
 
 	return {
-		drawingData,
+		field,
 		flagged,
 		revealed,
 		status,

@@ -58,7 +58,7 @@ export interface ConstrutorFieldProps {
 export interface GameSnapshot {
 	status: GameStatus
 	flagged: number
-	drawingData: CellDrawingData[][]
+	field: CellDrawingData[][]
 	revealed: number
 }
 
