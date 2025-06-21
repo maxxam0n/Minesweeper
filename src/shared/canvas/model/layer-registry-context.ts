@@ -5,7 +5,7 @@ interface LayerContext {
 	registerLayer: (
 		name: string,
 		canvas: HTMLCanvasElement,
-		opacity?: number,
+		opacity: number,
 		renderer?: LayerRenderer
 	) => void
 	unregisterLayer: (name: string) => void

@@ -19,7 +19,7 @@ export const RectShape = ({
 	y,
 	width,
 	height,
-	opacity = 0,
+	opacity = 1,
 	fillColor,
 	strokeColor,
 	lineWidth = 1,

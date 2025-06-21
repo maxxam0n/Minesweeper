@@ -2,13 +2,9 @@ import { memo } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { useViewConfig } from '@/providers/game-view-provider'
 import { CircleShape, LineShape, PolygonShape } from '@/shared/canvas'
+import { BaseCellProps } from '../lib/types'
 
-interface FlagShapeProps {
-	x: number
-	y: number
-}
-
-export const FlagShape = memo(({ x, y }: FlagShapeProps) => {
+export const FlagShape = memo(({ x, y }: BaseCellProps) => {
 	const { FLAG_SHAFT, FLAG } = useGameColors()
 	const { cellSize } = useViewConfig()
 
@@ -34,8 +30,6 @@ export const FlagShape = memo(({ x, y }: FlagShapeProps) => {
 
 	// Круглая метка на флаге
 	const decorationCenterY = flagTopY + flagHeight / 2
-
-	// --- Сборка флага ---
 
 	return (
 		<>

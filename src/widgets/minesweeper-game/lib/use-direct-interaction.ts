@@ -1,8 +1,9 @@
-import { Position, RevealActionResult } from '@/engine'
+import { Position, ActionResult } from '@/engine'
 import { ApplyRevealFunction } from './types'
 
 interface DirectInteractionParams {
-	revealCell: (pos: Position) => RevealActionResult
+	revealCell: (pos: Position) => ActionResult
+	toggleFlag: (pos: Position) => ActionResult
 	onApplyReveal: ApplyRevealFunction
 }
 
@@ -20,5 +21,9 @@ export const useDirectInteraction = ({
 		}
 	}
 
-	return { handleCellPress, handleCellRelease }
+	const handleToggleFlag = (pos: Position) => {
+		revealCell(pos).apply()
+	}
+
+	return { handleCellPress, handleCellRelease, handleToggleFlag }
 }

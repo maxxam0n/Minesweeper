@@ -21,7 +21,7 @@ export const PolygonShape = ({
 	points,
 	closed,
 	zIndex = 0,
-	opacity = 0,
+	opacity = 1,
 	fillColor,
 	strokeColor,
 	lineWidth = 1,

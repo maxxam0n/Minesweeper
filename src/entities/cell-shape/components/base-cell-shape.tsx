@@ -1,7 +1,14 @@
-import { memo, ReactNode } from 'react'
+import { memo, PropsWithChildren } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { useViewConfig } from '@/providers/game-view-provider'
 import { RectShape } from '@/shared/canvas'
+import { BaseCellProps } from '../lib/types'
+
+interface BaseCellShapeProps extends BaseCellProps, PropsWithChildren {
+	open?: boolean
+	exploded?: boolean
+	missed?: boolean
+}
 
 export const BaseCellShape = memo(
 	({
@@ -11,14 +18,7 @@ export const BaseCellShape = memo(
 		exploded = false,
 		missed = false,
 		children,
-	}: {
-		x: number
-		y: number
-		open?: boolean
-		exploded?: boolean
-		missed?: boolean
-		children?: ReactNode
-	}) => {
+	}: BaseCellShapeProps) => {
 		const { cellSize, borderWidth } = useViewConfig()
 		const { CLOSED, REVEALED, BORDER, EXPLODED, MISSED } = useGameColors()
 

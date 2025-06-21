@@ -71,7 +71,7 @@ export interface ActionChanges {
 	explodedCells: Position[]
 }
 
-export interface RevealActionResult {
+export interface ActionResult {
 	apply: () => void
 	data: {
 		actionSnapshot: GameSnapshot

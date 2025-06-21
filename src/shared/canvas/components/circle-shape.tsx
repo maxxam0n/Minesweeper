@@ -18,7 +18,7 @@ export const CircleShape = ({
 	cy,
 	radius,
 	strokeColor,
-	opacity = 0,
+	opacity = 1,
 	fillColor = 'white',
 	lineWidth = 1,
 	zIndex = 0,

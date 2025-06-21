@@ -14,10 +14,21 @@ export interface GameConfig {
 	seed: string
 }
 
-export type AnimationType = 'reveal' | 'press' | 'flag' | 'explode'
+export type AnimationType =
+	| 'reveal'
+	| 'press'
+	| 'flag'
+	| 'unflag'
+	| 'error'
+	| 'explosion'
 
 export interface Animation {
 	id: string
+	type: AnimationType
+	position: Position
+}
+
+export interface AnimationQuery {
 	type: AnimationType
 	position: Position
 }

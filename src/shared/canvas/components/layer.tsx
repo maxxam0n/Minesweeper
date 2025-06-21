@@ -20,7 +20,7 @@ export const Layer = ({
 	name,
 	children,
 	renderer,
-	opacity,
+	opacity = 1,
 	zIndex = 0,
 }: LayerProps) => {
 	const registry = useContext(LayerRegistryContext)

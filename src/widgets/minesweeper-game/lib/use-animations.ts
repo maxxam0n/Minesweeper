@@ -1,14 +1,11 @@
 import { useRef, useState } from 'react'
-import { Position } from '@/engine'
-import { Animation, AnimationType } from './types'
+import { Animation, AnimationQuery } from './types'
 
 export const useAnimations = (animationsEnabled: boolean) => {
 	const nextAnimationId = useRef(0)
 	const [animations, setAnimations] = useState<Animation[]>([])
 
-	const addAnimations = (
-		animations: { type: AnimationType; position: Position }[]
-	) => {
+	const addAnimations = (animations: AnimationQuery[]) => {
 		if (!animationsEnabled) return
 
 		const newAnimations = animations.map(({ type, position }) => ({

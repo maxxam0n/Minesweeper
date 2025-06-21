@@ -59,6 +59,7 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 	const animatedHandlers = useAnimatedInteraction({
 		animations,
 		revealCell,
+		toggleFlag,
 		onApplyReveal,
 		addAnimations,
 		removeAnimations,
@@ -66,6 +67,7 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 
 	const directHandlers = useDirectInteraction({
 		revealCell,
+		toggleFlag,
 		onApplyReveal,
 	})
 
@@ -82,7 +84,7 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 			isGameOver={gameData.gameOver}
 			onCellPress={interactionHandlers.handleCellPress}
 			onCellRelease={interactionHandlers.handleCellRelease}
-			onToggleFlag={toggleFlag}
+			onToggleFlag={animatedHandlers.handleToggleFlag}
 		>
 			<Canvas width={width} height={height}>
 				<GameField

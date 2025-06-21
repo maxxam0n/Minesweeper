@@ -39,7 +39,10 @@ export class SimpleCell implements CellData {
 	}
 
 	public getDrawingData(status: GameStatus): CellDrawingData {
-		return { data: { ...this }, view: this.getView(status) }
+		return {
+			data: { ...this, isEmpty: this.isEmpty },
+			view: this.getView(status),
+		}
 	}
 
 	private getView(status: GameStatus): CellDrawingView {

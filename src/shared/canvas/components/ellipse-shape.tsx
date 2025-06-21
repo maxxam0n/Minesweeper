@@ -20,7 +20,7 @@ export const EllipseShape = ({
 	cy,
 	radiusX,
 	radiusY,
-	opacity = 0,
+	opacity = 1,
 	rotation = 0,
 	fillColor = 'white',
 	strokeColor,

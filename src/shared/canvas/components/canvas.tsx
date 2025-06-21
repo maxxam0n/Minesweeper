@@ -72,8 +72,8 @@ export const Canvas = ({
 		)
 		sortedShapes.forEach(({ draw, shapeParams }) => {
 			ctx.save()
-			const summaryOpacity = opacity + shapeParams.opacity
-			ctx.globalAlpha = Math.max(1 - summaryOpacity, 0)
+			const summaryOpacity = opacity - (1 - shapeParams.opacity)
+			ctx.globalAlpha = Math.max(summaryOpacity, 0)
 			draw(ctx)
 			ctx.restore()
 		})
@@ -152,7 +152,7 @@ export const Canvas = ({
 		(
 			name: string,
 			canvas: HTMLCanvasElement,
-			opacity: number = 0,
+			opacity: number,
 			renderer?: LayerRenderer
 		) => {
 			if (layers.current.has(name)) return

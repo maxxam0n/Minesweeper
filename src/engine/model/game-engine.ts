@@ -7,7 +7,7 @@ import {
 	GameParams,
 	GameStatus,
 	Position,
-	RevealActionResult,
+	ActionResult,
 } from './types'
 
 type MineSweeperConfig = {
@@ -39,7 +39,7 @@ export class GameEngine {
 		this.revealed = 0
 	}
 
-	public revealCell(pos: Position): RevealActionResult {
+	public revealCell(pos: Position): ActionResult {
 		let actionStatus: GameStatus = this.status
 		const operetadField = this.field.cloneSelf()
 
@@ -113,15 +113,16 @@ export class GameEngine {
 		}
 	}
 
-	public toggleFlag(pos: Position) {
+	public toggleFlag(pos: Position): ActionResult {
+		const operetadField = this.field.cloneSelf()
+
 		let flaggedPositions: Position[] = []
 		let unflaggedPositions: Position[] = []
 
-		const cell = this.field.getCell(pos)
+		const cell = operetadField.getCell(pos)
 
 		if (this.status === GameStatus.Playing && !cell.isRevealed) {
-			const willBeMarked = !cell.isFlagged
-			if (!willBeMarked) {
+			if (cell.isFlagged) {
 				// Снимаем флаг
 				cell.isFlagged = false
 				unflaggedPositions.push(pos)
@@ -132,8 +133,33 @@ export class GameEngine {
 			}
 		}
 
-		this.flagged =
+		const flagged =
 			this.flagged - unflaggedPositions.length + flaggedPositions.length
+
+		const applyAction = () => {
+			this.flagged = flagged
+			this.field = operetadField
+		}
+
+		return {
+			data: {
+				actionChanges: {
+					explodedCells: [],
+					flaggedPositions,
+					previewPressPositions: [],
+					revealedPositions: [],
+					targetPosition: pos,
+					unflaggedPositions,
+				},
+				actionSnapshot: {
+					field: operetadField.getDrawingData(this.status),
+					flagged,
+					revealed: this.revealed,
+					status: this.status,
+				},
+			},
+			apply: applyAction,
+		}
 	}
 
 	private handleRevealedClick(

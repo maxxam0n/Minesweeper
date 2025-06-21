@@ -1,16 +1,12 @@
 import { useRef } from 'react'
-import {
-	ActionChanges,
-	GameSnapshot,
-	Position,
-	RevealActionResult,
-} from '@/engine'
-import { Animation, ApplyRevealFunction } from './types'
+import { ActionChanges, GameSnapshot, Position, ActionResult } from '@/engine'
+import { Animation, AnimationQuery, ApplyRevealFunction } from './types'
 
 interface AnimatedInteractionParams {
 	animations: Animation[]
-	revealCell: (pos: Position) => RevealActionResult
-	addAnimations: (anims: any[]) => void
+	revealCell: (pos: Position) => ActionResult
+	toggleFlag: (pos: Position) => ActionResult
+	addAnimations: (anims: AnimationQuery[]) => void
 	removeAnimations: (ids: string[]) => void
 	onApplyReveal: ApplyRevealFunction
 }
@@ -24,6 +20,7 @@ interface DefferedAction {
 export const useAnimatedInteraction = ({
 	animations,
 	revealCell,
+	toggleFlag,
 	addAnimations,
 	removeAnimations,
 	onApplyReveal,
@@ -35,6 +32,9 @@ export const useAnimatedInteraction = ({
 			data: { actionChanges, actionSnapshot },
 			apply,
 		} = revealCell(pos)
+
+		const { col, row } = actionChanges.targetPosition
+		const targetCell = actionSnapshot.field[row][col].data
 
 		if (actionChanges.previewPressPositions.length > 0) {
 			addAnimations(
@@ -50,6 +50,18 @@ export const useAnimatedInteraction = ({
 				}))
 			)
 		}
+		// Показываем ошибку только при попытке открития хорды с невыполненными условиями
+		// Если клетка не пустая, и выполнены все условия,
+		// движок вернет не пустой previewPressPositions и мы сюда не попадем
+		else if (!targetCell.isEmpty || targetCell.isFlagged) {
+			addAnimations([
+				{
+					type: 'error',
+					position: actionChanges.targetPosition,
+				},
+			])
+		}
+
 		defferedAction.current = {
 			applyAction: apply,
 			actionChanges,
@@ -83,5 +95,39 @@ export const useAnimatedInteraction = ({
 		defferedAction.current = null
 	}
 
-	return { handleCellPress, handleCellRelease }
+	const handleToggleFlag = (pos: Position) => {
+		const {
+			apply,
+			data: { actionChanges },
+		} = toggleFlag(pos)
+
+		apply()
+
+		const { flaggedPositions, unflaggedPositions } = actionChanges
+
+		if (flaggedPositions.length > 0) {
+			addAnimations(
+				flaggedPositions.map(pos => ({
+					type: 'flag',
+					position: pos,
+				}))
+			)
+		} else if (unflaggedPositions.length > 0) {
+			addAnimations(
+				unflaggedPositions.map(pos => ({
+					type: 'unflag',
+					position: pos,
+				}))
+			)
+		} else {
+			addAnimations([
+				{
+					type: 'error',
+					position: actionChanges.targetPosition,
+				},
+			])
+		}
+	}
+
+	return { handleCellPress, handleCellRelease, handleToggleFlag }
 }

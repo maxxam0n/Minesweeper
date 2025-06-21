@@ -20,7 +20,7 @@ export const ImageShape = ({
 	y,
 	width,
 	height,
-	opacity = 0,
+	opacity = 1,
 	zIndex = 0,
 }: ImageShapeProps) => {
 	const [image, setImage] = useState<HTMLImageElement | null>(null)

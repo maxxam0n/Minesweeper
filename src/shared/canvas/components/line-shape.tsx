@@ -18,7 +18,7 @@ export const LineShape = ({
 	y1,
 	x2,
 	y2,
-	opacity = 0,
+	opacity = 1,
 	strokeColor, // По умолчанию не задан
 	lineWidth = 1,
 	zIndex = 0,

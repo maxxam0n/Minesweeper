@@ -1,3 +1,6 @@
+export { FlagAppearEffect } from './components/flag-appear-effect'
+export { FlagDisappearEffect } from './components/flag-disappear-effect'
+export { ActionErrorEffect } from './components/action-error-effect'
 export { CellRevealEffect } from './components/cell-reveal-effect'
 export { MissedShape } from './components/missed-shape'
 export { BaseCellShape } from './components/base-cell-shape'

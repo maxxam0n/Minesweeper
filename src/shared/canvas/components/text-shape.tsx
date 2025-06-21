@@ -23,7 +23,7 @@ export const TextShape = ({
 	x,
 	y,
 	text,
-	opacity = 0,
+	opacity = 1,
 	font = '16px sans-serif',
 	textAlign = 'start',
 	textBaseline = 'alphabetic',

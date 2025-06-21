@@ -37,10 +37,15 @@ export const useGame = ({ params, type, seed, mode }: GameConfig) => {
 	}
 
 	const toggleFlag = (pos: Position) => {
-		gameInstance.current.toggleFlag(pos)
-		setGameState(gameInstance.current.gameSnapshot)
+		const { data, apply } = gameInstance.current.toggleFlag(pos)
 
-		return gameInstance.current.gameSnapshot
+		return {
+			data,
+			apply() {
+				setGameState(data.actionSnapshot)
+				apply()
+			},
+		}
 	}
 
 	return {

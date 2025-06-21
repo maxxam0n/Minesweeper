@@ -1,35 +1,27 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { useViewConfig } from '@/providers/game-view-provider'
-import { useShape } from '@/shared/canvas'
-
-interface CellRevealEffectProps {
-	id: string
-	x: number
-	y: number
-	onComplete: (id: string) => void
-}
+import { ShapeParams, useShape } from '@/shared/canvas'
+import { EffectProps } from '../lib/types'
 
 export const CellRevealEffect = memo(
-	({ id, x, y, onComplete }: CellRevealEffectProps) => {
+	({ id, x, y, onComplete }: EffectProps) => {
 		const { cellSize, animationDuration } = useViewConfig()
 		const { CLOSED } = useGameColors()
 
-		const [currentOpacity, setCurrentOpacity] = useState(0)
+		const [opacity, setOpacity] = useState(1)
 
 		useEffect(() => {
 			let startTime: number | null = null
 			let animationFrameId: number
 
 			const animate = (timestamp: number) => {
-				if (startTime === null) {
-					startTime = timestamp
-				}
-				const elapsedTime = timestamp - startTime
-				const progress = Math.min(elapsedTime / animationDuration, 1)
+				if (startTime === null) startTime = timestamp
+				const elapsed = timestamp - startTime
+				const progress = Math.min(elapsed / animationDuration, 1)
 
 				// Плавное исчезновение
-				setCurrentOpacity(progress)
+				setOpacity(1 - progress)
 
 				if (progress < 1) {
 					animationFrameId = requestAnimationFrame(animate)
@@ -53,13 +45,13 @@ export const CellRevealEffect = memo(
 			[x, y, cellSize, CLOSED]
 		)
 
-		const shapeParams = useMemo(
+		const shapeParams = useMemo<ShapeParams>(
 			() => ({
 				zIndex: 1,
-				opacity: currentOpacity,
+				opacity,
 				box: { x, y, width: cellSize, height: cellSize },
 			}),
-			[currentOpacity, x, y, cellSize]
+			[opacity, x, y, cellSize]
 		)
 
 		useShape(drawFlash, shapeParams)

@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useViewConfig } from '@/providers/game-view-provider'
-import { BaseCellShape, CellRevealEffect } from '@/entities/cell-shape'
+import {
+	BaseCellShape,
+	CellRevealEffect,
+	FlagAppearEffect,
+	FlagDisappearEffect,
+	ActionErrorEffect,
+} from '@/entities/cell-shape'
 import { Layer } from '@/shared/canvas'
 import { Animation } from '../lib/types'
 
@@ -40,7 +46,13 @@ export const AnimationField = ({
 		}
 	}, [onAnimationComplete])
 
-	const { pressedAnimations, revealingAnimations } = animations.reduce(
+	const {
+		pressedAnimations,
+		revealingAnimations,
+		flagAnimations,
+		unflagAnimations,
+		limitReached,
+	} = animations.reduce(
 		(acc, anim) => {
 			const {
 				id,
@@ -68,23 +80,61 @@ export const AnimationField = ({
 						onComplete={removeUnitAnimation}
 					/>
 				)
+			} else if (anim.type === 'flag') {
+				acc.flagAnimations.push(
+					<FlagAppearEffect
+						key={id}
+						id={id}
+						x={x}
+						y={y}
+						onComplete={removeUnitAnimation}
+					/>
+				)
+			} else if (anim.type === 'unflag') {
+				acc.unflagAnimations.push(
+					<FlagDisappearEffect
+						key={id}
+						id={id}
+						x={x}
+						y={y}
+						onComplete={removeUnitAnimation}
+					/>
+				)
+			} else if (anim.type === 'error') {
+				acc.limitReached.push(
+					<ActionErrorEffect
+						key={id}
+						id={id}
+						x={x}
+						y={y}
+						onComplete={removeUnitAnimation}
+					/>
+				)
 			}
 			return acc
 		},
 		{
 			pressedAnimations: [] as JSX.Element[],
 			revealingAnimations: [] as JSX.Element[],
+			flagAnimations: [] as JSX.Element[],
+			unflagAnimations: [] as JSX.Element[],
+			limitReached: [] as JSX.Element[],
 		}
 	)
 
 	return (
 		<>
-			<Layer name="pressed" zIndex={10}>
+			<Layer name="light-animations" zIndex={10}>
 				{/* Анимации вдавливания */}
 				{pressedAnimations}
+
+				{/* Анимации флагов */}
+				{flagAnimations}
+				{unflagAnimations}
+				{limitReached}
 			</Layer>
 
-			<Layer name="revealing" zIndex={11}>
+			<Layer name="heavy-animations" zIndex={11}>
 				{/* Анимации раскрытия ячеек */}
 				{revealingAnimations}
 			</Layer>

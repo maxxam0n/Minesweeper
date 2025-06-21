@@ -2,13 +2,9 @@ import { memo } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { useViewConfig } from '@/providers/game-view-provider'
 import { CircleShape, LineShape } from '@/shared/canvas'
+import { BaseCellProps } from '../lib/types'
 
-interface MineShapeProps {
-	x: number
-	y: number
-}
-
-export const MineShape = memo(({ x, y }: MineShapeProps) => {
+export const MineShape = memo(({ x, y }: BaseCellProps) => {
 	const { MINE } = useGameColors()
 	const { cellSize } = useViewConfig()
 

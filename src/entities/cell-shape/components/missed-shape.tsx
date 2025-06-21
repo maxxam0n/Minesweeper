@@ -1,8 +1,9 @@
 import { memo } from 'react'
 import { useViewConfig } from '@/providers/game-view-provider'
 import { LineShape } from '@/shared/canvas'
+import { BaseCellProps } from '../lib/types'
 
-export const MissedShape = memo(({ x, y }: { x: number; y: number }) => {
+export const MissedShape = memo(({ x, y }: BaseCellProps) => {
 	const { cellSize } = useViewConfig()
 
 	return (
