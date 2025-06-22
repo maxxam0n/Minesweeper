@@ -115,7 +115,7 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 		<GameFieldHandlers
 			className="w-fit cursor-pointer"
 			params={params}
-			isGameOver={gameData.gameOver}
+			gameOver={gameData.gameOver}
 			onCellPress={interactionHandlers.handleCellPress}
 			onCellRelease={interactionHandlers.handleCellRelease}
 			onToggleFlag={animatedHandlers.handleToggleFlag}
@@ -123,6 +123,7 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 			<Canvas width={width} height={height}>
 				<GameField
 					zIndex={0}
+					gameOver={gameData.gameOver}
 					width={width}
 					height={height}
 					data={gameData.field}

@@ -52,7 +52,7 @@ export class SimpleCell implements CellData {
 			...this,
 			isEmpty: this.isEmpty,
 			isExploded: this.isExploded,
-			isUnmarkedMine: this.notFoundMine,
+			notFoundMine: this.notFoundMine,
 			isUntouched: this.isUntouched,
 			isMissed: this.isMissed,
 		}

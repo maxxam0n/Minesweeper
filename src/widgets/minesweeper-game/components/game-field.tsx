@@ -1,4 +1,5 @@
 import { Fragment, useMemo } from 'react'
+import { CellData } from '@/engine'
 import { useViewConfig } from '@/providers/game-view-provider'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { Layer, RectShape } from '@/shared/canvas'
@@ -11,84 +12,99 @@ import {
 	MissedShape,
 } from '@/entities/cell-shape'
 import { useIncrementalRender } from '../lib/use-incremental-render'
-import { CellData } from '@/engine'
 
 interface IFieldProps {
+	gameOver: boolean
 	width: number
 	height: number
 	data: CellData[][]
 	zIndex: number
 }
 
-export const GameField = ({ width, height, data, zIndex }: IFieldProps) => {
+export const GameField = ({
+	width,
+	height,
+	data,
+	gameOver,
+	zIndex,
+}: IFieldProps) => {
 	const { REVEALED, CLOSED } = useGameColors()
 	const { cellSize } = useViewConfig()
 
-	const layersContent = data.flat().reduce(
-		(acc, cellData) => {
-			const cellKey = cellData.key
-			const x = cellData.position.col * cellSize
-			const y = cellData.position.row * cellSize
+	const layersContent = useMemo(() => {
+		console.log('render GameField')
+		return data.flat().reduce(
+			(acc, cellData) => {
+				const cellKey = cellData.key
+				const x = cellData.position.col * cellSize
+				const y = cellData.position.row * cellSize
 
-			// Слой Solution - рисуем полное отображение открытого поля включая (все цифры и мины)
-			if (cellData.adjacentMines > 0 && !cellData.isMine) {
-				console.log('Solution ', cellData)
+				// Слой Solution - рисуем полное отображение открытого поля включая (все цифры и мины)
+				if (cellData.adjacentMines > 0 && !cellData.isMine) {
+					acc.solutionDigitsAndMines.push(
+						<DigitShape
+							key={`${cellKey}-digit`}
+							digit={cellData.adjacentMines}
+							x={x}
+							y={y}
+						/>
+					)
+				} else if (cellData.isMine) {
+					acc.solutionDigitsAndMines.push(
+						<MineShape key={`${cellKey}-mine`} x={x} y={y} />
+					)
+				}
 
-				acc.solutionDigitsAndMines.push(
-					<DigitShape
-						key={`${cellKey}-digit`}
-						digit={cellData.adjacentMines}
-						x={x}
-						y={y}
-					/>
-				)
-			} else if (cellData.isMine) {
-				acc.solutionDigitsAndMines.push(
-					<MineShape key={`${cellKey}-mine`} x={x} y={y} />
-				)
+				// Слой "mask" - только фаски для нераскрытых клеток
+				if (
+					!(cellData.notFoundMine && gameOver) &&
+					(cellData.isUntouched || cellData.isFlagged || cellData.isMissed)
+				) {
+					acc.maskBevels.push(
+						<BevelShape key={`${cellKey}-bevel`} x={x} y={y} />
+					)
+				}
+
+				// 3. Слой "overlay"
+				if (cellData.isMissed && gameOver) {
+					acc.overlayElements.push(
+						<MissedShape x={x} y={y} key={`${cellKey}-missed`} />
+					)
+				} else if (cellData.isFlagged) {
+					acc.overlayElements.push(
+						<Fragment key={`${cellKey}-flag`}>
+							{/* RectShape надежный boundingBox для maskRenderer */}
+							<RectShape
+								width={cellSize}
+								height={cellSize}
+								x={x}
+								y={y}
+							/>
+							<FlagShape x={x} y={y} />
+						</Fragment>
+					)
+				} else if (cellData.isExploded) {
+					acc.overlayElements.push(
+						<BaseCellShape
+							key={`${cellKey}-exploded`}
+							x={x}
+							y={y}
+							exploded={true}
+						>
+							<MineShape x={x} y={y} />
+						</BaseCellShape>
+					)
+				}
+
+				return acc
+			},
+			{
+				solutionDigitsAndMines: [] as JSX.Element[],
+				maskBevels: [] as JSX.Element[],
+				overlayElements: [] as JSX.Element[],
 			}
-
-			// Слой "mask" - только фаски для нераскрытых клеток
-			if (cellData.isUntouched || cellData.isFlagged || cellData.isMissed) {
-				acc.maskBevels.push(
-					<BevelShape key={`${cellKey}-bevel`} x={x} y={y} />
-				)
-			}
-
-			// 3. Слой "overlay"
-			if (cellData.isMissed) {
-				acc.overlayElements.push(
-					<MissedShape x={x} y={y} key={`${cellKey}-missed`} />
-				)
-			} else if (cellData.isFlagged) {
-				acc.overlayElements.push(
-					<Fragment key={`${cellKey}-flag`}>
-						{/* RectShape надежный boundingBox для maskRenderer */}
-						<RectShape width={cellSize} height={cellSize} x={x} y={y} />
-						<FlagShape x={x} y={y} />
-					</Fragment>
-				)
-			} else if (cellData.isExploded) {
-				acc.overlayElements.push(
-					<BaseCellShape
-						key={`${cellKey}-exploded`}
-						x={x}
-						y={y}
-						exploded={true}
-					>
-						<MineShape x={x} y={y} />
-					</BaseCellShape>
-				)
-			}
-
-			return acc
-		},
-		{
-			solutionDigitsAndMines: [] as JSX.Element[],
-			maskBevels: [] as JSX.Element[],
-			overlayElements: [] as JSX.Element[],
-		}
-	)
+		)
+	}, [data, cellSize, gameOver])
 
 	const solutionBackground = useMemo(
 		() => (

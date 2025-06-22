@@ -4,7 +4,7 @@ import { useViewConfig } from '@/providers/game-view-provider'
 
 interface GameFieldHandlersProps extends PropsWithChildren {
 	className: string
-	isGameOver: boolean
+	gameOver: boolean
 	params: GameParams
 	onToggleFlag: (pos: Position) => void
 	onCellPress: (pos: Position) => void
@@ -12,7 +12,7 @@ interface GameFieldHandlersProps extends PropsWithChildren {
 }
 
 export const GameFieldHandlers = ({
-	isGameOver,
+	gameOver,
 	params,
 	children,
 	className,
@@ -40,7 +40,7 @@ export const GameFieldHandlers = ({
 	}
 
 	const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-		if (isGameOver || event.button !== 0) return // Только левая кнопка
+		if (gameOver || event.button !== 0) return // Только левая кнопка
 		const pos = getCellPositionFromMouseEvent(event)
 		if (pos) {
 			pressedPosition.current = pos
@@ -49,7 +49,7 @@ export const GameFieldHandlers = ({
 	}
 
 	const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-		if (isGameOver || !pressedPosition.current) return
+		if (gameOver || !pressedPosition.current) return
 		const pos = getCellPositionFromMouseEvent(event)
 
 		if (pos) {
@@ -68,7 +68,7 @@ export const GameFieldHandlers = ({
 	}
 
 	const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-		if (isGameOver || event.button !== 0) return
+		if (gameOver || event.button !== 0) return
 
 		const releasedPos = getCellPositionFromMouseEvent(event)
 
@@ -82,7 +82,7 @@ export const GameFieldHandlers = ({
 	}
 
 	const handlePointerLeave = () => {
-		if (isGameOver) return
+		if (gameOver) return
 		if (pressedPosition.current) {
 			onCellRelease(false)
 			pressedPosition.current = null
@@ -91,7 +91,7 @@ export const GameFieldHandlers = ({
 
 	const handleCanvasRightClick = (event: MouseEvent) => {
 		event.preventDefault()
-		if (isGameOver) return
+		if (gameOver) return
 		const pos = getCellPositionFromMouseEvent(event)
 		if (pos) onToggleFlag(pos)
 	}

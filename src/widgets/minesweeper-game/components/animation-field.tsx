@@ -79,7 +79,7 @@ export const AnimationField = ({
 			} else if (anim.type === 'reveal') {
 				acc.revealingAnimations.push(
 					<CellRevealEffect
-						key={id}
+						key={`reveal-${id}`}
 						id={id}
 						x={x}
 						y={y}
@@ -89,7 +89,7 @@ export const AnimationField = ({
 			} else if (anim.type === 'flag') {
 				acc.flagAnimations.push(
 					<FlagAppearEffect
-						key={id}
+						key={`flag-appear-${id}`}
 						id={id}
 						x={x}
 						y={y}
@@ -99,7 +99,7 @@ export const AnimationField = ({
 			} else if (anim.type === 'unflag') {
 				acc.unflagAnimations.push(
 					<FlagDisappearEffect
-						key={id}
+						key={`flag-disappear-${id}`}
 						id={id}
 						x={x}
 						y={y}
@@ -109,7 +109,7 @@ export const AnimationField = ({
 			} else if (anim.type === 'error') {
 				acc.limitReached.push(
 					<ActionErrorEffect
-						key={id}
+						key={`error-${id}`}
 						id={id}
 						x={x}
 						y={y}
