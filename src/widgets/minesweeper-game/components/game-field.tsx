@@ -32,7 +32,6 @@ export const GameField = ({
 	const { cellSize } = useViewConfig()
 
 	const layersContent = useMemo(() => {
-		console.log('render GameField')
 		return data.flat().reduce(
 			(acc, cellData) => {
 				const cellKey = cellData.key

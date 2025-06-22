@@ -3,6 +3,7 @@ import { BaseField } from './base-field'
 import { SimpleCell } from './simple-cell'
 import { CellData, ConstrutorFieldProps, Position } from './types'
 
+// TODO: сейчас это копия SquareField, нужно переписать методы под полигон
 export class HexagonalField extends BaseField<SimpleCell> {
 	constructor({ params, seed, data }: ConstrutorFieldProps) {
 		super({ params, data, seed })
