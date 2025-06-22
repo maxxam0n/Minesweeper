@@ -1,12 +1,9 @@
 import { memo, useEffect, useState } from 'react'
-import { useViewConfig } from '@/providers/game-view-provider'
-import { EffectProps } from '../lib/types'
-import { FlagShape } from './flag-shape'
+import { EffectProps } from '@/shared/types/shape'
+import { FlagShape } from '@/shared/shapes/flag-shape'
 
 export const FlagAppearEffect = memo(
-	({ id, x, y, onComplete }: EffectProps) => {
-		const { animationDuration } = useViewConfig()
-
+	({ id, x, y, size, duration, onComplete }: EffectProps) => {
 		const [scale, setScale] = useState(0)
 
 		useEffect(() => {
@@ -16,7 +13,7 @@ export const FlagAppearEffect = memo(
 			const animate = (timestamp: number) => {
 				if (startTime === null) startTime = timestamp
 				const elapsed = timestamp - startTime
-				const progress = Math.min(elapsed / animationDuration, 1)
+				const progress = Math.min(elapsed / duration, 1)
 
 				// Кастомная функция для "пружинного" эффекта
 				// t < 0.4: быстрый рост до 1.2
@@ -49,6 +46,6 @@ export const FlagAppearEffect = memo(
 			}
 		}, [id, onComplete])
 
-		return <FlagShape x={x} y={y} />
+		return <FlagShape size={size} x={x} y={y} />
 	}
 )

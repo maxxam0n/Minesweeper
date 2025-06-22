@@ -1,8 +1,8 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { useViewConfig } from '@/providers/game-view-provider'
-import { ShapeParams, useShape } from '@/shared/canvas'
-import { EffectProps } from '../lib/types'
+import { ShapeParams, useShape } from '@/ui-engine'
+import { EffectProps } from '../../lib/types'
 
 export const CellRevealEffect = memo(
 	({ id, x, y, onComplete }: EffectProps) => {

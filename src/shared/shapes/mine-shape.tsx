@@ -1,24 +1,23 @@
 import { memo } from 'react'
-import { useGameColors } from '@/providers/game-colors-provider'
-import { useViewConfig } from '@/providers/game-view-provider'
-import { CircleShape, LineShape } from '@/shared/canvas'
-import { BaseCellProps } from '../lib/types'
+import { CircleShape, LineShape } from '@/ui-engine'
+import { BaseShapeProps } from '@/shared/types/shape'
 
-export const MineShape = memo(({ x, y }: BaseCellProps) => {
-	const { MINE } = useGameColors()
-	const { cellSize } = useViewConfig()
+interface MineShapeProps extends BaseShapeProps {
+	color: string
+}
 
+export const MineShape = memo(({ x, y, size, color }: MineShapeProps) => {
 	// --- Параметры для настройки внешнего вида ---
 	const center = {
-		x: x + cellSize / 2,
-		y: y + cellSize / 2,
+		x: x + size / 2,
+		y: y + size / 2,
 	}
 
-	const mainRadius = cellSize * 0.25 // Радиус основного черного шара
-	const spikeLength = cellSize * 0.4 // Длина шипов от центра
-	const spikeWidth = cellSize * 0.05 // Толщина шипов
-	const glareRadius = cellSize * 0.05 // Радиус блика
-	const glareOffset = cellSize * 0.1 // Смещение блика от центра
+	const mainRadius = size * 0.25 // Радиус основного черного шара
+	const spikeLength = size * 0.4 // Длина шипов от центра
+	const spikeWidth = size * 0.05 // Толщина шипов
+	const glareRadius = size * 0.05 // Радиус блика
+	const glareOffset = size * 0.1 // Смещение блика от центра
 
 	// --- Основной шар мины ---
 	const MainBody = (
@@ -26,7 +25,7 @@ export const MineShape = memo(({ x, y }: BaseCellProps) => {
 			cx={center.x}
 			cy={center.y}
 			radius={mainRadius}
-			fillColor={MINE}
+			fillColor={color}
 			zIndex={2}
 		/>
 	)
@@ -64,7 +63,7 @@ export const MineShape = memo(({ x, y }: BaseCellProps) => {
 					y1={center.y}
 					x2={endPoint.x}
 					y2={endPoint.y}
-					strokeColor={MINE}
+					strokeColor={color}
 					lineWidth={spikeWidth}
 					zIndex={1}
 				/>

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { FieldType, GameMode, GameParams } from '@/engine'
-import { parseToNumber } from '@/shared/utils/parse-to-number'
+import { parseToNumber } from '@/shared/lib/parse-to-number'
 
 export const useUrlConfig = ({
 	defaultParams,

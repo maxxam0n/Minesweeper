@@ -2,7 +2,7 @@ import { Fragment, useMemo } from 'react'
 import { CellData } from '@/engine'
 import { useViewConfig } from '@/providers/game-view-provider'
 import { useGameColors } from '@/providers/game-colors-provider'
-import { Layer, RectShape } from '@/shared/canvas'
+import { Layer, RectShape } from '@/ui-engine'
 import {
 	BaseCellShape,
 	BevelShape,

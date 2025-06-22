@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { GameParams } from '@/engine'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { useViewConfig } from '@/providers/game-view-provider'
-import { Layer, LineShape } from '@/shared/canvas'
+import { Layer, LineShape } from '@/ui-engine'
 
 interface FieldGridProps {
 	zIndex: number

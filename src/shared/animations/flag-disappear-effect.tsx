@@ -1,6 +1,6 @@
 import { memo, useEffect, useState } from 'react'
 import { useViewConfig } from '@/providers/game-view-provider'
-import { EffectProps } from '../lib/types'
+import { EffectProps } from '../../entities/square-field/lib/types'
 import { FlagShape } from './flag-shape'
 
 export const FlagDisappearEffect = memo(

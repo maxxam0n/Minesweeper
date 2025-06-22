@@ -1,11 +1,9 @@
 import { memo, useEffect, useState } from 'react'
-import { useViewConfig } from '@/providers/game-view-provider'
-import { EffectProps } from '../lib/types'
-import { MissedShape } from './missed-shape'
+import { EffectProps } from '@/shared/types/shape'
+import { MissedShape } from '@/shared/shapes/cross-shape'
 
 export const ActionErrorEffect = memo(
-	({ id, x, y, onComplete }: EffectProps) => {
-		const { animationDuration } = useViewConfig()
+	({ id, x, y, size, duration, onComplete }: EffectProps) => {
 		const [xOffset, setXOffset] = useState(0)
 
 		const initialX = x
@@ -17,7 +15,7 @@ export const ActionErrorEffect = memo(
 			const animate = (timestamp: number) => {
 				if (startTime === null) startTime = timestamp
 				const elapsed = timestamp - startTime
-				const progress = Math.min(elapsed / animationDuration, 1)
+				const progress = Math.min(elapsed / duration, 1)
 
 				// Формула для быстрого затухающего колебания
 				const shake = Math.sin(progress * Math.PI * 6) * (1 - progress) * 3 // Амплитуда 3 пикселя
@@ -37,6 +35,6 @@ export const ActionErrorEffect = memo(
 			}
 		}, [id, onComplete])
 
-		return <MissedShape x={initialX + xOffset} y={y} />
+		return <MissedShape size={size} x={initialX + xOffset} y={y} />
 	}
 )

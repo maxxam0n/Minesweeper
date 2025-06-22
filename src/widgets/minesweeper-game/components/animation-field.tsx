@@ -7,7 +7,7 @@ import {
 	FlagDisappearEffect,
 	ActionErrorEffect,
 } from '@/entities/cell-shape'
-import { Layer, RectShape } from '@/shared/canvas'
+import { Layer, RectShape } from '@/ui-engine'
 import { Animation } from '../lib/types'
 
 interface AnimationFieldProps {

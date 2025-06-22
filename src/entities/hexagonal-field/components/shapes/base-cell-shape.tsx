@@ -1,8 +1,8 @@
 import { memo, PropsWithChildren } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
 import { useViewConfig } from '@/providers/game-view-provider'
-import { RectShape } from '@/shared/canvas'
-import { BaseCellProps } from '../lib/types'
+import { RectShape } from '@/ui-engine'
+import { BaseCellProps } from '../../lib/types'
 
 interface BaseCellShapeProps extends BaseCellProps, PropsWithChildren {
 	open?: boolean

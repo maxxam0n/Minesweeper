@@ -1,8 +1,8 @@
 import { memo, PropsWithChildren } from 'react'
 import { useGameColors } from '@/providers/game-colors-provider'
-import { PolygonShape } from '@/shared/canvas'
+import { PolygonShape } from '@/ui-engine'
 import { useViewConfig } from '@/providers/game-view-provider'
-import { BaseCellProps } from '../lib/types'
+import { BaseCellProps } from '../../lib/types'
 
 interface BevelShapeProps extends BaseCellProps, PropsWithChildren {}
 

@@ -1,5 +1,5 @@
 import { useViewConfig } from '@/providers/game-view-provider'
-import { Canvas } from '@/shared/canvas'
+import { Canvas } from '@/ui-engine'
 import { useGame } from '../lib/use-game'
 import { useTimer } from '../lib/use-timer'
 import { useStatistic } from '../lib/use-statistic'
