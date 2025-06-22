@@ -15,25 +15,28 @@ export interface GameConfig {
 }
 
 export type AnimationType =
-	| 'reveal'
 	| 'press'
+	| 'reveal'
 	| 'flag'
 	| 'unflag'
 	| 'error'
 	| 'explosion'
+	| 'flag-missed'
 
 export interface Animation {
 	id: string
 	type: AnimationType
 	position: Position
+	delay?: number
 }
 
 export interface AnimationQuery {
 	type: AnimationType
 	position: Position
+	delay?: number
 }
 
-export type ApplyRevealFunction = (result: {
+export type ActionCommittedCallback = (result: {
 	actionSnapshot: GameSnapshot
 	actionChanges: ActionChanges
 }) => void

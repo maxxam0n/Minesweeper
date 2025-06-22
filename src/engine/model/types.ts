@@ -9,7 +9,7 @@ export type Position = {
 	row: number
 }
 
-export type FieldType = 'square'
+export type FieldType = 'square' | 'hexagonal' | 'triangle'
 
 export enum GameStatus {
 	Idle = 'idle',
@@ -20,29 +20,28 @@ export enum GameStatus {
 
 export type GameMode = 'no-guessing' | 'guessing'
 
-export enum CellDrawingView {
-	Digit = 'Digit',
-	Closed = 'closed',
-	Empty = 'empty',
-	Mine = 'mine',
-	Flag = 'flag',
-	Exploded = 'exploded',
-	Missed = 'missed',
-}
-
 export interface CellData {
 	key: string
 	position: Position
 	isMine: boolean
 	adjacentMines: number
+	notFoundMine: boolean
 	isRevealed: boolean
 	isFlagged: boolean
 	isEmpty: boolean
+	isExploded: boolean
+	isMissed: boolean
+	isUntouched: boolean
 }
 
-export interface CellDrawingData {
-	data: CellData
-	view: CellDrawingView
+export interface FieldState {
+	field: CellData[][]
+	minedCells: CellData[]
+	explodedCells: CellData[]
+	flaggedCells: CellData[]
+	notFountMines: CellData[]
+	errorFlags: CellData[]
+	revealedCells: CellData[]
 }
 
 export interface ConstructorCellProps extends Partial<CellData> {
@@ -55,24 +54,17 @@ export interface ConstrutorFieldProps {
 	data?: CellData[][]
 }
 
-export interface GameSnapshot {
+export interface GameSnapshot extends FieldState {
 	status: GameStatus
-	field: CellDrawingData[][]
-	flaggedPositions: Position[]
-	revealedPositions: Position[]
-	minesPositions: Position[]
-	missedFlags: Position[]
-	unmarkedMines: Position[]
-	explodedCells: Position[]
 }
 
 export interface ActionChanges {
-	targetPosition: Position
-	flaggedPositions: Position[]
-	unflaggedPositions: Position[]
-	revealedPositions: Position[]
-	previewPressPositions: Position[]
-	explodedCells: Position[]
+	target: CellData
+	handledCells: CellData[]
+	flaggedCells: CellData[]
+	unflaggedCells: CellData[]
+	revealedCells: CellData[]
+	explodedCells: CellData[]
 }
 
 export interface ActionResult {

@@ -3,14 +3,15 @@ import { Canvas } from '@/shared/canvas'
 import { useGame } from '../lib/use-game'
 import { useTimer } from '../lib/use-timer'
 import { useStatistic } from '../lib/use-statistic'
-import { ApplyRevealFunction, GameConfig } from '../lib/types'
+import { ActionCommittedCallback, GameConfig } from '../lib/types'
 import { useAnimations } from '../lib/use-animations'
 import { useGameLifecycle } from '../lib/use-game-lifecycle'
+import { useAnimatedInteraction } from '../lib/use-animated-interaction'
+import { useDirectInteraction } from '../lib/use-direct-interaction'
 import { GameField } from './game-field'
 import { AnimationField } from './animation-field'
 import { GameFieldHandlers } from './game-field-handlers'
-import { useAnimatedInteraction } from '../lib/use-animated-interaction'
-import { useDirectInteraction } from '../lib/use-direct-interaction'
+import { FieldGrid } from './field-grid'
 
 interface IGameProps {
 	gameConfig: GameConfig
@@ -19,7 +20,7 @@ interface IGameProps {
 export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 	const { params } = gameConfig
 
-	const { cellSize, animationsEnabled } = useViewConfig()
+	const { cellSize, animationDuration, animationsEnabled } = useViewConfig()
 
 	const { resetGame, revealCell, toggleFlag, ...gameData } =
 		useGame(gameConfig)
@@ -41,6 +42,31 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 		},
 		onLose(actionSnapshot) {
 			stopTimer()
+
+			// if (animationsEnabled) {
+			// 	const baseDuration = animationDuration / 4
+			// 	addAnimations(
+			// 		actionSnapshot.explodedCells.map(pos => ({
+			// 			type: 'explosion',
+			// 			position: pos,
+			// 		}))
+			// 	)
+			// 	addStaggeredAnimations(
+			// 		actionSnapshot.unmarkedMines.map(pos => ({
+			// 			type: 'explosion',
+			// 			position: pos,
+			// 		})),
+			// 		baseDuration
+			// 	)
+			// 	addStaggeredAnimations(
+			// 		actionSnapshot.missedFlags.map(pos => ({
+			// 			type: 'flag-missed',
+			// 			position: pos,
+			// 		})),
+			// 		baseDuration,
+			// 		baseDuration * actionSnapshot.unmarkedMines.length
+			// 	)
+			// }
 		},
 		onWin(actionSnapshot) {
 			stopTimer()
@@ -54,9 +80,9 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 		resetStatus()
 	}
 
-	const onApplyReveal: ApplyRevealFunction = ({ actionSnapshot }) => {
+	const onActionCommitted: ActionCommittedCallback = ({ actionSnapshot }) => {
 		updateStatistic({
-			revealed: actionSnapshot.revealedPositions.length,
+			revealed: actionSnapshot.revealedCells.length,
 			time,
 			params,
 		})
@@ -68,7 +94,7 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 		animations,
 		revealCell,
 		toggleFlag,
-		onApplyReveal,
+		onActionCommitted,
 		addAnimations,
 		removeAnimations,
 	})
@@ -76,7 +102,7 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 	const directHandlers = useDirectInteraction({
 		revealCell,
 		toggleFlag,
-		onApplyReveal,
+		onActionCommitted,
 	})
 
 	const interactionHandlers = animationsEnabled
@@ -96,17 +122,24 @@ export const MinesweeperGame = ({ gameConfig }: IGameProps) => {
 		>
 			<Canvas width={width} height={height}>
 				<GameField
-					params={params}
+					zIndex={0}
 					width={width}
 					height={height}
 					data={gameData.field}
 				/>
 				{animationsEnabled && (
 					<AnimationField
+						zIndex={10}
 						animations={animations}
 						onAnimationComplete={removeAnimations}
 					/>
 				)}
+				<FieldGrid
+					params={params}
+					height={height}
+					width={width}
+					zIndex={20}
+				/>
 			</Canvas>
 		</GameFieldHandlers>
 	)

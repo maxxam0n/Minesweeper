@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { ActionChanges, GameSnapshot, Position, ActionResult } from '@/engine'
-import { Animation, AnimationQuery, ApplyRevealFunction } from './types'
+import { Animation, AnimationQuery, ActionCommittedCallback } from './types'
 
 interface AnimatedInteractionParams {
 	animations: Animation[]
@@ -8,11 +8,11 @@ interface AnimatedInteractionParams {
 	toggleFlag: (pos: Position) => ActionResult
 	addAnimations: (anims: AnimationQuery[]) => void
 	removeAnimations: (ids: string[]) => void
-	onApplyReveal: ApplyRevealFunction
+	onActionCommitted: ActionCommittedCallback
 }
 
 interface DefferedAction {
-	applyAction: () => void
+	apply: () => void
 	actionSnapshot: GameSnapshot
 	actionChanges: ActionChanges
 }
@@ -23,7 +23,7 @@ export const useAnimatedInteraction = ({
 	toggleFlag,
 	addAnimations,
 	removeAnimations,
-	onApplyReveal,
+	onActionCommitted,
 }: AnimatedInteractionParams) => {
 	const defferedAction = useRef<DefferedAction | null>(null)
 
@@ -33,39 +33,38 @@ export const useAnimatedInteraction = ({
 			apply,
 		} = revealCell(pos)
 
-		const { col, row } = actionChanges.targetPosition
-		const targetCell = actionSnapshot.field[row][col].data
+		const targetCell = actionChanges.target
 
-		if (actionChanges.previewPressPositions.length > 0) {
+		if (actionChanges.handledCells.length > 0) {
 			addAnimations(
-				actionChanges.previewPressPositions.map(pos => ({
+				actionChanges.handledCells.map(cel => ({
 					type: 'press',
-					position: pos,
+					position: cel.position,
 				}))
 			)
 			addAnimations(
-				actionChanges.previewPressPositions.map(pos => ({
+				actionChanges.handledCells.map(cel => ({
 					type: 'reveal',
-					position: pos,
+					position: cel.position,
 				}))
 			)
 		}
-		// Показываем ошибку только при попытке открития хорды с невыполненными условиями
+		// Показываем ошибку только при попытке открития аккордом с невыполненными условиями
 		// Если клетка не пустая, и выполнены все условия,
 		// движок вернет не пустой previewPressPositions и мы сюда не попадем
 		else if (!targetCell.isEmpty || targetCell.isFlagged) {
 			addAnimations([
 				{
 					type: 'error',
-					position: actionChanges.targetPosition,
+					position: targetCell.position,
 				},
 			])
 		}
 
 		defferedAction.current = {
-			applyAction: apply,
 			actionChanges,
 			actionSnapshot,
+			apply,
 		}
 	}
 
@@ -75,19 +74,18 @@ export const useAnimatedInteraction = ({
 		)
 
 		if (isClick && defferedAction.current) {
-			const { applyAction, actionSnapshot, actionChanges } =
-				defferedAction.current
+			const { apply, actionSnapshot, actionChanges } = defferedAction.current
 
-			applyAction()
-			onApplyReveal({ actionSnapshot, actionChanges })
+			apply()
+			onActionCommitted({ actionSnapshot, actionChanges })
 
-			const { revealedPositions } = actionChanges
+			const { revealedCells } = actionChanges
 
-			if (revealedPositions.length > 0 && revealedPositions.length < 500) {
+			if (revealedCells.length > 0 && revealedCells.length < 500) {
 				addAnimations(
-					revealedPositions.map(pos => ({
+					revealedCells.map(cell => ({
 						type: 'reveal',
-						position: pos,
+						position: cell.position,
 					}))
 				)
 			}
@@ -103,27 +101,27 @@ export const useAnimatedInteraction = ({
 
 		apply()
 
-		const { flaggedPositions, unflaggedPositions } = actionChanges
+		const { target, flaggedCells, unflaggedCells } = actionChanges
 
-		if (flaggedPositions.length > 0) {
+		if (flaggedCells.length > 0) {
 			addAnimations(
-				flaggedPositions.map(pos => ({
+				flaggedCells.map(cell => ({
 					type: 'flag',
-					position: pos,
+					position: cell.position,
 				}))
 			)
-		} else if (unflaggedPositions.length > 0) {
+		} else if (unflaggedCells.length > 0) {
 			addAnimations(
-				unflaggedPositions.map(pos => ({
+				unflaggedCells.map(cell => ({
 					type: 'unflag',
-					position: pos,
+					position: cell.position,
 				}))
 			)
-		} else {
+		} else if (!target.isEmpty) {
 			addAnimations([
 				{
 					type: 'error',
-					position: actionChanges.targetPosition,
+					position: target.position,
 				},
 			])
 		}

@@ -11,10 +11,10 @@ interface Config {
 export class FieldFactory {
 	static create(config: Config) {
 		switch (config.type) {
-			case 'square':
-				const field = new SquareField({ ...config })
-				field.placeMines()
-				return field
+			default:
+				const squareField = new SquareField({ ...config })
+				squareField.placeMines()
+				return squareField
 		}
 	}
 }

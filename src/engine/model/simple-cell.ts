@@ -1,11 +1,4 @@
-import {
-	CellData,
-	CellDrawingData,
-	CellDrawingView,
-	ConstructorCellProps,
-	GameStatus,
-	Position,
-} from './types'
+import { CellData, ConstructorCellProps, Position } from './types'
 
 export class SimpleCell implements CellData {
 	static createKey({ col, row }: Position) {
@@ -38,29 +31,30 @@ export class SimpleCell implements CellData {
 		return !this.isMine && this.adjacentMines === 0
 	}
 
-	public getDrawingData(status: GameStatus): CellDrawingData {
-		return {
-			data: { ...this, isEmpty: this.isEmpty },
-			view: this.getView(status),
-		}
+	public get isExploded() {
+		return this.isMine && this.isRevealed
 	}
 
-	private getView(status: GameStatus): CellDrawingView {
-		switch (true) {
-			case this.isMine && this.isRevealed && status === GameStatus.Lost:
-				return CellDrawingView.Exploded
-			case this.isEmpty && this.isRevealed:
-				return CellDrawingView.Empty
-			case this.isMine && !this.isFlagged && status === GameStatus.Lost:
-				return CellDrawingView.Mine
-			case this.isFlagged && !this.isMine && status === GameStatus.Lost:
-				return CellDrawingView.Missed
-			case this.isFlagged:
-				return CellDrawingView.Flag
-			case this.adjacentMines > 0 && this.isRevealed:
-				return CellDrawingView.Digit
-			default:
-				return CellDrawingView.Closed
+	public get isMissed() {
+		return this.isFlagged && !this.isMine
+	}
+
+	public get notFoundMine() {
+		return this.isMine && !this.isFlagged
+	}
+
+	public get isUntouched() {
+		return !this.isRevealed && !this.isFlagged
+	}
+
+	public getData(): CellData {
+		return {
+			...this,
+			isEmpty: this.isEmpty,
+			isExploded: this.isExploded,
+			isUnmarkedMine: this.notFoundMine,
+			isUntouched: this.isUntouched,
+			isMissed: this.isMissed,
 		}
 	}
 }

@@ -1,8 +1,7 @@
 import { Fragment, useMemo } from 'react'
-import { CellDrawingData, CellDrawingView, GameParams } from '@/engine'
 import { useViewConfig } from '@/providers/game-view-provider'
 import { useGameColors } from '@/providers/game-colors-provider'
-import { Layer, LineShape, RectShape } from '@/shared/canvas'
+import { Layer, RectShape } from '@/shared/canvas'
 import {
 	BaseCellShape,
 	BevelShape,
@@ -12,62 +11,64 @@ import {
 	MissedShape,
 } from '@/entities/cell-shape'
 import { useIncrementalRender } from '../lib/use-incremental-render'
+import { CellData } from '@/engine'
 
 interface IFieldProps {
-	params: GameParams
 	width: number
 	height: number
-	data: CellDrawingData[][]
+	data: CellData[][]
+	zIndex: number
 }
 
-export const GameField = ({ params, width, height, data }: IFieldProps) => {
-	const { REVEALED, CLOSED, BORDER } = useGameColors()
-	const { cellSize, borderWidth } = useViewConfig()
-
-	const { cols, rows } = params
+export const GameField = ({ width, height, data, zIndex }: IFieldProps) => {
+	const { REVEALED, CLOSED } = useGameColors()
+	const { cellSize } = useViewConfig()
 
 	const layersContent = data.flat().reduce(
-		(acc, { data, view }) => {
-			const cellKey = data.key
-			const x = data.position.col * cellSize
-			const y = data.position.row * cellSize
+		(acc, cellData) => {
+			const cellKey = cellData.key
+			const x = cellData.position.col * cellSize
+			const y = cellData.position.row * cellSize
 
 			// Слой Solution - рисуем полное отображение открытого поля включая (все цифры и мины)
-			if (data.adjacentMines > 0 && !data.isMine) {
+			if (cellData.adjacentMines > 0 && !cellData.isMine) {
+				console.log('Solution ', cellData)
+
 				acc.solutionDigitsAndMines.push(
 					<DigitShape
 						key={`${cellKey}-digit`}
-						digit={data.adjacentMines}
+						digit={cellData.adjacentMines}
 						x={x}
 						y={y}
 					/>
 				)
-			} else if (data.isMine) {
+			} else if (cellData.isMine) {
 				acc.solutionDigitsAndMines.push(
 					<MineShape key={`${cellKey}-mine`} x={x} y={y} />
 				)
 			}
 
 			// Слой "mask" - только фаски для нераскрытых клеток
-			if (
-				view === CellDrawingView.Closed ||
-				view === CellDrawingView.Flag ||
-				view === CellDrawingView.Missed
-			) {
+			if (cellData.isUntouched || cellData.isFlagged || cellData.isMissed) {
 				acc.maskBevels.push(
 					<BevelShape key={`${cellKey}-bevel`} x={x} y={y} />
 				)
 			}
 
 			// 3. Слой "overlay"
-			if (view === CellDrawingView.Flag) {
+			if (cellData.isMissed) {
+				acc.overlayElements.push(
+					<MissedShape x={x} y={y} key={`${cellKey}-missed`} />
+				)
+			} else if (cellData.isFlagged) {
 				acc.overlayElements.push(
 					<Fragment key={`${cellKey}-flag`}>
+						{/* RectShape надежный boundingBox для maskRenderer */}
 						<RectShape width={cellSize} height={cellSize} x={x} y={y} />
 						<FlagShape x={x} y={y} />
 					</Fragment>
 				)
-			} else if (view === CellDrawingView.Exploded) {
+			} else if (cellData.isExploded) {
 				acc.overlayElements.push(
 					<BaseCellShape
 						key={`${cellKey}-exploded`}
@@ -77,10 +78,6 @@ export const GameField = ({ params, width, height, data }: IFieldProps) => {
 					>
 						<MineShape x={x} y={y} />
 					</BaseCellShape>
-				)
-			} else if (view === CellDrawingView.Missed) {
-				acc.overlayElements.push(
-					<MissedShape x={x} y={y} key={`${cellKey}-missed`} />
 				)
 			}
 
@@ -92,41 +89,6 @@ export const GameField = ({ params, width, height, data }: IFieldProps) => {
 			overlayElements: [] as JSX.Element[],
 		}
 	)
-
-	const gridLines = useMemo(() => {
-		const lines: JSX.Element[] = []
-		const lineColor = BORDER
-
-		// Горизонтальные линии
-		for (let i = 0; i <= rows; i++) {
-			lines.push(
-				<LineShape
-					key={`h-line-${i}`}
-					x1={0}
-					y1={i * cellSize}
-					x2={width}
-					y2={i * cellSize}
-					strokeColor={lineColor}
-					lineWidth={borderWidth}
-				/>
-			)
-		}
-		// Вертикальные линии
-		for (let i = 0; i <= cols; i++) {
-			lines.push(
-				<LineShape
-					key={`v-line-${i}`}
-					x1={i * cellSize}
-					y1={0}
-					x2={i * cellSize}
-					y2={height}
-					strokeColor={lineColor}
-					lineWidth={borderWidth}
-				/>
-			)
-		}
-		return lines
-	}, [rows, cols, cellSize, width, height, BORDER])
 
 	const solutionBackground = useMemo(
 		() => (
@@ -165,25 +127,20 @@ export const GameField = ({ params, width, height, data }: IFieldProps) => {
 	return (
 		<>
 			{/* Слой 1: Фон открытых клеток + Цифры и Мины */}
-			<Layer name="solution" zIndex={0}>
+			<Layer name="solution" zIndex={zIndex}>
 				{solutionBackground}
 				{layersContent.solutionDigitsAndMines}
 			</Layer>
 
 			{/* Слой 2: Фон закрытых клеток + Фаски */}
-			<Layer name="mask" zIndex={1} renderer={maskRenderer}>
+			<Layer name="mask" zIndex={zIndex + 1} renderer={maskRenderer}>
 				{maskBackground}
 				{layersContent.maskBevels}
 			</Layer>
 
 			{/* Слой 4: Флажки, взорвавшиеся мины, промахи */}
-			<Layer name="overlay" zIndex={2} renderer={overlayRenderer}>
+			<Layer name="overlay" zIndex={zIndex + 2} renderer={overlayRenderer}>
 				{layersContent.overlayElements}
-			</Layer>
-
-			{/* Слой 3: сетка */}
-			<Layer name="grid" zIndex={3}>
-				{gridLines}
 			</Layer>
 		</>
 	)

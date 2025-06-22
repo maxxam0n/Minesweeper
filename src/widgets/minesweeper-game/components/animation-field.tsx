@@ -1,25 +1,29 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useViewConfig } from '@/providers/game-view-provider'
+import { useGameColors } from '@/providers/game-colors-provider'
 import {
-	BaseCellShape,
 	CellRevealEffect,
 	FlagAppearEffect,
 	FlagDisappearEffect,
 	ActionErrorEffect,
 } from '@/entities/cell-shape'
-import { Layer } from '@/shared/canvas'
+import { Layer, RectShape } from '@/shared/canvas'
 import { Animation } from '../lib/types'
 
 interface AnimationFieldProps {
+	zIndex: number
 	animations: Animation[]
 	onAnimationComplete: (id: string[]) => void
 }
 
 export const AnimationField = ({
+	zIndex,
 	animations,
 	onAnimationComplete,
 }: AnimationFieldProps) => {
 	const { cellSize } = useViewConfig()
+	const { REVEALED } = useGameColors()
+
 	const removedAnimationIds = useRef<string[]>([])
 	const animationFrameId = useRef<number>()
 
@@ -63,11 +67,13 @@ export const AnimationField = ({
 
 			if (anim.type === 'press') {
 				acc.pressedAnimations.push(
-					<BaseCellShape
+					<RectShape
 						key={`press-${col}-${row}`}
 						x={x}
 						y={y}
-						open={true}
+						width={cellSize}
+						height={cellSize}
+						fillColor={REVEALED}
 					/>
 				)
 			} else if (anim.type === 'reveal') {
@@ -124,7 +130,7 @@ export const AnimationField = ({
 
 	return (
 		<>
-			<Layer name="light-animations" zIndex={10}>
+			<Layer name="light-animations" zIndex={zIndex}>
 				{/* Анимации вдавливания */}
 				{pressedAnimations}
 
@@ -134,7 +140,7 @@ export const AnimationField = ({
 				{limitReached}
 			</Layer>
 
-			<Layer name="heavy-animations" zIndex={11}>
+			<Layer name="heavy-animations" zIndex={zIndex + 1}>
 				{/* Анимации раскрытия ячеек */}
 				{revealingAnimations}
 			</Layer>

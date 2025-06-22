@@ -8,20 +8,21 @@ export const useAnimations = (animationsEnabled: boolean) => {
 	const addAnimations = (animations: AnimationQuery[]) => {
 		if (!animationsEnabled) return
 
-		const newAnimations = animations.map(({ type, position }) => ({
+		const newAnimations = animations.map(animQuery => ({
 			id: `animation-${nextAnimationId.current++}`,
-			type,
-			position,
+			...animQuery,
 		}))
 
 		setAnimations(prevAnimations => [...prevAnimations, ...newAnimations])
 	}
 
-	const addStaggeredAnimations = (anims: AnimationQuery[], delay: number) => {
+	const addStaggeredAnimations = (
+		anims: AnimationQuery[],
+		delay: number,
+		startDelay: number = 0
+	) => {
 		anims.forEach((anim, index) => {
-			setTimeout(() => {
-				addAnimations([anim])
-			}, index * delay)
+			addAnimations([{ ...anim, delay: startDelay + index * delay }])
 		})
 	}
 

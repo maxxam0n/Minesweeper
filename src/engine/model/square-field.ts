@@ -1,5 +1,5 @@
 import { createGrid } from '../lib/utils'
-import { CellData, ConstrutorFieldProps, GameStatus, Position } from './types'
+import { CellData, ConstrutorFieldProps, Position } from './types'
 import { BaseField } from './base-field'
 import { SimpleCell } from './simple-cell'
 
@@ -15,6 +15,10 @@ export class SquareField extends BaseField<SimpleCell> {
 
 		const { cols, rows } = this.params
 		return createGrid(rows, cols, position => new SimpleCell({ position }))
+	}
+
+	protected getData() {
+		return this.grid.map(row => row.map(cell => cell.getData()))
 	}
 
 	public placeMines() {
@@ -48,16 +52,12 @@ export class SquareField extends BaseField<SimpleCell> {
 	/* ------------- Вспомогательные методы ------------- */
 	private mineCell(position: Position) {
 		this.getCell(position).isMine = true
-		this.getSiblings(position).forEach(
-			sibPos => this.getCell(sibPos).adjacentMines++
-		)
+		this.getSiblings(position).forEach(sib => sib.adjacentMines++)
 	}
 
 	private unMineCell(position: Position) {
 		this.getCell(position).isMine = false
-		this.getSiblings(position).forEach(
-			sibPos => this.getCell(sibPos).adjacentMines--
-		)
+		this.getSiblings(position).forEach(sib => sib.adjacentMines--)
 	}
 
 	private isInBoundary({ row, col }: Position): boolean {
@@ -69,58 +69,46 @@ export class SquareField extends BaseField<SimpleCell> {
 		)
 	}
 
-	public getAreaToReveal(target: Position): Position[] {
+	public getAreaToReveal(position: Position): SimpleCell[] {
 		const { cols, rows } = this.params
 
-		const targetCell = this.getCell(target)
-		if (!targetCell.isEmpty || targetCell.isMine) return [target]
+		const target = this.getCell(position)
 
-		const result: Position[] = []
-		const queue: Position[] = [target]
+		if (!target.isEmpty || target.isMine) return [target]
+
+		const result: SimpleCell[] = []
+		const queue: SimpleCell[] = [target]
 		const visited: boolean[][] = createGrid(rows, cols, () => false)
 
 		while (queue.length > 0) {
-			const pos = queue.shift()!
-			if (visited[pos.row][pos.col]) continue
-			if (this.getCell(pos).isEmpty) {
-				const siblings = this.getSiblings(pos)
+			const cell = queue.shift()!
+			const { col, row } = cell.position
+
+			if (visited[row][col]) continue
+			if (cell.isEmpty) {
+				const siblings = this.getSiblings(cell.position)
 				queue.push(...siblings)
 			}
 
-			visited[pos.row][pos.col] = true
-			result.push(pos)
+			visited[row][col] = true
+			result.push(cell)
 		}
 
 		return result
 	}
 
-	public getMinesPositions() {
-		return this.grid
-			.flat()
-			.filter(cell => cell.isMine)
-			.map(cell => cell.position)
-	}
-
-	public getCell({ row, col }: Position) {
-		return this.grid[row][col]
-	}
-
-	public getSiblings({ row, col }: Position): Position[] {
-		const siblings: Position[] = []
+	public getSiblings({ row, col }: Position): SimpleCell[] {
+		const siblings: SimpleCell[] = []
 		for (let dx = -1; dx <= 1; dx++) {
 			for (let dy = -1; dy <= 1; dy++) {
 				if (dx === 0 && dy === 0) continue
 				const position = { col: col + dx, row: row + dy }
 				if (this.isInBoundary(position)) {
-					siblings.push(position)
+					siblings.push(this.getCell(position))
 				}
 			}
 		}
 		return siblings
-	}
-
-	public getDrawingData(status: GameStatus) {
-		return this.grid.map(row => row.map(cell => cell.getDrawingData(status)))
 	}
 
 	public cloneSelf() {
@@ -129,5 +117,13 @@ export class SquareField extends BaseField<SimpleCell> {
 			seed: this.seed,
 			data: this.grid,
 		})
+	}
+
+	public getCell({ row, col }: Position): SimpleCell {
+		return this.grid[row][col]
+	}
+
+	public getCellData(position: Position): CellData {
+		return this.getCell(position).getData()
 	}
 }
