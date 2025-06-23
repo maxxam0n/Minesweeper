@@ -1,2 +1,2 @@
 export * from './lib/types'
-export { MinesweeperGame } from './components/minesweeper-game'
+export { MinesweeperGame } from './ui/minesweeper-game'

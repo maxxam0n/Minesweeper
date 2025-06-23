@@ -4,9 +4,9 @@ export interface BaseShapeProps {
 	size: number
 }
 
-export interface EffectProps extends BaseShapeProps {
+export interface AnimationEffectProps extends BaseShapeProps {
 	id: string
 	duration: number
-	delay?: number
 	onComplete: (id: string) => void
+	delay?: number
 }

@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { ThemeProvider } from '@/providers/theme-provider'
+import { ThemeProvider } from '@/providers/color-theme'
 
 import './styles/index.css'
 

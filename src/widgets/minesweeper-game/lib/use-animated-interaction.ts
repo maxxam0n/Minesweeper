@@ -1,6 +1,7 @@
 import { useRef } from 'react'
+import { Animation, AnimationQuery } from '@/shared/lib/use-animations'
 import { ActionChanges, GameSnapshot, Position, ActionResult } from '@/engine'
-import { Animation, AnimationQuery, ActionCommittedCallback } from './types'
+import { ActionCommittedCallback } from './types'
 
 interface AnimatedInteractionParams {
 	animations: Animation[]
