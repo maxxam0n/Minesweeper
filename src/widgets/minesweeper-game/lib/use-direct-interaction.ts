@@ -9,6 +9,7 @@ interface DirectInteractionParams {
 
 export const useDirectInteraction = ({
 	revealCell,
+	toggleFlag,
 	onActionCommitted,
 }: DirectInteractionParams) => {
 	const handleCellPress = () => {}
@@ -22,7 +23,7 @@ export const useDirectInteraction = ({
 	}
 
 	const handleToggleFlag = (pos: Position) => {
-		revealCell(pos).apply()
+		toggleFlag(pos).apply()
 	}
 
 	return { handleCellPress, handleCellRelease, handleToggleFlag }

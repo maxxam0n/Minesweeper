@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { BaseShapeProps } from '@/shared/types/shape'
 import { TextShape } from '@/ui-engine'
+import { BaseShapeProps } from '@/shared/types/shape'
 
 interface DigitShapeProps extends BaseShapeProps {
 	digit: number

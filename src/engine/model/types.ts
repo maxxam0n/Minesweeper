@@ -39,7 +39,7 @@ export interface FieldState {
 	minedCells: CellData[]
 	explodedCells: CellData[]
 	flaggedCells: CellData[]
-	notFountMines: CellData[]
+	notFoundMines: CellData[]
 	errorFlags: CellData[]
 	revealedCells: CellData[]
 }

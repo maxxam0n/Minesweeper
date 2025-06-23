@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from 'react'
 import { AnimationEffectProps } from '@/shared/types/shape'
 
-export const ActionErrorEffect = memo(
+export const VibrationEffect = memo(
 	({ id, x, y, size, duration, onComplete }: AnimationEffectProps) => {
 		const [xOffset, setXOffset] = useState(0)
 

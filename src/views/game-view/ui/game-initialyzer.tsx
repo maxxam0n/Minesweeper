@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ensureFontIsReady } from '@/shared/lib/font-loader'
+import { ensureFontIsReady } from '@/shared/lib/helpers'
 import { GameViewContent } from './game-view-content'
 
 const REQUIRED_FONT_SPECIFIER = '16px Tektur'

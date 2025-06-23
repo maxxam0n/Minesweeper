@@ -58,7 +58,7 @@ export abstract class BaseField<T extends SimpleCell> {
 			minedCells: [],
 			explodedCells: [],
 			flaggedCells: [],
-			notFountMines: [],
+			notFoundMines: [],
 			errorFlags: [],
 			revealedCells: [],
 			field: data,
@@ -70,7 +70,7 @@ export abstract class BaseField<T extends SimpleCell> {
 			if (cell.isRevealed) acc.revealedCells.push(cell)
 			if (cell.isExploded) acc.explodedCells.push(cell)
 			if (cell.isMissed) acc.errorFlags.push(cell)
-			if (cell.notFoundMine) acc.notFountMines.push(cell)
+			if (cell.notFoundMine) acc.notFoundMines.push(cell)
 
 			return acc
 		}, acc)

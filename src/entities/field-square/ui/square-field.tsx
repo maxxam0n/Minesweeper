@@ -1,26 +1,24 @@
+import { MouseEvent } from 'react'
 import { Canvas } from '@/ui-engine'
 import { CellData, GameParams, Position } from '@/engine'
 import { useViewConfig } from '@/providers/game-view'
 import { Animation } from '@/shared/lib/use-animations'
+import {
+	GameInteractionsProps,
+	useGameInteractions,
+} from '@/shared/lib/use-game-interactions'
 import { SquareStaticField } from './square-static-field'
 import { SquareGrid } from './square-grid'
 import { SquareAnimationField } from './square-animation-field'
-import { MouseEvent } from 'react'
 
-interface SquareFieldProps {
+interface SquareFieldProps
+	extends Omit<GameInteractionsProps, 'getPositionFromEvent'> {
 	width: number
 	height: number
-	gameOver: boolean
 	params: GameParams
 	field: CellData[][]
-	InteractionWrapper: (props: {
-		children: React.ReactNode
-		getPositionFromEvent: (event: MouseEvent) => Position | null
-	}) => JSX.Element
-	animations: {
-		list: Animation[]
-		remove: (ids: string[]) => void
-	}
+	animationsList: Animation[]
+	removeAnimations: (ids: string[]) => void
 }
 
 export const SquareField = ({
@@ -29,12 +27,15 @@ export const SquareField = ({
 	field,
 	gameOver,
 	params,
-	animations,
-	InteractionWrapper,
+	animationsList,
+	removeAnimations,
+	onCellPress,
+	onCellRelease,
+	onToggleFlag,
 }: SquareFieldProps) => {
 	const {
 		cell: { size },
-		animations: { enabled },
+		animations: { enabled: withAnimations },
 	} = useViewConfig()
 
 	const { cols, rows } = params
@@ -51,8 +52,23 @@ export const SquareField = ({
 		return { col, row }
 	}
 
+	const interactions = useGameInteractions({
+		gameOver,
+		getPositionFromEvent,
+		onCellPress,
+		onCellRelease,
+		onToggleFlag,
+	})
+
 	return (
-		<InteractionWrapper getPositionFromEvent={getPositionFromEvent}>
+		<div
+			className="cursor-pointer fit-content"
+			onPointerDown={interactions.handlePointerDown}
+			onPointerUp={interactions.handlePointerUp}
+			onPointerMove={interactions.handlePointerMove}
+			onPointerLeave={interactions.handlePointerLeave}
+			onContextMenu={interactions.handleCanvasRightClick}
+		>
 			<Canvas width={width} height={height}>
 				<SquareStaticField
 					zIndex={0}
@@ -61,11 +77,11 @@ export const SquareField = ({
 					height={height}
 					data={field}
 				/>
-				{enabled && (
+				{withAnimations && (
 					<SquareAnimationField
 						zIndex={10}
-						animations={animations.list}
-						onAnimationComplete={animations.remove}
+						animations={animationsList}
+						onAnimationComplete={removeAnimations}
 					/>
 				)}
 				<SquareGrid
@@ -75,6 +91,6 @@ export const SquareField = ({
 					params={params}
 				/>
 			</Canvas>
-		</InteractionWrapper>
+		</div>
 	)
 }

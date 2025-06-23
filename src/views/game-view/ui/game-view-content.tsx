@@ -14,7 +14,7 @@ export const GameViewContent = () => {
 		<div className="bg-background h-screen flex justify-center items-center">
 			<GameColorsProvider>
 				<GameViewProvider>
-					<MinesweeperGame gameConfig={config} />
+					<MinesweeperGame config={config} />
 				</GameViewProvider>
 			</GameColorsProvider>
 		</div>

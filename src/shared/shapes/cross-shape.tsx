@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { BaseShapeProps } from '@/shared/types/shape'
 import { LineShape } from '@/ui-engine'
+import { BaseShapeProps } from '@/shared/types/shape'
 
 export const CrossShape = memo(({ x, y, size }: BaseShapeProps) => {
 	return (

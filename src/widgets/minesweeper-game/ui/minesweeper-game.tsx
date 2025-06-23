@@ -8,67 +8,65 @@ import { ActionCommittedCallback, GameConfig } from '../lib/types'
 import { useGameLifecycle } from '../lib/use-game-lifecycle'
 import { useAnimatedInteraction } from '../lib/use-animated-interaction'
 import { useDirectInteraction } from '../lib/use-direct-interaction'
-import { GameFieldHandlers } from './game-field-handlers'
 
 interface MinesweeperGameProps {
-	gameConfig: GameConfig
+	config: GameConfig
 }
 
-export const MinesweeperGame = ({ gameConfig }: MinesweeperGameProps) => {
-	const { params } = gameConfig
+export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
+	const { params, type } = config
 
 	const {
 		cell: { size },
-		animations: { enabled: animationsEnabled },
+		animations: { enabled: animationsEnabled, duration },
 	} = useViewConfig()
 
-	const { resetGame, revealCell, toggleFlag, ...gameData } =
-		useGame(gameConfig)
+	const [width, height] = [params.cols * size, params.rows * size]
 
+	const { resetGame, revealCell, toggleFlag, ...gameData } = useGame(config)
 	const { time, startTimer, stopTimer, resetTimer } = useTimer()
-
 	const { score, efficiency, updateStatistic, resetStatistic } = useStatistic()
 
 	const {
 		animations,
 		addAnimations,
-		addStaggeredAnimations,
 		removeAnimations,
+		addStaggeredAnimations,
 	} = useAnimations(animationsEnabled)
 
 	const { updateStatus, resetStatus } = useGameLifecycle(gameData.status, {
-		onPlay(actionSnapshot) {
+		onPlay() {
 			startTimer()
 		},
 		onLose(actionSnapshot) {
 			stopTimer()
 
-			// if (animationsEnabled) {
-			// 	const baseDuration = animationDuration / 4
-			// 	addAnimations(
-			// 		actionSnapshot.explodedCells.map(pos => ({
-			// 			type: 'explosion',
-			// 			position: pos,
-			// 		}))
-			// 	)
-			// 	addStaggeredAnimations(
-			// 		actionSnapshot.unmarkedMines.map(pos => ({
-			// 			type: 'explosion',
-			// 			position: pos,
-			// 		})),
-			// 		baseDuration
-			// 	)
-			// 	addStaggeredAnimations(
-			// 		actionSnapshot.missedFlags.map(pos => ({
-			// 			type: 'flag-missed',
-			// 			position: pos,
-			// 		})),
-			// 		baseDuration,
-			// 		baseDuration * actionSnapshot.unmarkedMines.length
-			// 	)
-			// }
+			if (animationsEnabled) {
+				const baseDuration = duration / 4
+				addAnimations(
+					actionSnapshot.explodedCells.map(cell => ({
+						type: 'explosion',
+						position: cell.position,
+					}))
+				)
+				addStaggeredAnimations(
+					actionSnapshot.notFoundMines.map(cell => ({
+						type: 'explosion',
+						position: cell.position,
+					})),
+					baseDuration
+				)
+				addStaggeredAnimations(
+					actionSnapshot.errorFlags.map(cell => ({
+						type: 'flag-missed',
+						position: cell.position,
+					})),
+					baseDuration,
+					baseDuration * actionSnapshot.notFoundMines.length
+				)
+			}
 		},
-		onWin(actionSnapshot) {
+		onWin() {
 			stopTimer()
 		},
 	})
@@ -105,50 +103,25 @@ export const MinesweeperGame = ({ gameConfig }: MinesweeperGameProps) => {
 		onActionCommitted,
 	})
 
-	const interactionHandlers = animationsEnabled
-		? animatedHandlers
-		: directHandlers
+	const { handleCellPress, handleCellRelease, handleToggleFlag } =
+		animationsEnabled ? animatedHandlers : directHandlers
 
-	const [width, height] = [params.cols * size, params.rows * size]
-
-	const renderField = () => {
-		switch (gameConfig.type) {
-			case 'hexagonal':
-				// return <HexagonalFieldView ... />;
-				return <p>Hexagonal field coming soon!</p>
-			case 'triangle':
-				// return <TriangleFieldView ... />;
-				return <p>Triangle field coming soon!</p>
-			case 'square':
-			default:
-				return (
-					<SquareField
-						width={width}
-						height={height}
-						animations={{
-							list: animations,
-							remove: removeAnimations,
-						}}
-						field={gameData.field}
-						gameOver={gameData.gameOver}
-						params={params}
-						InteractionWrapper={({ children, getPositionFromEvent }) => (
-							<GameFieldHandlers
-								className="w-fit cursor-pointer"
-								params={params}
-								gameOver={gameData.gameOver}
-								onCellPress={interactionHandlers.handleCellPress}
-								onCellRelease={interactionHandlers.handleCellRelease}
-								onToggleFlag={interactionHandlers.handleToggleFlag}
-								getPositionFromEvent={getPositionFromEvent}
-							>
-								{children}
-							</GameFieldHandlers>
-						)}
-					/>
-				)
-		}
-	}
-
-	return <div>{renderField()}</div>
+	return (
+		<>
+			{type === 'square' && (
+				<SquareField
+					params={params}
+					field={gameData.field}
+					gameOver={gameData.gameOver}
+					width={width}
+					height={height}
+					animationsList={animations}
+					removeAnimations={removeAnimations}
+					onCellPress={handleCellPress}
+					onCellRelease={handleCellRelease}
+					onToggleFlag={handleToggleFlag}
+				/>
+			)}
+		</>
+	)
 }

@@ -1,25 +1,14 @@
-import { MouseEvent, PointerEvent, PropsWithChildren, useRef } from 'react'
-import { GameParams, Position } from '@/engine'
+import { MouseEvent, PointerEvent, useRef } from 'react'
+import { Position } from '@/engine'
+import { GameInteractionsProps } from './types'
 
-interface GameFieldHandlersProps extends PropsWithChildren {
-	className: string
-	gameOver: boolean
-	params: GameParams
-	onToggleFlag: (pos: Position) => void
-	onCellPress: (pos: Position) => void
-	onCellRelease: (isClick: boolean, pos?: Position) => void
-	getPositionFromEvent: (event: MouseEvent) => Position | null
-}
-
-export const GameFieldHandlers = ({
+export const useGameInteractions = ({
 	gameOver,
-	children,
-	className,
+	getPositionFromEvent,
 	onCellPress,
 	onCellRelease,
 	onToggleFlag,
-	getPositionFromEvent,
-}: GameFieldHandlersProps) => {
+}: GameInteractionsProps) => {
 	const pressedPosition = useRef<Position | null>(null)
 
 	const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -78,16 +67,12 @@ export const GameFieldHandlers = ({
 		const pos = getPositionFromEvent(event)
 		if (pos) onToggleFlag(pos)
 	}
-	return (
-		<div
-			className={className}
-			onPointerDown={handlePointerDown}
-			onPointerUp={handlePointerUp}
-			onPointerMove={handlePointerMove}
-			onPointerLeave={handlePointerLeave}
-			onContextMenu={handleCanvasRightClick}
-		>
-			{children}
-		</div>
-	)
+
+	return {
+		handlePointerDown,
+		handlePointerMove,
+		handlePointerUp,
+		handlePointerLeave,
+		handleCanvasRightClick,
+	}
 }
