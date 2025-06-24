@@ -1,8 +1,19 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, PropsWithChildren, useEffect, useState } from 'react'
+import { Group, TransformGroup } from '@/ui-engine'
 import { AnimationEffectProps } from '@/shared/types/shape'
 
 export const AppearEffect = memo(
-	({ id, x, y, size, duration, onComplete }: AnimationEffectProps) => {
+	({
+		id,
+		x,
+		y,
+		width,
+		height,
+		duration,
+		onComplete,
+		children,
+	}: AnimationEffectProps &
+		PropsWithChildren & { width: number; height: number }) => {
 		const [scale, setScale] = useState(0)
 
 		useEffect(() => {
@@ -19,7 +30,7 @@ export const AppearEffect = memo(
 				// t >= 0.4: затухающее колебание вокруг 1.0
 				if (progress < 0.4) {
 					setScale((progress / 0.4) * 1.2)
-				} else {
+				} else { 
 					const bounceProgress = (progress - 0.4) / 0.6
 					// Формула для эффекта "отскока"
 					const newScale =
@@ -45,6 +56,22 @@ export const AppearEffect = memo(
 			}
 		}, [id, onComplete])
 
-		return null
+		const originX = width / 2
+		const originY = height / 2
+
+		return (
+			<Group x={x} y={y}>
+				<TransformGroup
+					scale={{
+						scaleX: scale,
+						scaleY: scale,
+						originX: originX,
+						originY: originY,
+					}}
+				>
+					{children}
+				</TransformGroup>
+			</Group>
+		)
 	}
 )

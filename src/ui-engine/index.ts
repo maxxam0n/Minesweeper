@@ -1,5 +1,7 @@
 export * from './lib/types'
 
+export { Group } from './ui/group'
+export { TransformGroup } from './ui/transform'
 export { Canvas } from './ui/canvas'
 export { Layer } from './ui/layer'
 export { CircleShape } from './ui/shapes/circle-shape'

@@ -1,6 +1,6 @@
-import { Fragment, useMemo } from 'react'
+import { useMemo } from 'react'
 import { CellData } from '@/engine'
-import { Layer, RectShape } from '@/ui-engine'
+import { Layer, RectShape, Group } from '@/ui-engine'
 import { useGameColors } from '@/providers/game-colors'
 import { useViewConfig } from '@/providers/game-view'
 import { DigitShape } from '@/shared/shapes/digit-shape'
@@ -88,30 +88,30 @@ export const SquareStaticField = ({
 					)
 				} else if (cellData.isFlagged) {
 					acc.overlayElements.push(
-						<Fragment key={`${cellKey}-flag`}>
-							{/* RectShape надежный boundingBox для maskRenderer */}
-							<RectShape width={size} height={size} x={x} y={y} />
+						<Group x={x} y={y} key={`${cellKey}-flag`}>
+							{/* Для надежного bounding box флага рисуем прозрачный квадрат */}
+							<RectShape width={size} height={size} x={0} y={0} />
 							<FlagShape
-								x={x}
-								y={y}
+								x={0}
+								y={0}
 								size={size}
 								flagColor={FLAG}
 								shaftColor={FLAG_SHAFT}
 							/>
-						</Fragment>
+						</Group>
 					)
 				} else if (cellData.isExploded) {
 					acc.overlayElements.push(
-						<Fragment key={`${cellKey}-exploded`}>
+						<Group x={x} y={y} key={`${cellKey}-exploded`}>
 							<RectShape
-								x={x}
-								y={y}
+								x={0}
+								y={0}
 								height={size}
 								width={size}
 								fillColor={EXPLODED}
 							/>
-							<MineShape x={x} y={y} color={MINE} size={size} />
-						</Fragment>
+							<MineShape x={0} y={0} color={MINE} size={size} />
+						</Group>
 					)
 				}
 

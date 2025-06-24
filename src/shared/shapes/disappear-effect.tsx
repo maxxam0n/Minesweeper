@@ -1,11 +1,18 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, PropsWithChildren, useEffect, useState } from 'react'
+import { Group, TransformGroup } from '@/ui-engine'
 import { AnimationEffectProps } from '@/shared/types/shape'
 
 export const DisappearEffect = memo(
-	({ id, x, y, duration, size, onComplete }: AnimationEffectProps) => {
+	({
+		id,
+		x,
+		y,
+		duration,
+		amplitude,
+		children,
+		onComplete,
+	}: AnimationEffectProps & PropsWithChildren & { amplitude: number }) => {
 		const [animState, setAnimState] = useState({ yOffset: 0, opacity: 1 })
-
-		const initialY = y
 
 		useEffect(() => {
 			let startTime: number | null = null
@@ -17,7 +24,7 @@ export const DisappearEffect = memo(
 				const progress = Math.min(elapsed / duration, 1)
 
 				setAnimState({
-					yOffset: -progress * (size / 4), // Улетает на половину своего размера
+					yOffset: -progress * amplitude, // Улетает на половину своего размера
 					opacity: 1 - progress,
 				})
 
@@ -32,8 +39,19 @@ export const DisappearEffect = memo(
 			return () => {
 				cancelAnimationFrame(animationFrameId)
 			}
-		}, [id, onComplete, size])
+		}, [id, onComplete, amplitude])
 
-		return null
+		return (
+			<Group x={x} y={y} opacity={animState.opacity}>
+				<TransformGroup
+					translate={{
+						translateX: 0,
+						translateY: animState.yOffset,
+					}}
+				>
+					{children}
+				</TransformGroup>
+			</Group>
+		)
 	}
 )

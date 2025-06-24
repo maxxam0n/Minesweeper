@@ -1,11 +1,18 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, PropsWithChildren, useEffect, useState } from 'react'
+import { Group, TransformGroup } from '@/ui-engine'
 import { AnimationEffectProps } from '@/shared/types/shape'
 
 export const VibrationEffect = memo(
-	({ id, x, y, size, duration, onComplete }: AnimationEffectProps) => {
+	({
+		id,
+		x,
+		y,
+		duration,
+		amplitude = 3,
+		onComplete,
+		children,
+	}: AnimationEffectProps & PropsWithChildren & { amplitude?: number }) => {
 		const [xOffset, setXOffset] = useState(0)
-
-		const initialX = x
 
 		useEffect(() => {
 			let startTime: number | null = null
@@ -17,7 +24,8 @@ export const VibrationEffect = memo(
 				const progress = Math.min(elapsed / duration, 1)
 
 				// Формула для быстрого затухающего колебания
-				const shake = Math.sin(progress * Math.PI * 6) * (1 - progress) * 3 // Амплитуда 3 пикселя
+				const shake =
+					Math.sin(progress * Math.PI * 6) * (1 - progress) * amplitude
 				setXOffset(shake)
 
 				if (progress < 1) {
@@ -34,6 +42,12 @@ export const VibrationEffect = memo(
 			}
 		}, [id, onComplete])
 
-		return null
+		return (
+			<Group x={x} y={y}>
+				<TransformGroup translate={{ translateX: xOffset, translateY: 0 }}>
+					{children}
+				</TransformGroup>
+			</Group>
+		)
 	}
 )

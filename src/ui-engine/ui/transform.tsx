@@ -15,10 +15,10 @@ interface TransformGroupProps extends React.PropsWithChildren {
 }
 
 export const TransformGroup = ({
-	rotate: { angle } = {
+	rotate: { angle, originX: rotateOriginX, originY: rotateOriginY } = {
 		angle: 0,
 	},
-	scale: { scaleX, scaleY } = {
+	scale: { scaleX, scaleY, originX: scaleOriginX, originY: scaleOriginY } = {
 		scaleX: 1,
 		scaleY: 1,
 	},
@@ -43,15 +43,26 @@ export const TransformGroup = ({
 			type: 'scale',
 			scaleX: scaleX * inherited.scaleX,
 			scaleY: scaleY * inherited.scaleY,
+			originX: scaleOriginX,
+			originY: scaleOriginY,
 		}
-	}, [scaleX, scaleY, inherited.scaleX, inherited.scaleY])
+	}, [
+		scaleX,
+		scaleY,
+		inherited.scaleX,
+		inherited.scaleY,
+		scaleOriginX,
+		scaleOriginY,
+	])
 
 	const summaryRotate = useMemo<Transform>(() => {
 		return {
 			type: 'rotation',
 			angle: angle + inherited.angle,
+			originX: rotateOriginX,
+			originY: rotateOriginY,
 		}
-	}, [angle, inherited.angle])
+	}, [angle, inherited.angle, rotateOriginX, rotateOriginY])
 
 	const transforms = useMemo<Transform[]>(() => {
 		return [summaryTranslate, summaryScale, summaryRotate]

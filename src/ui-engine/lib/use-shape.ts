@@ -1,9 +1,10 @@
-import { useContext, useEffect, useId } from 'react'
+import { useContext, useEffect, useId, useMemo } from 'react'
 import { ShapeRenderer, ShapeParams, ShapeDrawingData } from './types'
 import { ShapeRegistryContext } from '../model/shape-registry-context'
 import { LayerNameContext } from '../model/layer-name-context'
 import { TransformContext } from '../model/transform-context'
 import { GroupContext } from '../model/group-context'
+import { getTransformedBoundingBox } from './transfrom-bounding-box'
 
 export const useShape = (draw: ShapeRenderer, shapeParams: ShapeParams) => {
 	const registry = useContext(ShapeRegistryContext)
@@ -18,21 +19,54 @@ export const useShape = (draw: ShapeRenderer, shapeParams: ShapeParams) => {
 	const { removeShape, setShape } = registry
 	const id = useId()
 
-	useEffect(() => {
+	const finalShapeParams = useMemo(() => {
 		const { opacity: groupOpacity = 1, zIndex: groupZIndex = 0 } =
 			groupParams ?? {}
 
-		const finalShapeOpacity = groupOpacity * shapeParams.opacity
-		const finalShapeZIndex = groupZIndex + shapeParams.zIndex
+		const finalOpacity = groupOpacity * shapeParams.opacity
+		const finalZIndex = groupZIndex + shapeParams.zIndex
 
+		const transformedBox = getTransformedBoundingBox(
+			shapeParams.box,
+			transforms
+		)
+
+		return {
+			opacity: finalOpacity,
+			zIndex: finalZIndex,
+			box: transformedBox,
+		}
+	}, [shapeParams, groupParams, transforms])
+
+	useEffect(() => {
 		const prepareTransform = (ctx: CanvasRenderingContext2D) => {
 			transforms.forEach(transform => {
-				if (transform.type === 'translate') {
-					ctx.translate(transform.translateX, transform.translateY)
-				} else if (transform.type === 'scale') {
-					ctx.scale(transform.scaleX, transform.scaleY)
-				} else if (transform.type === 'rotation' && transform.angle !== 0) {
-					ctx.rotate(transform.angle)
+				switch (transform.type) {
+					case 'translate': {
+						ctx.translate(transform.translateX, transform.translateY)
+						break
+					}
+					case 'scale': {
+						const { scaleX, scaleY, originX, originY } = transform
+						if (originX !== undefined && originY !== undefined) {
+							ctx.translate(originX, originY)
+							ctx.scale(scaleX, scaleY)
+							ctx.translate(-originX, -originY)
+						} else {
+							ctx.scale(scaleX, scaleY)
+						}
+						break
+					}
+					case 'rotation': {
+						const { angle, originX, originY } = transform
+						if (originX !== undefined && originY !== undefined) {
+							ctx.translate(originX, originY)
+							ctx.rotate(angle)
+							ctx.translate(-originX, -originY)
+						} else {
+							ctx.rotate(angle)
+						}
+					}
 				}
 			})
 		}
@@ -42,11 +76,7 @@ export const useShape = (draw: ShapeRenderer, shapeParams: ShapeParams) => {
 			draw,
 			transform: prepareTransform,
 			layerName,
-			shapeParams: {
-				box: shapeParams.box,
-				opacity: finalShapeOpacity,
-				zIndex: finalShapeZIndex,
-			},
+			shapeParams: finalShapeParams,
 		}
 
 		setShape(shapeData)
@@ -55,8 +85,7 @@ export const useShape = (draw: ShapeRenderer, shapeParams: ShapeParams) => {
 	}, [
 		id,
 		layerName,
-		shapeParams,
-		groupParams,
+		finalShapeParams,
 		transforms,
 		setShape,
 		removeShape,

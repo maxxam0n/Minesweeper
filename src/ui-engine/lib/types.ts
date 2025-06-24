@@ -58,10 +58,14 @@ export type TranslateParams = {
 export type ScaleParams = {
 	scaleX: number
 	scaleY: number
+	originX?: number
+	originY?: number
 }
 
 export type RotationParams = {
 	angle: number
+	originX?: number
+	originY?: number
 }
 
 export type Transform =
