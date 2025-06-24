@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
 import { Animation, AnimationQuery } from './types'
 
-export const useAnimations = (animationsEnabled: boolean) => {
+export const useAnimations = (enabled: boolean) => {
 	const nextAnimationId = useRef(0)
 	const [animations, setAnimations] = useState<Animation[]>([])
 
 	const addAnimations = (animations: AnimationQuery[]) => {
-		if (!animationsEnabled) return
+		if (!enabled) return
 
 		const newAnimations = animations.map(animQuery => ({
 			id: `animation-${nextAnimationId.current++}`,
@@ -17,17 +17,35 @@ export const useAnimations = (animationsEnabled: boolean) => {
 	}
 
 	const addStaggeredAnimations = (
-		anims: AnimationQuery[],
+		anims: Omit<AnimationQuery, 'delay'>[],
 		delay: number,
+		batchSize: number = 1,
 		startDelay: number = 0
 	) => {
-		anims.forEach((anim, index) => {
-			addAnimations([{ ...anim, delay: startDelay + index * delay }])
+		let animationsBatch: AnimationQuery[] = []
+
+		let batchedDelay = startDelay
+		let batched = 0
+
+		anims.forEach((anim) => {
+			let summaryDelay = batchedDelay
+
+			if (batched < batchSize) {
+				batched += 1
+			} else {
+				batched = 0
+				batchedDelay += delay
+				summaryDelay += batchedDelay
+			}
+
+			animationsBatch.push({ ...anim, delay: summaryDelay })
 		})
+
+		addAnimations(animationsBatch)
 	}
 
 	const removeAnimations = (animationIds: string[]) => {
-		if (!animationsEnabled) return
+		if (!enabled) return
 
 		setAnimations(prev => {
 			const remainingAnimations = prev.filter(

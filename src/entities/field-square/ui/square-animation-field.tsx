@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { Layer, RectShape } from '@/ui-engine'
+import { Group, Layer, RectShape } from '@/ui-engine'
 import { useGameColors } from '@/providers/game-colors'
 import { useViewConfig } from '@/providers/game-view'
 import { Animation } from '@/shared/lib/use-animations'
@@ -11,6 +11,8 @@ import { CrossShape } from '@/shared/shapes/cross-shape'
 import { ExplosionEffect } from '@/shared/shapes/explosion-effect'
 import { MineShape } from '@/shared/shapes/mine-shape'
 import { CellRevealEffect } from './shapes/cell-reveal-effect'
+import { DelayedAnimation } from '@/shared/shapes/delayed-animation'
+import { BevelShape } from './shapes/bevel-shape'
 
 interface SquareAnimationFieldProps {
 	zIndex: number
@@ -28,7 +30,7 @@ export const SquareAnimationField = ({
 		animations: { duration },
 	} = useViewConfig()
 
-	const { REVEALED, FLAG, FLAG_SHAFT, MINE } = useGameColors()
+	const { REVEALED, CLOSED, FLAG, FLAG_SHAFT, MINE } = useGameColors()
 
 	const removedAnimationIds = useRef<string[]>([])
 	const animationFrameId = useRef<number>()
@@ -149,17 +151,33 @@ export const SquareAnimationField = ({
 				)
 			} else if (anim.type === 'explosion') {
 				acc.explosionAnimation.push(
-					<ExplosionEffect
+					<DelayedAnimation
 						key={`explosion-${id}`}
-						x={x}
-						y={y}
-						id={id}
-						size={size}
-						duration={duration}
-						onComplete={removeUnitAnimation}
+						delay={anim.delay || 0}
+						fallback={
+							<Group x={x} y={y}>
+								<RectShape
+									x={0}
+									y={0}
+									width={size}
+									height={size}
+									fillColor={CLOSED}
+								/>
+								<BevelShape x={0} y={0}></BevelShape>
+							</Group>
+						}
 					>
-						<MineShape x={0} y={0} size={size} color={MINE} />
-					</ExplosionEffect>
+						<ExplosionEffect
+							x={x}
+							y={y}
+							id={id}
+							size={size}
+							duration={duration}
+							onComplete={removeUnitAnimation}
+						>
+							<MineShape x={0} y={0} size={size} color={MINE} />
+						</ExplosionEffect>
+					</DelayedAnimation>
 				)
 			}
 			return acc

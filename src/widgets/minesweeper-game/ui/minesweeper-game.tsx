@@ -1,6 +1,6 @@
 import { useViewConfig } from '@/providers/game-view'
 import { SquareField } from '@/entities/field-square'
-import { useAnimations } from '@/shared/lib/use-animations'
+import { AnimationQuery, useAnimations } from '@/shared/lib/use-animations'
 import { useGame } from '../lib/use-game'
 import { useTimer } from '../lib/use-timer'
 import { useStatistic } from '../lib/use-statistic'
@@ -42,28 +42,68 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 			stopTimer()
 
 			if (animationsEnabled) {
-				const baseDuration = duration / 4
+				const firstExplosionTime = duration
+
+				const { notFoundMines, explodedCells, errorFlags } = actionSnapshot
+
 				addAnimations(
 					actionSnapshot.explodedCells.map(cell => ({
 						type: 'explosion',
 						position: cell.position,
 					}))
 				)
-				addStaggeredAnimations(
-					actionSnapshot.notFoundMines.map(cell => ({
-						type: 'explosion',
-						position: cell.position,
-					})),
-					baseDuration
-				)
-				addStaggeredAnimations(
-					actionSnapshot.errorFlags.map(cell => ({
-						type: 'flag-missed',
-						position: cell.position,
-					})),
-					baseDuration,
-					baseDuration * actionSnapshot.notFoundMines.length
-				)
+				if (notFoundMines.length > 0) {
+					const epicenter = explodedCells[0]?.position || {
+						col: Math.floor(params.cols / 2),
+						row: Math.floor(params.rows / 2),
+					}
+
+					// Копируем и сортируем массив неотмеченных мин по расстоянию от эпицентра
+					const sortedMines = [...notFoundMines].sort((a, b) => {
+						const distA = Math.hypot(
+							a.position.col - epicenter.col,
+							a.position.row - epicenter.row
+						)
+						const distB = Math.hypot(
+							b.position.col - epicenter.col,
+							b.position.row - epicenter.row
+						)
+						return distA - distB
+					})
+
+					// Создаем дескрипторы анимаций из отсортированного массива
+					const revealMineAnimations: AnimationQuery[] = sortedMines.map(
+						cell => ({
+							type: 'explosion',
+							position: cell.position,
+						})
+					)
+
+					const delayBetweenWaves = firstExplosionTime * 0.8
+					const waveBatchSize = 5
+
+					addStaggeredAnimations(
+						revealMineAnimations,
+						delayBetweenWaves,
+						waveBatchSize,
+						delayBetweenWaves
+					)
+				}
+
+				// // // 3. Анимация неверных флагов - запускается после того, как все мины взорвались
+				// if (errorFlags.length > 0) {
+				// 	const totalMineExplosionDuration =
+				// 		notFoundMines.length * 20 + 500 // Примерное время, пока все мины не покажутся
+
+				// 	addStaggeredAnimations(
+				// 		errorFlags.map(cell => ({
+				// 			type: 'flag_missed',
+				// 			position: cell.position,
+				// 		})),
+				// 		50, // Показываем неверные флаги тоже с небольшой задержкой между ними
+				// 		totalMineExplosionDuration // Начинаем показывать после основной волны взрывов
+				// 	)
+				// }
 			}
 		},
 		onWin() {
