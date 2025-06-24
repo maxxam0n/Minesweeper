@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useShape } from '../lib/use-shape'
-import { BoundingBox } from '../lib/types'
+import { useShape } from '../../lib/use-shape'
+import { BoundingBox } from '../../lib/types'
 
 interface ImageShapeProps {
 	src: string

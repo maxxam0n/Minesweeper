@@ -70,10 +70,12 @@ export const Canvas = ({
 		const sortedShapes = Array.from(shapes.values()).sort(
 			(a, b) => (a.shapeParams.zIndex || 0) - (b.shapeParams.zIndex || 0)
 		)
-		sortedShapes.forEach(({ draw, shapeParams }) => {
+		sortedShapes.forEach(({ draw, transform, shapeParams }) => {
+			const layerAlpha = 1 - opacity
+
 			ctx.save()
-			const summaryOpacity = opacity - (1 - shapeParams.opacity)
-			ctx.globalAlpha = Math.max(summaryOpacity, 0)
+			ctx.globalAlpha = layerAlpha * shapeParams.opacity
+			transform(ctx)
 			draw(ctx)
 			ctx.restore()
 		})

@@ -1,3 +1,3 @@
 import { createContext } from 'react'
 
-export const layerNameContext = createContext<string | null>(null)
+export const LayerNameContext = createContext<string | null>(null)

@@ -6,14 +6,14 @@ import {
 	useEffect,
 } from 'react'
 import { LayerRegistryContext } from '../model/layer-registry-context'
-import { layerNameContext } from '../model/layer-name-context'
+import { LayerNameContext } from '../model/layer-name-context'
 import { LayerRenderer } from '../lib/types'
 
 interface LayerProps extends PropsWithChildren {
 	name: string
-	renderer?: LayerRenderer
 	opacity?: number
 	zIndex?: number
+	renderer?: LayerRenderer
 }
 
 export const Layer = ({
@@ -44,13 +44,13 @@ export const Layer = ({
 	}, [name, unregisterLayer])
 
 	return (
-		<layerNameContext.Provider value={name}>
+		<LayerNameContext.Provider value={name}>
 			<canvas
 				className="absolute top-0 left-0"
 				ref={refCallback}
 				style={useMemo(() => ({ zIndex }), [zIndex])}
 			/>
 			{children}
-		</layerNameContext.Provider>
+		</LayerNameContext.Provider>
 	)
 }

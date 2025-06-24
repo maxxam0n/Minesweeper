@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react'
-import { BoundingBox, ShapeParams } from '../lib/types'
-import { useShape } from '../lib/use-shape'
-import { useCachedTextMetrics } from '../lib/use-cached-text-metrics'
+import { BoundingBox, ShapeParams } from '../../lib/types'
+import { useShape } from '../../lib/use-shape'
+import { useCachedTextMetrics } from '../../lib/use-cached-text-metrics'
 
 interface TextProps {
 	x: number

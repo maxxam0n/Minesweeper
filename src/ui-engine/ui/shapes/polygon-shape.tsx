@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
-import { useShape } from '../lib/use-shape'
-import { BoundingBox, ShapeParams } from '../lib/types'
+import { useShape } from '../../lib/use-shape'
+import { BoundingBox, ShapeParams } from '../../lib/types'
 
 interface Point {
 	x: number

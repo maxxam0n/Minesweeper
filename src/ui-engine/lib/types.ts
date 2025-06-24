@@ -7,6 +7,8 @@ export type BoundingBox = {
 
 export type ShapeRenderer = (ctx: CanvasRenderingContext2D) => void
 
+export type PrepareTransform = (ctx: CanvasRenderingContext2D) => void
+
 export type LayerRenderer = (layerData: {
 	shapes: LayerShapes
 	dirtyAreas: BoundingBox[]
@@ -27,6 +29,7 @@ export type ShapeParams = {
 
 export type ShapeDrawingData = {
 	draw: ShapeRenderer
+	transform: PrepareTransform
 	shapeParams: ShapeParams
 	id: string
 	layerName: string
@@ -44,3 +47,30 @@ export interface Layer {
 }
 
 export type Layers = Map<string, Layer>
+
+export type TransformType = 'translate' | 'scale' | 'rotation'
+
+export type TranslateParams = {
+	translateX: number
+	translateY: number
+}
+
+export type ScaleParams = {
+	scaleX: number
+	scaleY: number
+}
+
+export type RotationParams = {
+	angle: number
+}
+
+export type Transform =
+	| ({
+			type: 'translate'
+	  } & TranslateParams)
+	| ({
+			type: 'scale'
+	  } & ScaleParams)
+	| ({
+			type: 'rotation'
+	  } & RotationParams)
