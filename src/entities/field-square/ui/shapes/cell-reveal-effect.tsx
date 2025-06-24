@@ -26,7 +26,7 @@ export const CellRevealEffect = memo(
 			const animate = (timestamp: number) => {
 				if (startTime === null) startTime = timestamp
 				const elapsed = timestamp - startTime
-				const progress = Math.min(elapsed / duration, 1)
+				const progress = Math.min(elapsed / (duration * 0.5), 1)
 
 				// Плавное исчезновение
 				setOpacity(1 - progress)

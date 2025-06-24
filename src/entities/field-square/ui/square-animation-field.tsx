@@ -8,6 +8,8 @@ import { FlagShape } from '@/shared/shapes/flag-shape'
 import { DisappearEffect } from '@/shared/shapes/disappear-effect'
 import { VibrationEffect } from '@/shared/shapes/vibration-effect'
 import { CrossShape } from '@/shared/shapes/cross-shape'
+import { ExplosionEffect } from '@/shared/shapes/explosion-effect'
+import { MineShape } from '@/shared/shapes/mine-shape'
 import { CellRevealEffect } from './shapes/cell-reveal-effect'
 
 interface SquareAnimationFieldProps {
@@ -26,7 +28,7 @@ export const SquareAnimationField = ({
 		animations: { duration },
 	} = useViewConfig()
 
-	const { REVEALED, FLAG, FLAG_SHAFT } = useGameColors()
+	const { REVEALED, FLAG, FLAG_SHAFT, MINE } = useGameColors()
 
 	const removedAnimationIds = useRef<string[]>([])
 	const animationFrameId = useRef<number>()
@@ -59,7 +61,8 @@ export const SquareAnimationField = ({
 		revealingAnimations,
 		flagAnimations,
 		unflagAnimations,
-		limitReached,
+		errorAnimation,
+		explosionAnimation,
 	} = animations.reduce(
 		(acc, anim) => {
 			const {
@@ -132,7 +135,7 @@ export const SquareAnimationField = ({
 					</DisappearEffect>
 				)
 			} else if (anim.type === 'error') {
-				acc.limitReached.push(
+				acc.errorAnimation.push(
 					<VibrationEffect
 						key={`error-${id}`}
 						id={id}
@@ -144,6 +147,20 @@ export const SquareAnimationField = ({
 						<CrossShape x={0} y={0} size={size} />
 					</VibrationEffect>
 				)
+			} else if (anim.type === 'explosion') {
+				acc.explosionAnimation.push(
+					<ExplosionEffect
+						key={`explosion-${id}`}
+						x={x}
+						y={y}
+						id={id}
+						size={size}
+						duration={duration}
+						onComplete={removeUnitAnimation}
+					>
+						<MineShape x={0} y={0} size={size} color={MINE} />
+					</ExplosionEffect>
+				)
 			}
 			return acc
 		},
@@ -152,7 +169,8 @@ export const SquareAnimationField = ({
 			revealingAnimations: [] as JSX.Element[],
 			flagAnimations: [] as JSX.Element[],
 			unflagAnimations: [] as JSX.Element[],
-			limitReached: [] as JSX.Element[],
+			errorAnimation: [] as JSX.Element[],
+			explosionAnimation: [] as JSX.Element[],
 		}
 	)
 
@@ -162,15 +180,20 @@ export const SquareAnimationField = ({
 				{/* Анимации вдавливания */}
 				{pressedAnimations}
 
+				{/* Анимация ошибки */}
+				{errorAnimation}
+
 				{/* Анимации флагов */}
 				{flagAnimations}
 				{unflagAnimations}
-				{limitReached}
+
+				{/* Анимации раскрытия ячеек */}
+				{revealingAnimations}
 			</Layer>
 
 			<Layer name="heavy-animations" zIndex={zIndex + 1}>
-				{/* Анимации раскрытия ячеек */}
-				{revealingAnimations}
+				{/* Анимация взрыва */}
+				{explosionAnimation}
 			</Layer>
 		</>
 	)

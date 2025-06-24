@@ -10,6 +10,7 @@ import {
 import { SquareStaticField } from './square-static-field'
 import { SquareGrid } from './square-grid'
 import { SquareAnimationField } from './square-animation-field'
+import { useGameColors } from '@/providers/game-colors'
 
 interface SquareFieldProps
 	extends Omit<GameInteractionsProps, 'getPositionFromEvent'> {
@@ -37,6 +38,8 @@ export const SquareField = ({
 		cell: { size },
 		animations: { enabled: withAnimations },
 	} = useViewConfig()
+
+	const { REVEALED } = useGameColors()
 
 	const { cols, rows } = params
 
@@ -69,7 +72,7 @@ export const SquareField = ({
 			onPointerLeave={interactions.handlePointerLeave}
 			onContextMenu={interactions.handleCanvasRightClick}
 		>
-			<Canvas width={width} height={height}>
+			<Canvas width={width} height={height} bgColor={REVEALED}>
 				<SquareStaticField
 					zIndex={0}
 					gameOver={gameOver}
