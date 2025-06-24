@@ -19,7 +19,11 @@ export const useShape = (draw: ShapeRenderer, shapeParams: ShapeParams) => {
 	const id = useId()
 
 	useEffect(() => {
-		const { opacity = 1, zIndex = 0 } = groupParams ?? {}
+		const { opacity: groupOpacity = 1, zIndex: groupZIndex = 0 } =
+			groupParams ?? {}
+
+		const finalShapeOpacity = groupOpacity * shapeParams.opacity
+		const finalShapeZIndex = groupZIndex + shapeParams.zIndex
 
 		const prepareTransform = (ctx: CanvasRenderingContext2D) => {
 			transforms.forEach(transform => {
@@ -40,8 +44,8 @@ export const useShape = (draw: ShapeRenderer, shapeParams: ShapeParams) => {
 			layerName,
 			shapeParams: {
 				box: shapeParams.box,
-				opacity: 1 - (1 - opacity) * (1 - (shapeParams.opacity ?? 1)),
-				zIndex: zIndex + (shapeParams.zIndex ?? 0),
+				opacity: finalShapeOpacity,
+				zIndex: finalShapeZIndex,
 			},
 		}
 

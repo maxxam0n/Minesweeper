@@ -65,16 +65,14 @@ export const Canvas = ({
 	const drawShapes = (
 		ctx: CanvasRenderingContext2D,
 		shapes: LayerShapes,
-		opacity: number
+		layerOpacity: number
 	) => {
 		const sortedShapes = Array.from(shapes.values()).sort(
 			(a, b) => (a.shapeParams.zIndex || 0) - (b.shapeParams.zIndex || 0)
 		)
 		sortedShapes.forEach(({ draw, transform, shapeParams }) => {
-			const layerAlpha = 1 - opacity
-
 			ctx.save()
-			ctx.globalAlpha = layerAlpha * shapeParams.opacity
+			ctx.globalAlpha = layerOpacity * shapeParams.opacity
 			transform(ctx)
 			draw(ctx)
 			ctx.restore()
@@ -96,7 +94,8 @@ export const Canvas = ({
 					}
 					// Пока что отрубил мод отрисовки грязных областей.
 					// Сейчас он работает не стабильно:
-					// Не корректно работает с прозрачными слоями,
+					// Не учитывает трансформации
+					// Не корректно работает с прозрачностью,
 					// При большом количестве dirtyAreas, скорость отрисовки сильно снижается (выгода только при маленьком количестве)
 					// Если какие либо фигуры входят,
 					// но они в свою очередь могут закрывать другие фигуры, у которых z-индекс больше,

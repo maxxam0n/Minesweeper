@@ -65,12 +65,6 @@ export type RotationParams = {
 }
 
 export type Transform =
-	| ({
-			type: 'translate'
-	  } & TranslateParams)
-	| ({
-			type: 'scale'
-	  } & ScaleParams)
-	| ({
-			type: 'rotation'
-	  } & RotationParams)
+	| ({ type: 'translate' } & TranslateParams)
+	| ({ type: 'scale' } & ScaleParams)
+	| ({ type: 'rotation' } & RotationParams)

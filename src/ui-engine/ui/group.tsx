@@ -1,5 +1,5 @@
 import { PropsWithChildren, useContext, useMemo } from 'react'
-import { TransformGroup } from './transform-group'
+import { TransformGroup } from './transform'
 import { GroupContext } from '../model/group-context'
 
 interface GroupProps extends PropsWithChildren {
@@ -20,7 +20,7 @@ export const Group = ({
 
 	const groupParams = useMemo(() => {
 		return {
-			opacity: 1 - (1 - opacity) * (1 - (inherited?.opacity || 1)),
+			opacity: opacity * (inherited?.opacity ?? 1),
 			zIndex: zIndex + (inherited?.zIndex || 0),
 		}
 	}, [opacity, zIndex, inherited])
