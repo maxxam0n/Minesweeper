@@ -3,9 +3,9 @@ import { useShape } from '../../lib/use-shape'
 import { BoundingBox } from '../../lib/types'
 
 interface CircleProps {
-	cx: number
-	cy: number
 	radius: number
+	cx?: number
+	cy?: number
 	opacity?: number
 	fillColor?: string
 	strokeColor?: string
@@ -14,8 +14,8 @@ interface CircleProps {
 }
 
 export const CircleShape = ({
-	cx,
-	cy,
+	cx = 0,
+	cy = 0,
 	radius,
 	strokeColor,
 	opacity = 1,

@@ -9,7 +9,7 @@ interface ClosedShapeProps
 	extends Omit<BaseShapeProps, 'size'>,
 		PropsWithChildren {}
 
-export const ClosedCell = memo(({ x, y, children }: ClosedShapeProps) => {
+export const CellMask = memo(({ x = 0, y = 0, children }: ClosedShapeProps) => {
 	const { CLOSED } = useGameColors()
 	const {
 		cell: { size },
@@ -17,8 +17,8 @@ export const ClosedCell = memo(({ x, y, children }: ClosedShapeProps) => {
 
 	return (
 		<Group x={x} y={y}>
-			<RectShape x={0} y={0} width={size} height={size} fillColor={CLOSED} />
-			<BevelShape x={0} y={0} />
+			<RectShape width={size} height={size} fillColor={CLOSED} />
+			<BevelShape />
 			{children}
 		</Group>
 	)

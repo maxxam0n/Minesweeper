@@ -4,8 +4,8 @@ import { useShape } from '../../lib/use-shape'
 import { useCachedTextMetrics } from '../../lib/use-cached-text-metrics'
 
 interface TextProps {
-	x: number
-	y: number
+	x?: number
+	y?: number
 	text: string | number
 	opacity?: number
 	font?: string
@@ -20,8 +20,8 @@ interface TextProps {
 }
 
 export const TextShape = ({
-	x,
-	y,
+	x = 0,
+	y = 0,
 	text,
 	opacity = 1,
 	font = '16px sans-serif',

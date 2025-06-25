@@ -12,7 +12,7 @@ import { ExplosionEffect } from '@/shared/shapes/explosion-effect'
 import { MineShape } from '@/shared/shapes/mine-shape'
 import { RevealingEffect } from '@/shared/shapes/revealing-effect'
 import { DelayedAnimation } from '@/shared/shapes/delayed-animation'
-import { ClosedCell } from './shapes/closed-cell'
+import { CellMask } from './shapes/cell-mask'
 
 interface SquareAnimationFieldProps {
 	zIndex: number
@@ -92,7 +92,7 @@ export const SquareAnimationField = ({
 					<DelayedAnimation
 						key={`delayed-reveal-${id}`}
 						delay={anim.delay}
-						fallback={<ClosedCell x={x} y={y} />}
+						fallback={<CellMask x={x} y={y} />}
 					>
 						<RevealingEffect
 							x={x}
@@ -101,13 +101,7 @@ export const SquareAnimationField = ({
 							duration={anim.duration || duration}
 							onComplete={removeUnitAnimation}
 						>
-							<RectShape
-								x={0}
-								y={0}
-								width={size}
-								height={size}
-								fillColor={CLOSED}
-							/>
+							<RectShape width={size} height={size} fillColor={CLOSED} />
 						</RevealingEffect>
 					</DelayedAnimation>
 				)
@@ -121,13 +115,7 @@ export const SquareAnimationField = ({
 						duration={anim.duration || duration}
 						onComplete={removeUnitAnimation}
 					>
-						<RectShape
-							x={0}
-							y={0}
-							width={size}
-							height={size}
-							fillColor={CLOSED}
-						/>
+						<RectShape width={size} height={size} fillColor={CLOSED} />
 					</RevealingEffect>
 				)
 		} else if (anim.type === 'appear') {
@@ -143,8 +131,6 @@ export const SquareAnimationField = ({
 					onComplete={removeUnitAnimation}
 				>
 					<FlagShape
-						x={0}
-						y={0}
 						size={size}
 						flagColor={FLAG}
 						shaftColor={FLAG_SHAFT}
@@ -163,8 +149,6 @@ export const SquareAnimationField = ({
 					onComplete={removeUnitAnimation}
 				>
 					<FlagShape
-						x={0}
-						y={0}
 						size={size}
 						flagColor={FLAG}
 						shaftColor={FLAG_SHAFT}
@@ -181,7 +165,7 @@ export const SquareAnimationField = ({
 					duration={anim.duration || duration}
 					onComplete={removeUnitAnimation}
 				>
-					<CrossShape x={0} y={0} size={size} />
+					<CrossShape size={size} />
 				</VibrationEffect>
 			)
 		} else if (anim.type === 'explosion') {
@@ -196,7 +180,7 @@ export const SquareAnimationField = ({
 					power={50}
 					onComplete={removeUnitAnimation}
 				>
-					<MineShape x={0} y={0} size={size} color={MINE} />
+					<MineShape size={size} color={MINE} />
 				</ExplosionEffect>
 			)
 		}

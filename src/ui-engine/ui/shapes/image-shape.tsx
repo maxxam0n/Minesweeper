@@ -4,8 +4,8 @@ import { BoundingBox } from '../../lib/types'
 
 interface ImageShapeProps {
 	src: string
-	x: number
-	y: number
+	x?: number
+	y?: number
 	opacity?: number
 	width?: number // Если не указаны, используется натуральный размер изображения
 	height?: number // Если не указаны, используется натуральный размер изображения
@@ -16,8 +16,8 @@ type ImageStatus = 'loading' | 'loaded' | 'error'
 
 export const ImageShape = ({
 	src,
-	x,
-	y,
+	x = 0,
+	y = 0,
 	width,
 	height,
 	opacity = 1,

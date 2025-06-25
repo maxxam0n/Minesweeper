@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { LineShape } from '@/ui-engine'
 import { BaseShapeProps } from '@/shared/types/shape'
 
-export const CrossShape = memo(({ x, y, size }: BaseShapeProps) => {
+export const CrossShape = memo(({ x = 0, y = 0, size }: BaseShapeProps) => {
 	return (
 		<>
 			{/* Красный крестик */}

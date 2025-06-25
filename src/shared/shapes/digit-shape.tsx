@@ -9,7 +9,7 @@ interface DigitShapeProps extends BaseShapeProps {
 }
 
 export const DigitShape = memo(
-	({ x, y, digit, color, font, size }: DigitShapeProps) => {
+	({ x = 0, y = 0, digit, color, font, size }: DigitShapeProps) => {
 		const safeFont = font ? `${font}, monospace` : 'monospace'
 
 		return (

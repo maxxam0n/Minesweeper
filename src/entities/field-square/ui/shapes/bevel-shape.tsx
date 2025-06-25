@@ -6,7 +6,7 @@ import { BaseShapeProps } from '@/shared/types/shape'
 
 interface BevelShapeProps extends Omit<BaseShapeProps, 'size'> {}
 
-export const BevelShape = memo(({ x, y }: BevelShapeProps) => {
+export const BevelShape = memo(({ x = 0, y = 0 }: BevelShapeProps) => {
 	const { LIGHT_BEVEL, DARK_BEVEL } = useGameColors()
 	const {
 		cell: { size, bevelWidth },
