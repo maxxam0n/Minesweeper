@@ -8,7 +8,7 @@ interface FlagShapeProps extends BaseShapeProps {
 }
 
 export const FlagShape = memo(
-	({ x, y, size, flagColor, shaftColor }: FlagShapeProps) => {
+	({ x = 0, y = 0, size, flagColor, shaftColor }: FlagShapeProps) => {
 		// Древко
 		const shaftX = x + size * 0.4 // Смещаем влево, чтобы флаг был главным
 		const shaftTopY = y + size * 0.25

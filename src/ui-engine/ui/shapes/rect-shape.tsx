@@ -3,8 +3,8 @@ import { useShape } from '../../lib/use-shape'
 import { BoundingBox, ShapeParams } from '../../lib/types'
 
 interface RectProps {
-	x: number
-	y: number
+	x?: number
+	y?: number
 	width: number
 	height: number
 	opacity?: number
@@ -15,8 +15,8 @@ interface RectProps {
 }
 
 export const RectShape = ({
-	x,
-	y,
+	x = 0,
+	y = 0,
 	width,
 	height,
 	opacity = 1,

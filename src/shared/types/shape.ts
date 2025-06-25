@@ -1,6 +1,6 @@
 export interface BaseShapeProps {
-	x: number
-	y: number
+	x?: number
+	y?: number
 	size: number
 }
 

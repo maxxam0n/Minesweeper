@@ -3,8 +3,8 @@ import { useShape } from '../../lib/use-shape'
 import { BoundingBox } from '../../lib/types'
 
 interface EllipseProps {
-	cx: number
-	cy: number
+	cx?: number
+	cy?: number
 	radiusX: number
 	radiusY: number
 	opacity?: number
@@ -16,8 +16,8 @@ interface EllipseProps {
 }
 
 export const EllipseShape = ({
-	cx,
-	cy,
+	cx = 0,
+	cy = 0,
 	radiusX,
 	radiusY,
 	opacity = 1,

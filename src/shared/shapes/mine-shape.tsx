@@ -6,7 +6,7 @@ interface MineShapeProps extends BaseShapeProps {
 	color: string
 }
 
-export const MineShape = memo(({ x, y, size, color }: MineShapeProps) => {
+export const MineShape = memo(({ x = 0, y = 0, size, color }: MineShapeProps) => {
 	// --- Параметры для настройки внешнего вида ---
 	const center = {
 		x: x + size / 2,

@@ -90,10 +90,8 @@ export const SquareStaticField = ({
 					acc.overlayElements.push(
 						<Group x={x} y={y} key={`${cellKey}-flag`}>
 							{/* Для надежного bounding box флага рисуем прозрачный квадрат */}
-							<RectShape width={size} height={size} x={0} y={0} />
+							<RectShape width={size} height={size} />
 							<FlagShape
-								x={0}
-								y={0}
 								size={size}
 								flagColor={FLAG}
 								shaftColor={FLAG_SHAFT}
@@ -104,13 +102,11 @@ export const SquareStaticField = ({
 					acc.overlayElements.push(
 						<Group x={x} y={y} key={`${cellKey}-exploded`}>
 							<RectShape
-								x={0}
-								y={0}
 								height={size}
 								width={size}
 								fillColor={EXPLODED}
 							/>
-							<MineShape x={0} y={0} color={MINE} size={size} />
+							<MineShape color={MINE} size={size} />
 						</Group>
 					)
 				}
