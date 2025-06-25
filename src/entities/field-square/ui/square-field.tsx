@@ -1,6 +1,7 @@
 import { MouseEvent } from 'react'
 import { Canvas } from '@/ui-engine'
 import { CellData, GameParams, Position } from '@/engine'
+import { useGameColors } from '@/providers/game-colors'
 import { useViewConfig } from '@/providers/game-view'
 import { Animation } from '@/shared/lib/use-animations'
 import {
@@ -10,7 +11,6 @@ import {
 import { SquareStaticField } from './square-static-field'
 import { SquareGrid } from './square-grid'
 import { SquareAnimationField } from './square-animation-field'
-import { useGameColors } from '@/providers/game-colors'
 
 interface SquareFieldProps
 	extends Omit<GameInteractionsProps, 'getPositionFromEvent'> {

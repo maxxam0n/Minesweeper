@@ -164,7 +164,7 @@ export const SquareStaticField = ({
 			</Layer>
 
 			{/* Слой 2: Фон закрытых клеток + Фаски */}
-			<Layer name="mask" zIndex={zIndex + 1} renderer={maskRenderer}>
+			<Layer name="mask" zIndex={zIndex + 1} renderer={maskRenderer} opacity={0.5}>
 				{maskBackground}
 				{layersContent.maskBevels}
 			</Layer>

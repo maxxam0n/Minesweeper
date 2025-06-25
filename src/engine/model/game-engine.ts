@@ -52,9 +52,21 @@ export class GameEngine {
 		const explodedCells: CellData[] = []
 
 		// 1. Обработка первого клика / начала игры
-		if (!operetadField.isMined || actionStatus === GameStatus.Idle) {
-			operetadField.placeMines(pos)
-			actionStatus = GameStatus.Playing
+		if (actionStatus === GameStatus.Idle) {
+			if (!operetadField.isMined) operetadField.placeMines(pos)
+			if (operetadField.getCellData(pos).isMine) {
+				const unminedCell = operetadField.grid
+					.flat()
+					.find(cell => !cell.isMine)
+				if (!unminedCell) {
+					actionStatus = GameStatus.Lost
+				} else {
+					operetadField.relocateMine(pos, unminedCell.position)
+					actionStatus = GameStatus.Playing
+				}
+			} else {
+				actionStatus = GameStatus.Playing
+			}
 		}
 
 		const target = operetadField.getCell(pos)
