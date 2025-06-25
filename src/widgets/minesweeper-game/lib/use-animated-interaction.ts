@@ -1,6 +1,7 @@
 import { useRef } from 'react'
-import { Animation, AnimationQuery } from '@/shared/lib/use-animations'
 import { ActionChanges, GameSnapshot, Position, ActionResult } from '@/engine'
+import { useViewConfig } from '@/providers/game-view'
+import { Animation, AnimationQuery } from '@/shared/lib/use-animations'
 import { ActionCommittedCallback } from './types'
 
 interface AnimatedInteractionParams {
@@ -26,6 +27,10 @@ export const useAnimatedInteraction = ({
 	removeAnimations,
 	onActionCommitted,
 }: AnimatedInteractionParams) => {
+	const {
+		animations: { duration },
+	} = useViewConfig()
+
 	const defferedAction = useRef<DefferedAction | null>(null)
 
 	const handleCellPress = (pos: Position) => {
@@ -41,12 +46,14 @@ export const useAnimatedInteraction = ({
 				actionChanges.handledCells.map(cel => ({
 					type: 'press',
 					position: cel.position,
+					duration,
 				}))
 			)
 			addAnimations(
 				actionChanges.handledCells.map(cel => ({
 					type: 'reveal',
 					position: cel.position,
+					duration,
 				}))
 			)
 		}
@@ -58,6 +65,7 @@ export const useAnimatedInteraction = ({
 				{
 					type: 'error',
 					position: targetCell.position,
+					duration,
 				},
 			])
 		}
@@ -87,6 +95,7 @@ export const useAnimatedInteraction = ({
 					revealedCells.map(cell => ({
 						type: 'reveal',
 						position: cell.position,
+						duration,
 					}))
 				)
 			}
@@ -107,22 +116,25 @@ export const useAnimatedInteraction = ({
 		if (flaggedCells.length > 0) {
 			addAnimations(
 				flaggedCells.map(cell => ({
-					type: 'flag',
+					type: 'appear',
 					position: cell.position,
+					duration,
 				}))
 			)
 		} else if (unflaggedCells.length > 0) {
 			addAnimations(
 				unflaggedCells.map(cell => ({
-					type: 'unflag',
+					type: 'disappear',
 					position: cell.position,
+					duration: duration / 4,
 				}))
 			)
-		} else if (!target.isEmpty) {
+		} else if (!target.isRevealed) {
 			addAnimations([
 				{
 					type: 'error',
 					position: target.position,
+					duration,
 				},
 			])
 		}

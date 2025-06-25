@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { Group, Layer, RectShape } from '@/ui-engine'
+import { Layer, RectShape } from '@/ui-engine'
 import { useGameColors } from '@/providers/game-colors'
 import { useViewConfig } from '@/providers/game-view'
 import { Animation } from '@/shared/lib/use-animations'
@@ -10,19 +10,19 @@ import { VibrationEffect } from '@/shared/shapes/vibration-effect'
 import { CrossShape } from '@/shared/shapes/cross-shape'
 import { ExplosionEffect } from '@/shared/shapes/explosion-effect'
 import { MineShape } from '@/shared/shapes/mine-shape'
-import { CellRevealEffect } from './shapes/cell-reveal-effect'
+import { RevealingEffect } from '@/shared/shapes/revealing-effect'
 import { DelayedAnimation } from '@/shared/shapes/delayed-animation'
-import { BevelShape } from './shapes/bevel-shape'
+import { ClosedCell } from './shapes/closed-cell'
 
 interface SquareAnimationFieldProps {
 	zIndex: number
-	animations: Animation[]
+	animationsList: Animation[]
 	onAnimationComplete: (id: string[]) => void
 }
 
 export const SquareAnimationField = ({
 	zIndex,
-	animations,
+	animationsList,
 	onAnimationComplete,
 }: SquareAnimationFieldProps) => {
 	const {
@@ -58,161 +58,167 @@ export const SquareAnimationField = ({
 		}
 	}, [onAnimationComplete])
 
-	const {
-		pressedAnimations,
-		revealingAnimations,
-		flagAnimations,
-		unflagAnimations,
-		errorAnimation,
-		explosionAnimation,
-	} = animations.reduce(
-		(acc, anim) => {
-			const {
-				id,
-				position: { col, row },
-			} = anim
-			const x = col * size
-			const y = row * size
+	const animations: Record<string, JSX.Element[]> = {
+		pressedAnimations: [],
+		revealingAnimations: [],
+		flagAnimations: [],
+		unflagAnimations: [],
+		errorAnimation: [],
+		explosionAnimations: [],
+	}
 
-			if (anim.type === 'press') {
-				acc.pressedAnimations.push(
-					<RectShape
-						key={`press-${col}-${row}`}
-						x={x}
-						y={y}
-						width={size}
-						height={size}
-						fillColor={REVEALED}
-					/>
-				)
-			} else if (anim.type === 'reveal') {
-				acc.revealingAnimations.push(
-					<CellRevealEffect
-						key={`reveal-${id}`}
-						id={id}
-						x={x}
-						y={y}
-						onComplete={removeUnitAnimation}
-					/>
-				)
-			} else if (anim.type === 'flag') {
-				acc.flagAnimations.push(
-					<AppearEffect
-						key={`flag-appear-${id}`}
-						duration={duration}
-						id={id}
-						height={size}
-						width={size}
-						x={x}
-						y={y}
-						onComplete={removeUnitAnimation}
-					>
-						<FlagShape
-							x={0}
-							y={0}
-							size={size}
-							flagColor={FLAG}
-							shaftColor={FLAG_SHAFT}
-						/>
-					</AppearEffect>
-				)
-			} else if (anim.type === 'unflag') {
-				acc.unflagAnimations.push(
-					<DisappearEffect
-						key={`flag-disappear-${id}`}
-						id={id}
-						amplitude={size / 4}
-						x={x}
-						y={y}
-						duration={duration / 4}
-						onComplete={removeUnitAnimation}
-					>
-						<FlagShape
-							x={0}
-							y={0}
-							size={size}
-							flagColor={FLAG}
-							shaftColor={FLAG_SHAFT}
-						/>
-					</DisappearEffect>
-				)
-			} else if (anim.type === 'error') {
-				acc.errorAnimation.push(
-					<VibrationEffect
-						key={`error-${id}`}
-						id={id}
-						duration={duration}
-						x={x}
-						y={y}
-						onComplete={removeUnitAnimation}
-					>
-						<CrossShape x={0} y={0} size={size} />
-					</VibrationEffect>
-				)
-			} else if (anim.type === 'explosion') {
-				acc.explosionAnimation.push(
+	animationsList.forEach(anim => {
+		const {
+			id,
+			position: { col, row },
+		} = anim
+		const x = col * size
+		const y = row * size
+
+		if (anim.type === 'press') {
+			animations.pressedAnimations.push(
+				<RectShape
+					key={`press-${col}-${row}`}
+					x={x}
+					y={y}
+					width={size}
+					height={size}
+					fillColor={REVEALED}
+				/>
+			)
+		} else if (anim.type === 'reveal') {
+			if (anim.delay) {
+				animations.revealingAnimations.push(
 					<DelayedAnimation
-						key={`explosion-${id}`}
-						delay={anim.delay || 0}
-						fallback={
-							<Group x={x} y={y}>
-								<RectShape
-									x={0}
-									y={0}
-									width={size}
-									height={size}
-									fillColor={CLOSED}
-								/>
-								<BevelShape x={0} y={0}></BevelShape>
-							</Group>
-						}
+						key={`delayed-reveal-${id}`}
+						delay={anim.delay}
+						fallback={<ClosedCell x={x} y={y} />}
 					>
-						<ExplosionEffect
+						<RevealingEffect
 							x={x}
 							y={y}
 							id={id}
-							size={size}
-							duration={duration}
+							duration={anim.duration || duration}
 							onComplete={removeUnitAnimation}
 						>
-							<MineShape x={0} y={0} size={size} color={MINE} />
-						</ExplosionEffect>
+							<RectShape
+								x={0}
+								y={0}
+								width={size}
+								height={size}
+								fillColor={CLOSED}
+							/>
+						</RevealingEffect>
 					</DelayedAnimation>
 				)
-			}
-			return acc
-		},
-		{
-			pressedAnimations: [] as JSX.Element[],
-			revealingAnimations: [] as JSX.Element[],
-			flagAnimations: [] as JSX.Element[],
-			unflagAnimations: [] as JSX.Element[],
-			errorAnimation: [] as JSX.Element[],
-			explosionAnimation: [] as JSX.Element[],
+			} else
+				animations.revealingAnimations.push(
+					<RevealingEffect
+						key={`reveal-${id}`}
+						x={x}
+						y={y}
+						id={id}
+						duration={anim.duration || duration}
+						onComplete={removeUnitAnimation}
+					>
+						<RectShape
+							x={0}
+							y={0}
+							width={size}
+							height={size}
+							fillColor={CLOSED}
+						/>
+					</RevealingEffect>
+				)
+		} else if (anim.type === 'appear') {
+			animations.flagAnimations.push(
+				<AppearEffect
+					key={`flag-appear-${id}`}
+					duration={anim.duration || duration}
+					id={id}
+					height={size}
+					width={size}
+					x={x}
+					y={y}
+					onComplete={removeUnitAnimation}
+				>
+					<FlagShape
+						x={0}
+						y={0}
+						size={size}
+						flagColor={FLAG}
+						shaftColor={FLAG_SHAFT}
+					/>
+				</AppearEffect>
+			)
+		} else if (anim.type === 'disappear') {
+			animations.unflagAnimations.push(
+				<DisappearEffect
+					key={`flag-disappear-${id}`}
+					id={id}
+					amplitude={size / 4}
+					x={x}
+					y={y}
+					duration={anim.duration || duration}
+					onComplete={removeUnitAnimation}
+				>
+					<FlagShape
+						x={0}
+						y={0}
+						size={size}
+						flagColor={FLAG}
+						shaftColor={FLAG_SHAFT}
+					/>
+				</DisappearEffect>
+			)
+		} else if (anim.type === 'error') {
+			animations.errorAnimation.push(
+				<VibrationEffect
+					key={`error-${id}`}
+					x={x}
+					y={y}
+					id={id}
+					duration={anim.duration || duration}
+					onComplete={removeUnitAnimation}
+				>
+					<CrossShape x={0} y={0} size={size} />
+				</VibrationEffect>
+			)
+		} else if (anim.type === 'explosion') {
+			animations.explosionAnimations.push(
+				<ExplosionEffect
+					key={`explosion-${id}`}
+					x={x}
+					y={y}
+					id={id}
+					size={size}
+					duration={anim.duration || duration}
+					power={50}
+					onComplete={removeUnitAnimation}
+				>
+					<MineShape x={0} y={0} size={size} color={MINE} />
+				</ExplosionEffect>
+			)
 		}
-	)
+	})
 
 	return (
-		<>
-			<Layer name="light-animations" zIndex={zIndex}>
-				{/* Анимации вдавливания */}
-				{pressedAnimations}
+		<Layer name="light-animations" zIndex={zIndex}>
+			{/* Анимации вдавливания */}
+			{animations.pressedAnimations}
 
-				{/* Анимация ошибки */}
-				{errorAnimation}
+			{/* Анимация ошибки */}
+			{animations.errorAnimation}
 
-				{/* Анимации флагов */}
-				{flagAnimations}
-				{unflagAnimations}
+			{/* Анимации флагов */}
+			{animations.flagAnimations}
+			{animations.unflagAnimations}
 
-				{/* Анимации раскрытия ячеек */}
-				{revealingAnimations}
-			</Layer>
+			{/* Анимации раскрытия ячеек */}
+			{animations.revealingAnimations}
 
-			<Layer name="heavy-animations" zIndex={zIndex + 1}>
-				{/* Анимация взрыва */}
-				{explosionAnimation}
-			</Layer>
-		</>
+			{/* Анимация взрыва */}
+			{animations.explosionAnimations}
+		</Layer>
 	)
 }

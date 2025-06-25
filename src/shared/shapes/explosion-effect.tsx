@@ -6,31 +6,26 @@ import { ParticleEffect } from './particular-effect'
 interface ExplosionEffectProps extends PropsWithChildren {
 	id: string
 	size: number
-	onComplete: (id: string) => void
 	duration: number
 	x: number
 	y: number
+	power?: number
+	onComplete: (id: string) => void
 }
 
 export const ExplosionEffect = memo(
 	({
 		id,
-		onComplete,
 		x,
 		y,
 		size,
 		children,
 		duration,
+		power = 10,
+		onComplete,
 	}: ExplosionEffectProps) => {
 		const vibrationId = `${id}-vibration`
 		const particleId = `${id}-particles`
-
-		const handleSubEffectComplete = useCallback(
-			(completedId: string) => {
-				if (completedId === particleId) onComplete(id)
-			},
-			[onComplete]
-		)
 
 		return (
 			<>
@@ -53,16 +48,16 @@ export const ExplosionEffect = memo(
 					>
 						{children}
 					</VibrationEffect>
-				</Group>
 
-				<ParticleEffect
-					id={particleId}
-					onComplete={handleSubEffectComplete}
-					cx={x + size / 2}
-					cy={y + size / 2}
-					duration={2000}
-					particleCount={30}
-				/>
+					<ParticleEffect
+						id={particleId}
+						cx={size / 2}
+						cy={size / 2}
+						duration={2000}
+						particleCount={power}
+						onComplete={onComplete}
+					/>
+				</Group>
 			</>
 		)
 	}

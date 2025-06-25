@@ -10,5 +10,4 @@ export interface AnimationEffectProps {
 	id: string
 	duration: number
 	onComplete: (id: string) => void
-	delay?: number
 }

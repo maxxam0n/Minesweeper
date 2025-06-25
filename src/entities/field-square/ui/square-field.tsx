@@ -83,7 +83,7 @@ export const SquareField = ({
 				{withAnimations && (
 					<SquareAnimationField
 						zIndex={10}
-						animations={animationsList}
+						animationsList={animationsList}
 						onAnimationComplete={removeAnimations}
 					/>
 				)}

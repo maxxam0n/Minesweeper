@@ -1,14 +1,12 @@
-import { memo, PropsWithChildren } from 'react'
+import { memo } from 'react'
 import { PolygonShape } from '@/ui-engine'
 import { useGameColors } from '@/providers/game-colors'
 import { useViewConfig } from '@/providers/game-view'
 import { BaseShapeProps } from '@/shared/types/shape'
 
-interface BevelShapeProps
-	extends Omit<BaseShapeProps, 'size'>,
-		PropsWithChildren {}
+interface BevelShapeProps extends Omit<BaseShapeProps, 'size'> {}
 
-export const BevelShape = memo(({ children, x, y }: BevelShapeProps) => {
+export const BevelShape = memo(({ x, y }: BevelShapeProps) => {
 	const { LIGHT_BEVEL, DARK_BEVEL } = useGameColors()
 	const {
 		cell: { size, bevelWidth },
@@ -47,7 +45,6 @@ export const BevelShape = memo(({ children, x, y }: BevelShapeProps) => {
 				closed={true}
 				zIndex={1}
 			/>
-			{children}
 		</>
 	)
 })

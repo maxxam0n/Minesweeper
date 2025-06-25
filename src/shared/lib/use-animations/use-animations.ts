@@ -20,12 +20,11 @@ export const useAnimations = (enabled: boolean) => {
 		anims: Omit<AnimationQuery, 'delay'>[],
 		delay: number,
 		batchSize: number = 1,
-		startDelay: number = 0
 	) => {
 		let animationsBatch: AnimationQuery[] = []
 
-		let batchedDelay = startDelay
 		let batched = 0
+		let batchedDelay = 0
 
 		anims.forEach((anim) => {
 			let summaryDelay = batchedDelay
