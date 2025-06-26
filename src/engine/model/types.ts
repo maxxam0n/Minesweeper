@@ -34,6 +34,11 @@ export interface CellData {
 	isUntouched: boolean
 }
 
+export interface MineProbability {
+	value: number
+	position: Position
+}
+
 export interface FieldState {
 	field: CellData[][]
 	minedCells: CellData[]
@@ -73,4 +78,11 @@ export interface ActionResult {
 		actionSnapshot: GameSnapshot
 		actionChanges: ActionChanges
 	}
+}
+
+export interface FactoryConfig {
+	params: GameParams
+	type: FieldType
+	seed?: string
+	data?: CellData[][]
 }

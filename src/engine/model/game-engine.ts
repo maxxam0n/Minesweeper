@@ -3,7 +3,6 @@ import { FieldFactory } from './field-factory'
 import { SimpleCell } from './simple-cell'
 import {
 	CellData,
-	FieldType,
 	GameMode,
 	GameParams,
 	GameStatus,
@@ -11,12 +10,10 @@ import {
 	ActionResult,
 	GameSnapshot,
 	FieldState,
+	FactoryConfig,
 } from './types'
 
-type MineSweeperConfig = {
-	params: GameParams
-	type: FieldType
-	seed?: string
+interface MineSweeperConfig extends FactoryConfig {
 	mode?: GameMode
 }
 
@@ -28,16 +25,11 @@ export class GameEngine {
 
 	private flagsRemaining: number
 
-	constructor({
-		params,
-		type,
-		seed = String(Date.now()),
-		mode = 'guessing',
-	}: MineSweeperConfig) {
+	constructor({ mode = 'guessing', ...config }: MineSweeperConfig) {
 		this.mode = mode
-		this.params = params
-		this.field = FieldFactory.create({ params, type, seed })
-		this.flagsRemaining = params.mines
+		this.params = config.params
+		this.field = FieldFactory.create(config)
+		this.flagsRemaining = config.params.mines
 		this.status = GameStatus.Idle
 	}
 

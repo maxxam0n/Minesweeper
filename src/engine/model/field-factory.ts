@@ -1,18 +1,11 @@
 import { SquareField } from './square-field'
-import { CellData, FieldType, GameParams } from './types'
-
-interface Config {
-	params: GameParams
-	type: FieldType
-	seed?: string
-	data?: CellData[][]
-}
+import { FactoryConfig } from './types'
 
 export class FieldFactory {
-	static create(config: Config) {
+	static create(config: FactoryConfig) {
 		switch (config.type) {
 			default:
-				const squareField = new SquareField({ ...config })
+				const squareField = new SquareField(config)
 				squareField.placeMines()
 				return squareField
 		}

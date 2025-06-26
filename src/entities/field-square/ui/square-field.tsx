@@ -1,6 +1,6 @@
 import { MouseEvent } from 'react'
 import { Canvas } from '@/ui-engine'
-import { CellData, GameParams, Position } from '@/engine'
+import { CellData, GameParams, MineProbability, Position } from '@/engine'
 import { useGameColors } from '@/providers/game-colors'
 import { useViewConfig } from '@/providers/game-view'
 import { Animation } from '@/shared/lib/use-animations'
@@ -11,6 +11,7 @@ import {
 import { SquareStaticField } from './square-static-field'
 import { SquareGrid } from './square-grid'
 import { SquareAnimationField } from './square-animation-field'
+import { SquareProbabilityField } from './square-probability-field'
 
 interface SquareFieldProps
 	extends Omit<GameInteractionsProps, 'getPositionFromEvent'> {
@@ -19,6 +20,8 @@ interface SquareFieldProps
 	params: GameParams
 	field: CellData[][]
 	animationsList: Animation[]
+	probabilities?: MineProbability[]
+	showProbabilities?: boolean
 	removeAnimations: (ids: string[]) => void
 }
 
@@ -29,6 +32,8 @@ export const SquareField = ({
 	gameOver,
 	params,
 	animationsList,
+	showProbabilities,
+	probabilities = [],
 	removeAnimations,
 	onCellPress,
 	onCellRelease,
@@ -85,6 +90,12 @@ export const SquareField = ({
 						zIndex={10}
 						animationsList={animationsList}
 						onAnimationComplete={removeAnimations}
+					/>
+				)}
+				{showProbabilities && (
+					<SquareProbabilityField
+						zIndex={15}
+						probabilities={probabilities}
 					/>
 				)}
 				<SquareGrid

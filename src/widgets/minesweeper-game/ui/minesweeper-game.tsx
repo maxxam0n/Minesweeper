@@ -8,6 +8,7 @@ import { ActionCommittedCallback, GameConfig } from '../lib/types'
 import { useGameLifecycle } from '../lib/use-game-lifecycle'
 import { useAnimatedInteraction } from '../lib/use-animated-interaction'
 import { useDirectInteraction } from '../lib/use-direct-interaction'
+import { useSolver } from '../lib/use-solver'
 
 interface MinesweeperGameProps {
 	config: GameConfig
@@ -26,6 +27,12 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 	const { resetGame, revealCell, toggleFlag, ...gameData } = useGame(config)
 	const { time, startTimer, stopTimer, resetTimer } = useTimer()
 	const { score, efficiency, updateStatistic, resetStatistic } = useStatistic()
+
+	const { probabilities, analyze } = useSolver({
+		data: gameData.field,
+		params,
+		type,
+	})
 
 	const { animations, addAnimations, removeAnimations } =
 		useAnimations(animationsEnabled)
@@ -111,13 +118,13 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 	}
 
 	const onActionCommitted: ActionCommittedCallback = ({ actionSnapshot }) => {
+		analyze(actionSnapshot.field)
+		updateStatus(actionSnapshot)
 		updateStatistic({
 			revealed: actionSnapshot.revealedCells.length,
 			time,
 			params,
 		})
-
-		updateStatus(actionSnapshot)
 	}
 
 	const animatedHandlers = useAnimatedInteraction({
@@ -149,6 +156,8 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 					height={height}
 					animationsList={animations}
 					removeAnimations={removeAnimations}
+					probabilities={probabilities}
+					showProbabilities={true}
 					onCellPress={handleCellPress}
 					onCellRelease={handleCellRelease}
 					onToggleFlag={handleToggleFlag}
