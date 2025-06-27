@@ -1,4 +1,4 @@
-import { createGrid } from '../lib/utils'
+import { createGrid, createKey } from '../lib/utils'
 import { BaseField } from './base-field'
 import { SimpleCell } from './simple-cell'
 import { CellData, ConstrutorFieldProps, Position } from './types'
@@ -35,7 +35,7 @@ export class HexagonalField extends BaseField<SimpleCell> {
 				col: Math.floor(this.rng() * cols),
 				row: Math.floor(this.rng() * rows),
 			}
-			const hash = SimpleCell.createKey(position)
+			const hash = createKey(position)
 
 			if (!avoidSet.has(hash)) {
 				avoidSet.add(hash)

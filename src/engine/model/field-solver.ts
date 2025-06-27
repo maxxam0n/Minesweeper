@@ -1,205 +1,206 @@
+import { createKey } from '../lib/utils'
 import { BaseField } from './base-field'
 import { FieldFactory } from './field-factory'
 import { SimpleCell } from './simple-cell'
-import { CellData, FactoryConfig, GameParams, MineProbability } from './types'
+import { CellData, FactoryConfig, MineProbability } from './types'
 
 export class Solver {
 	private field: BaseField<SimpleCell>
-	private params: GameParams
 
 	constructor(config: FactoryConfig) {
-		this.params = config.params
 		this.field = FieldFactory.create(config)
 	}
 
-	// Находит стопроцентные вероятности мин
-	private findMaximumProbabilities(
-		cells: CellData[],
-		probabilities: Map<string, MineProbability>
-	) {
-		let finded = false
-		for (const cell of cells) {
-			if (cell.isEmpty || cell.isMine) continue
-
-			const siblings = this.field.getSiblings(cell.position)
-			const closedSiblings = siblings.filter(sib => !sib.isRevealed)
-
-			if (closedSiblings.length === 0) continue
-
-			const zeroProbabilities = closedSiblings.filter(sib => {
-				const key = SimpleCell.createKey(sib.position)
-				return probabilities.get(key)?.value === 0
-			})
-
-			// Если количество мин в соседних клетках равно количеству закрытых соседних клеток
-			// Вероятность мины в закрытой клетке равна 1
-			if (cell.adjacentMines === closedSiblings.length) {
-				closedSiblings.forEach(sib => {
-					const key = SimpleCell.createKey(sib.position)
-					if (probabilities.has(key)) return
-					probabilities.set(key, { value: 1, position: sib.position })
-					finded = true
-				})
-			} else if (
-				cell.adjacentMines ===
-				closedSiblings.length - zeroProbabilities.length
-			) {
-				const unknownProbabilities = closedSiblings.filter(
-					sib => !zeroProbabilities.includes(sib)
-				)
-				unknownProbabilities.forEach(sib => {
-					const key = SimpleCell.createKey(sib.position)
-					if (probabilities.has(key)) return
-					probabilities.set(key, { value: 1, position: sib.position })
-					finded = true
-				})
-			}
-		}
-		return finded
-	}
-
-	// Находит нулевые вероятности мин на основе стопроцентных
-	private findZeroProbabilities(
-		cells: CellData[],
-		probabilities: Map<string, MineProbability>
-	) {
-		let finded = false
-
-		for (const cell of cells) {
-			if (cell.isEmpty || cell.isMine) continue
-
-			const siblings = this.field.getSiblings(cell.position)
-			const closedSiblings = siblings.filter(sib => !sib.isRevealed)
-
-			if (closedSiblings.length === 0) continue
-
-			if (cell.adjacentMines < closedSiblings.length) {
-				// Количество стопроцентных вероятностей мин на соседних закрытых клетках
-				const existingProbabilities = closedSiblings.filter(sib => {
-					const key = SimpleCell.createKey(sib.position)
-					return probabilities.get(key)?.value === 1
-				})
-
-				// Если это количество равно цифре на целевой клетке, все остальные закрытые клетки имеют вероятность 0
-				if (existingProbabilities.length === cell.adjacentMines) {
-					const notAnalyzed = closedSiblings.filter(
-						sib => !existingProbabilities.includes(sib)
-					)
-
-					notAnalyzed.forEach(sib => {
-						const key = SimpleCell.createKey(sib.position)
-						if (probabilities.has(key)) return
-						finded = true
-						probabilities.set(key, {
-							value: 0,
-							position: sib.position,
-						})
-					})
-				}
-			}
-		}
-
-		return finded
-	}
-
-	// Рассчитывает вероятности мин для более сложных паттернов
-	private findRemainingProbabilities(
-		cells: CellData[],
-		probabilities: Map<string, MineProbability>
-	) {
-		let finded = false
-
-		for (const cell of cells) {
-			if (cell.isEmpty || cell.isMine) continue
-
-			const siblings = this.field.getSiblings(cell.position)
-			const closedSiblings = siblings.filter(sib => !sib.isRevealed)
-
-			if (closedSiblings.length === 0) continue
-
-			if (cell.adjacentMines < closedSiblings.length) {
-				// Количество стопроцентных вероятностей мин на соседних закрытых клетках
-				const existingProbabilities = closedSiblings.filter(sib => {
-					const key = SimpleCell.createKey(sib.position)
-					return probabilities.get(key)?.value === 1
-				})
-
-				const cellsToAnalyze = closedSiblings.filter(
-					sib => !existingProbabilities.includes(sib)
-				)
-
-				const localProbability =
-					(cell.adjacentMines - existingProbabilities.length) /
-					cellsToAnalyze.length
-
-				cellsToAnalyze.forEach(cell => {
-					const key = SimpleCell.createKey(cell.position)
-					if (probabilities.has(key)) return
-					finded = true
-					probabilities.set(key, {
-						value: localProbability,
-						position: cell.position,
-					})
-				})
-			}
-		}
-
-		return finded
-	}
-
-	// Функция для расчета вероятностей
-	// 1. Определить закрытые клетки соседствующие с открытыми
-	// 2. Определить логические правила нахождения вероятностей
-	// 3. Итерация по всем клеткам и расчет вероятностей
-	// 4. Возврат вероятностей
-	public analyze(): MineProbability[] {
+	public solve(): MineProbability[] {
 		const probabilities: Map<string, MineProbability> = new Map()
-
 		const fieldState = this.field.getState()
+		const regions = this.groupConnectedRegions(fieldState.revealedCells)
 
-		let finded = false
-		do {
-			const foundMax = this.findMaximumProbabilities(
-				fieldState.revealedCells,
-				probabilities
-			)
-			const foundZero = this.findZeroProbabilities(
-				fieldState.revealedCells,
-				probabilities
-			)
+		for (const region of regions) {
+			let changed: boolean
+			do {
+				const foundMines = this.inferCertainMines(region, probabilities)
+				const foundSafe = this.inferCertainSafeCells(region, probabilities)
 
-			finded = foundMax || foundZero
-		} while (finded)
+				changed = foundMines || foundSafe
 
-		finded = false
-		do {
-			finded = this.findRemainingProbabilities(
-				fieldState.revealedCells,
-				probabilities
-			)
-		} while (finded)
+				if (!changed) {
+					changed = this.inferProbabilitiesBySubsetLogic(
+						region,
+						probabilities
+					)
+				}
+			} while (changed)
+		}
 
 		return Array.from(probabilities.values())
 	}
 
 	public isGuessingState(): boolean {
-		const probabilities = this.analyze()
+		const probabilities = this.solve()
 
 		for (const prob of probabilities) {
 			if (prob.value === 0) {
 				return false
 			}
 		}
+		return true
+	}
 
-		const fieldState = this.field.getState()
+	// Определяет клетки со стопроцентной вероятностью нахождения мины по правилу:
+	// Если на открытой клетке цифра равна количеству количеству закрытых клеток с не нулевой вероятностью,
+	// То все они - мины
+	private inferCertainMines(
+		cells: CellData[],
+		probabilities: Map<string, MineProbability>
+	): boolean {
+		let updated = false
 
-		const revealedCellsCount =
-			fieldState.revealedCells.length - fieldState.explodedCells.length
+		for (const cell of cells) {
+			if (cell.isEmpty || cell.isMine) continue
 
-		const isSolved =
-			revealedCellsCount ===
-			this.params.cols * this.params.rows - fieldState.minedCells.length
+			const siblings = this.field.getSiblings(cell.position)
+			const closed = siblings.filter(s => !s.isRevealed)
 
-		return !isSolved
+			if (closed.length === 0) continue
+
+			const knownSafe = closed.filter(
+				s => probabilities.get(createKey(s.position))?.value === 0
+			)
+
+			if (cell.adjacentMines === closed.length - knownSafe.length) {
+				for (const sib of closed) {
+					const key = createKey(sib.position)
+					if (probabilities.has(key)) continue
+					probabilities.set(key, { value: 1, position: sib.position })
+					updated = true
+				}
+			}
+		}
+
+		return updated
+	}
+
+	// Находит безопасные закрытые клетки на основе простого правила:
+	// Если на открытой клетке цифра равна количеству стопроцентных вероятностей на соседних закрытых клетах,
+	// То остальные закрытые клетки - безопасны
+	private inferCertainSafeCells(
+		cells: CellData[],
+		probabilities: Map<string, MineProbability>
+	): boolean {
+		let updated = false
+
+		for (const cell of cells) {
+			if (cell.isEmpty || cell.isMine) continue
+
+			const siblings = this.field.getSiblings(cell.position)
+			const closed = siblings.filter(s => !s.isRevealed)
+
+			if (closed.length === 0) continue
+
+			const knownMines = closed.filter(
+				s => probabilities.get(createKey(s.position))?.value === 1
+			)
+
+			if (knownMines.length === cell.adjacentMines) {
+				for (const sib of closed) {
+					const key = createKey(sib.position)
+					if (probabilities.has(key)) continue
+					probabilities.set(key, { value: 0, position: sib.position })
+					updated = true
+				}
+			}
+		}
+
+		return updated
+	}
+
+	// Рассчитывает вероятности мин на основе подмножеств
+	private inferProbabilitiesBySubsetLogic(
+		cells: CellData[],
+		probabilities: Map<string, MineProbability>
+	): boolean {
+		let updated = false
+
+		for (const cell of cells) {
+			if (cell.isEmpty || cell.isMine) continue
+
+			const siblings = this.field.getSiblings(cell.position)
+			const closed = siblings.filter(s => !s.isRevealed)
+
+			if (closed.length === 0) continue
+
+			const knownMines = closed.filter(
+				s => probabilities.get(createKey(s.position))?.value === 1
+			)
+
+			const unknown = closed.filter(s => !knownMines.includes(s))
+
+			if (unknown.length === 0) continue
+
+			const remainingMines = cell.adjacentMines - knownMines.length
+			const prob = remainingMines / unknown.length
+
+			for (const sib of unknown) {
+				const key = createKey(sib.position)
+				if (probabilities.has(key)) continue
+				probabilities.set(key, { value: prob, position: sib.position })
+				updated = true
+			}
+		}
+
+		return updated
+	}
+
+	// Определяем список групп (регионов), каждая из которых включает все открытые клетки, которые:
+	// 1. находятся рядом друг с другом
+	// 2. делят хотя бы одну общую закрытую клетку
+	private groupConnectedRegions(cells: CellData[]): CellData[][] {
+		const visited = new Set<string>()
+		const regions: CellData[][] = []
+
+		for (const cell of cells) {
+			const key = createKey(cell.position)
+			if (visited.has(key)) continue
+
+			// ⛔️ Пропускаем "мёртвые" открытые клетки (не имеющие закрытых соседей)
+			const siblings = this.field.getSiblings(cell.position)
+			const hasClosed = siblings.some(s => !s.isRevealed && !s.isFlagged)
+			if (!hasClosed) continue
+
+			// ⚡️ BFS или DFS для объединения
+			const group: CellData[] = []
+			const queue: CellData[] = [cell]
+
+			while (queue.length > 0) {
+				const current = queue.pop()!
+				const currentKey = createKey(current.position)
+				if (visited.has(currentKey)) continue
+
+				visited.add(currentKey)
+				group.push(current)
+
+				// Только соседние открытые клетки, которые влияют на анализ
+				const neighbors = this.field
+					.getSiblings(current.position)
+					.filter(n => n.isRevealed && !visited.has(createKey(n.position)))
+
+				for (const neighbor of neighbors) {
+					const nSiblings = this.field.getSiblings(neighbor.position)
+					const nHasClosed = nSiblings.some(
+						s => !s.isRevealed && !s.isFlagged
+					)
+					if (nHasClosed) {
+						queue.push(neighbor)
+					}
+				}
+			}
+
+			if (group.length > 0) {
+				regions.push(group)
+			}
+		}
+
+		return regions
 	}
 }

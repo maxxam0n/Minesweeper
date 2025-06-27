@@ -1,10 +1,7 @@
+import { createKey } from '../lib/utils'
 import { CellData, ConstructorCellProps, Position } from './types'
 
 export class SimpleCell implements CellData {
-	static createKey({ col, row }: Position) {
-		return `${col}-${row}`
-	}
-
 	public readonly key: string
 	public readonly position: Position
 	public isMine: boolean
@@ -19,7 +16,7 @@ export class SimpleCell implements CellData {
 		isMine = false,
 		isRevealed = false,
 	}: ConstructorCellProps) {
-		this.key = SimpleCell.createKey(position)
+		this.key = createKey(position)
 		this.position = position
 		this.isMine = isMine
 		this.isRevealed = isRevealed

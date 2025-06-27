@@ -15,12 +15,12 @@ interface SolverProps {
 
 export const useSolver = (props: SolverProps) => {
 	const [probabilities, setProbabilities] = useState<MineProbability[]>(() =>
-		new Solver(props).analyze()
+		new Solver(props).solve()
 	)
 
-	const analyze = (data: CellData[][]) => {
-		setProbabilities(new Solver({ ...props, data }).analyze())
+	const solve = (data: CellData[][]) => {
+		setProbabilities(new Solver({ ...props, data }).solve())
 	}
 
-	return { probabilities, analyze }
+	return { probabilities, solve }
 }

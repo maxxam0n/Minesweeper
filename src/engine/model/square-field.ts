@@ -1,4 +1,4 @@
-import { createGrid } from '../lib/utils'
+import { createGrid, createKey } from '../lib/utils'
 import { CellData, ConstrutorFieldProps, Position } from './types'
 import { BaseField } from './base-field'
 import { SimpleCell } from './simple-cell'
@@ -34,7 +34,7 @@ export class SquareField extends BaseField<SimpleCell> {
 				col: Math.floor(this.rng() * cols),
 				row: Math.floor(this.rng() * rows),
 			}
-			const hash = SimpleCell.createKey(position)
+			const hash = createKey(position)
 
 			if (!avoidSet.has(hash)) {
 				avoidSet.add(hash)

@@ -28,7 +28,7 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 	const { time, startTimer, stopTimer, resetTimer } = useTimer()
 	const { score, efficiency, updateStatistic, resetStatistic } = useStatistic()
 
-	const { probabilities, analyze } = useSolver({
+	const { probabilities, solve } = useSolver({
 		data: gameData.field,
 		params,
 		type,
@@ -118,7 +118,7 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 	}
 
 	const onActionCommitted: ActionCommittedCallback = ({ actionSnapshot }) => {
-		analyze(actionSnapshot.field)
+		solve(actionSnapshot.field)
 		updateStatus(actionSnapshot)
 		updateStatistic({
 			revealed: actionSnapshot.revealedCells.length,
