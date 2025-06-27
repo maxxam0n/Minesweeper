@@ -25,10 +25,10 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 	const [width, height] = [params.cols * size, params.rows * size]
 
 	const { resetGame, revealCell, toggleFlag, ...gameData } = useGame(config)
-	const { time, startTimer, stopTimer, resetTimer } = useTimer()
+	// const { time, startTimer, stopTimer, resetTimer } = useTimer()
 	const { score, efficiency, updateStatistic, resetStatistic } = useStatistic()
 
-	const { probabilities, solve } = useSolver({
+	const { probabilities, connectedRegions, findRegions, solve } = useSolver({
 		data: gameData.field,
 		params,
 		type,
@@ -39,10 +39,10 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 
 	const { updateStatus, resetStatus } = useGameLifecycle(gameData.status, {
 		onPlay() {
-			startTimer()
+			// startTimer()
 		},
 		onLose(actionSnapshot) {
-			stopTimer()
+			// stopTimer()
 
 			if (animationsEnabled) {
 				const firstExplosionTime = duration
@@ -106,12 +106,12 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 			}
 		},
 		onWin() {
-			stopTimer()
+			// stopTimer()
 		},
 	})
 
 	const reset = () => {
-		resetTimer()
+		// resetTimer()
 		resetStatistic()
 		resetGame()
 		resetStatus()
@@ -119,10 +119,12 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 
 	const onActionCommitted: ActionCommittedCallback = ({ actionSnapshot }) => {
 		solve(actionSnapshot.field)
+		findRegions(actionSnapshot.field)
 		updateStatus(actionSnapshot)
 		updateStatistic({
 			revealed: actionSnapshot.revealedCells.length,
-			time,
+			// time,
+			time: 0,
 			params,
 		})
 	}
@@ -155,9 +157,11 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 					width={width}
 					height={height}
 					animationsList={animations}
-					removeAnimations={removeAnimations}
 					probabilities={probabilities}
 					showProbabilities={true}
+					showConnectedRegions={true}
+					connectedRegions={connectedRegions}
+					removeAnimations={removeAnimations}
 					onCellPress={handleCellPress}
 					onCellRelease={handleCellRelease}
 					onToggleFlag={handleToggleFlag}

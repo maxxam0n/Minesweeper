@@ -18,9 +18,20 @@ export const useSolver = (props: SolverProps) => {
 		new Solver(props).solve()
 	)
 
+	const [connectedRegions, setConnectedRegions] = useState<CellData[][]>(() =>
+		new Solver(props).createConnectedRegions()
+	)
+
 	const solve = (data: CellData[][]) => {
 		setProbabilities(new Solver({ ...props, data }).solve())
 	}
 
-	return { probabilities, solve }
+	// Отладочные методы
+	const findRegions = (data: CellData[][]) => {
+		setConnectedRegions(
+			new Solver({ ...props, data }).createConnectedRegions()
+		)
+	}
+
+	return { probabilities, connectedRegions, solve, findRegions }
 }

@@ -12,6 +12,7 @@ import { SquareStaticField } from './square-static-field'
 import { SquareGrid } from './square-grid'
 import { SquareAnimationField } from './square-animation-field'
 import { SquareProbabilityField } from './square-probability-field'
+import { DebuggingField } from './debugging-field'
 
 interface SquareFieldProps
 	extends Omit<GameInteractionsProps, 'getPositionFromEvent'> {
@@ -22,6 +23,8 @@ interface SquareFieldProps
 	animationsList: Animation[]
 	probabilities?: MineProbability[]
 	showProbabilities?: boolean
+	showConnectedRegions?: boolean
+	connectedRegions?: CellData[][]
 	removeAnimations: (ids: string[]) => void
 }
 
@@ -33,7 +36,9 @@ export const SquareField = ({
 	params,
 	animationsList,
 	showProbabilities,
+	showConnectedRegions,
 	probabilities = [],
+	connectedRegions = [],
 	removeAnimations,
 	onCellPress,
 	onCellRelease,
@@ -97,6 +102,9 @@ export const SquareField = ({
 						zIndex={15}
 						probabilities={probabilities}
 					/>
+				)}
+				{showConnectedRegions && (
+					<DebuggingField connectedGroups={connectedRegions} />
 				)}
 				<SquareGrid
 					zIndex={20}

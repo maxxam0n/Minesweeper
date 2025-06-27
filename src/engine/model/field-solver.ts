@@ -25,10 +25,7 @@ export class Solver {
 				changed = foundMines || foundSafe
 
 				if (!changed) {
-					changed = this.inferProbabilitiesBySubsetLogic(
-						region,
-						probabilities
-					)
+					changed = this.inferFloatingProbabilities(region, probabilities)
 				}
 			} while (changed)
 		}
@@ -115,8 +112,8 @@ export class Solver {
 		return updated
 	}
 
-	// Рассчитывает вероятности мин на основе подмножеств
-	private inferProbabilitiesBySubsetLogic(
+	// Рассчитывает не абсолютные (0 или 1) вероятности
+	private inferFloatingProbabilities(
 		cells: CellData[],
 		probabilities: Map<string, MineProbability>
 	): boolean {
@@ -163,12 +160,12 @@ export class Solver {
 			const key = createKey(cell.position)
 			if (visited.has(key)) continue
 
-			// ⛔️ Пропускаем "мёртвые" открытые клетки (не имеющие закрытых соседей)
+			// Пропускаем "мёртвые" открытые клетки (не имеющие закрытых соседей)
 			const siblings = this.field.getSiblings(cell.position)
-			const hasClosed = siblings.some(s => !s.isRevealed && !s.isFlagged)
+			const hasClosed = siblings.some(s => !s.isRevealed)
+
 			if (!hasClosed) continue
 
-			// ⚡️ BFS или DFS для объединения
 			const group: CellData[] = []
 			const queue: CellData[] = [cell]
 
@@ -180,16 +177,13 @@ export class Solver {
 				visited.add(currentKey)
 				group.push(current)
 
-				// Только соседние открытые клетки, которые влияют на анализ
 				const neighbors = this.field
 					.getSiblings(current.position)
 					.filter(n => n.isRevealed && !visited.has(createKey(n.position)))
 
 				for (const neighbor of neighbors) {
 					const nSiblings = this.field.getSiblings(neighbor.position)
-					const nHasClosed = nSiblings.some(
-						s => !s.isRevealed && !s.isFlagged
-					)
+					const nHasClosed = nSiblings.some(s => !s.isRevealed)
 					if (nHasClosed) {
 						queue.push(neighbor)
 					}
@@ -202,5 +196,11 @@ export class Solver {
 		}
 
 		return regions
+	}
+
+	// Для отладки метода
+	public createConnectedRegions(): CellData[][] {
+		const fieldState = this.field.getState()
+		return this.groupConnectedRegions(fieldState.revealedCells)
 	}
 }
