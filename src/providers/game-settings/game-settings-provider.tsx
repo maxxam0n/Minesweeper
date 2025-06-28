@@ -6,14 +6,14 @@ import { GameSettingsContext } from './game-settings-context'
 import { DARK_COLORS, LIGHT_COLORS } from './constants'
 
 export const GameSettingsProvider = ({ children }: PropsWithChildren) => {
-	const [font, setFont] = useState('16px Tektur')
+	const [font, setFont] = useState('Tektur')
 	const [darkColors, setDarkColors] = useState(DARK_COLORS)
 	const [lightColors, setLightColors] = useState(LIGHT_COLORS)
 
 	const [cellParams, setCellParams] = useState({
 		size: 30,
-		bevelWidth: 2,
-		borderWidth: 1,
+		bevelWidth: 3,
+		borderWidth: 0.5,
 	})
 
 	const [animationsParams, setAnimationsParams] = useState({
@@ -44,6 +44,7 @@ export const GameSettingsProvider = ({ children }: PropsWithChildren) => {
 			colors,
 		}
 	}, [
+		font,
 		colors,
 		cellParams,
 		animationsParams,

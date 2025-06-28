@@ -1,10 +1,10 @@
 import { useRef } from 'react'
 import { ActionChanges, GameSnapshot, Position, ActionResult } from '@/engine'
-import { useViewConfig } from '@/providers/game-view'
 import { Animation, AnimationQuery } from '@/shared/lib/use-animations'
 import { ActionCommittedCallback } from './types'
 
 interface AnimatedInteractionParams {
+	duration: number
 	animations: Animation[]
 	revealCell: (pos: Position) => ActionResult
 	toggleFlag: (pos: Position) => ActionResult
@@ -20,6 +20,7 @@ interface DefferedAction {
 }
 
 export const useAnimatedInteraction = ({
+	duration,
 	animations,
 	revealCell,
 	toggleFlag,
@@ -27,10 +28,6 @@ export const useAnimatedInteraction = ({
 	removeAnimations,
 	onActionCommitted,
 }: AnimatedInteractionParams) => {
-	const {
-		animations: { duration },
-	} = useViewConfig()
-
 	const defferedAction = useRef<DefferedAction | null>(null)
 
 	const handleCellPress = (pos: Position) => {

@@ -1,25 +1,18 @@
 import { forwardRef, Ref, useImperativeHandle } from 'react'
 import { CellData } from '@/engine'
+import { useGameSettings } from '@/providers/game-settings'
+import { FieldPropsProvider } from '@/providers/field-props'
 import { SquareField } from '@/entities/field-square'
 import { useAnimations } from '@/shared/lib/use-animations'
 import { useGame } from '../lib/use-game'
 import { useTimer } from '../lib/use-timer'
 import { useStatistic } from '../lib/use-statistic'
-import { ActionCommittedCallback, URLConfig } from '../lib/types'
+import { ActionCommittedCallback, GameExpose, URLConfig } from '../lib/types'
 import { useGameLifecycle } from '../lib/use-game-lifecycle'
 import { useAnimatedInteraction } from '../lib/use-animated-interaction'
 import { useDirectInteraction } from '../lib/use-direct-interaction'
 import { useSolver } from '../lib/use-solver'
 import { useAnimatedGameOver } from '../lib/use-animated-game-over'
-import { useGameSettings } from '@/providers/game-settings'
-
-type Expose = {
-	reset: () => void
-	score: number
-	efficiency: number
-	time: number
-	flagsRemaining: number
-}
 
 interface MinesweeperGameProps {
 	config: URLConfig
@@ -31,22 +24,17 @@ interface MinesweeperGameProps {
 export const MinesweeperGame = forwardRef(
 	(
 		{ config, data, withSolver, withDebug }: MinesweeperGameProps,
-		ref: Ref<Expose>
+		ref: Ref<GameExpose>
 	) => {
 		const { params, type } = config
 
 		const {
 			initialized,
 			settings: {
-				cell: {font, bevelWidth, borderWidth, size},
+				cell: { size },
 				animations: { enabled: animationsEnabled, duration },
-				colors: {}
-			}
-	
+			},
 		} = useGameSettings()
-
-		// Размеры игрового поля
-		const [width, height] = [params.cols * size, params.rows * size]
 
 		// Хук использующий апи движка сапера, связующее звено между логикой игры,
 		// логики, строящейся поверх игры (solver, статистика, анимации)
@@ -68,22 +56,20 @@ export const MinesweeperGame = forwardRef(
 		const { probabilities, connectedRegions, findRegions, solve } = useSolver(
 			{
 				data: gameData.field,
-				skipImmediatelySolve: withSolver,
 				params,
 				type,
 			}
 		)
 
 		// Для регистрации анимированных действий
-		const { animations, addAnimations, removeAnimations } =
-			useAnimations(animationsEnabled)
+		const { animations, addAnimations, removeAnimations } = useAnimations()
 
 		// Анимации победы и поражения
-		const { animateLose, animateWin } = useAnimatedGameOver(
-			addAnimations,
+		const { animateLose, animateWin } = useAnimatedGameOver({
+			duration,
 			params,
-			{ duration }
-		)
+			addAnimations,
+		})
 
 		// Логика жизненного цикла игры
 		const { updateStatus, resetStatus } = useGameLifecycle(gameData.status, {
@@ -128,6 +114,7 @@ export const MinesweeperGame = forwardRef(
 
 		// Обработчики кликов, запускающие анимации
 		const animatedHandlers = useAnimatedInteraction({
+			duration,
 			animations,
 			revealCell,
 			toggleFlag,
@@ -160,27 +147,31 @@ export const MinesweeperGame = forwardRef(
 			[reset, score, efficiency, time, flagsRemaining]
 		)
 
+		if (!initialized) return <div>Инициализация...</div>
+
 		return (
-			<>
+			<FieldPropsProvider
+				size={size}
+				params={params}
+				showProbabilities={withSolver}
+				showConnectedRegions={withDebug}
+				gameOver={gameData.gameOver}
+				removeAnimations={removeAnimations}
+				interactions={{
+					onCellPress: handleCellPress,
+					onCellRelease: handleCellRelease,
+					onToggleFlag: handleToggleFlag,
+				}}
+			>
 				{type === 'square' && (
 					<SquareField
-						params={params}
 						field={gameData.field}
-						gameOver={gameData.gameOver}
-						width={width}
-						height={height}
 						animationsList={animations}
-						showProbabilities={withSolver}
-						showConnectedRegions={withDebug}
 						probabilities={probabilities}
 						connectedRegions={connectedRegions}
-						removeAnimations={removeAnimations}
-						onCellPress={handleCellPress}
-						onCellRelease={handleCellRelease}
-						onToggleFlag={handleToggleFlag}
 					/>
 				)}
-			</>
+			</FieldPropsProvider>
 		)
 	}
 )

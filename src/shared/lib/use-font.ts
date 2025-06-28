@@ -6,7 +6,7 @@ export const useFont = (font: string) => {
 	const [isFontLoading, setIsFontLoading] = useState(true)
 
 	useEffect(() => {
-		ensureFontIsReady(font)
+		ensureFontIsReady(`16px ${font}`)
 			.then(success => setErrorLoadingFont(!success))
 			.catch(() => setErrorLoadingFont(true))
 			.finally(() => setIsFontLoading(false))

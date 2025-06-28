@@ -1,4 +1,5 @@
-import { MinesweeperGame } from '@/widgets/minesweeper-game'
+import { useRef } from 'react'
+import { GameExpose, MinesweeperGame } from '@/widgets/minesweeper-game'
 import { GameSettingsProvider } from '@/providers/game-settings'
 import { useUrlConfig } from '../lib/use-url-config'
 // import { useMockParams } from '../lib/use-mock-params'
@@ -14,10 +15,18 @@ export const GameView = () => {
 	// Debug. Создаем моковые данные
 	// const { config, fieldData } = useMockParams()
 
+	const gameRef = useRef<GameExpose>(null)
+
 	return (
 		<div className="bg-background h-screen flex justify-center items-center">
 			<GameSettingsProvider>
-				<MinesweeperGame config={urlConfig} data={undefined} />
+				<MinesweeperGame
+					ref={gameRef}
+					config={urlConfig}
+					data={undefined}
+					withDebug={false}
+					withSolver={false}
+				/>
 			</GameSettingsProvider>
 		</div>
 	)

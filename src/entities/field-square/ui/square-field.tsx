@@ -1,55 +1,47 @@
 import { MouseEvent } from 'react'
 import { Canvas } from '@/ui-engine'
-import { CellData, GameParams, MineProbability, Position } from '@/engine'
-import { useGameColors } from '@/providers/game-colors'
-import { useViewConfig } from '@/providers/game-view'
+import { CellData, MineProbability, Position } from '@/engine'
+import { useFieldProps } from '@/providers/field-props'
+import { useGameSettings } from '@/providers/game-settings'
 import { Animation } from '@/shared/lib/use-animations'
-import {
-	GameInteractionsProps,
-	useGameInteractions,
-} from '@/shared/lib/use-game-interactions'
+import { useGameInteractions } from '@/shared/lib/use-game-interactions'
 import { SquareStaticField } from './square-static-field'
 import { SquareGrid } from './square-grid'
 import { SquareAnimationField } from './square-animation-field'
 import { SquareProbabilityField } from './square-probability-field'
 import { DebuggingField } from './debugging-field'
 
-interface SquareFieldProps
-	extends Omit<GameInteractionsProps, 'getPositionFromEvent'> {
-	width: number
-	height: number
-	params: GameParams
+interface SquareFieldProps {
 	field: CellData[][]
-	animationsList: Animation[]
+	animationsList?: Animation[]
 	probabilities?: MineProbability[]
-	showProbabilities?: boolean
-	showConnectedRegions?: boolean
 	connectedRegions?: CellData[][]
-	removeAnimations: (ids: string[]) => void
 }
 
 export const SquareField = ({
-	width,
-	height,
 	field,
-	gameOver,
-	params,
-	animationsList,
-	showProbabilities,
-	showConnectedRegions,
+	animationsList = [],
 	probabilities = [],
 	connectedRegions = [],
-	removeAnimations,
-	onCellPress,
-	onCellRelease,
-	onToggleFlag,
 }: SquareFieldProps) => {
 	const {
-		cell: { size },
-		animations: { enabled: withAnimations },
-	} = useViewConfig()
+		settings: {
+			cell: { size },
+			animations: { enabled: animationsEnabled },
+			colors: { revealed },
+		},
+	} = useGameSettings()
 
-	const { REVEALED } = useGameColors()
+	const {
+		gameOver,
+		height,
+		params,
+		width,
+		interactions,
+		showConnectedRegions,
+		showProbabilities,
+		removeAnimations,
+	} = useFieldProps()
 
 	const { cols, rows } = params
 
@@ -65,24 +57,22 @@ export const SquareField = ({
 		return { col, row }
 	}
 
-	const interactions = useGameInteractions({
+	const gameInteractions = useGameInteractions({
 		gameOver,
 		getPositionFromEvent,
-		onCellPress,
-		onCellRelease,
-		onToggleFlag,
+		...interactions,
 	})
 
 	return (
 		<div
 			className="cursor-pointer fit-content"
-			onPointerDown={interactions.handlePointerDown}
-			onPointerUp={interactions.handlePointerUp}
-			onPointerMove={interactions.handlePointerMove}
-			onPointerLeave={interactions.handlePointerLeave}
-			onContextMenu={interactions.handleCanvasRightClick}
+			onPointerDown={gameInteractions.handlePointerDown}
+			onPointerUp={gameInteractions.handlePointerUp}
+			onPointerMove={gameInteractions.handlePointerMove}
+			onPointerLeave={gameInteractions.handlePointerLeave}
+			onContextMenu={gameInteractions.handleCanvasRightClick}
 		>
-			<Canvas width={width} height={height} bgColor={REVEALED}>
+			<Canvas width={width} height={height} bgColor={revealed}>
 				<SquareStaticField
 					zIndex={0}
 					gameOver={gameOver}
@@ -90,7 +80,7 @@ export const SquareField = ({
 					height={height}
 					data={field}
 				/>
-				{withAnimations && (
+				{animationsEnabled && (
 					<SquareAnimationField
 						zIndex={10}
 						animationsList={animationsList}

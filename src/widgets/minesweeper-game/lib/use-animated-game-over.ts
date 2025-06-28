@@ -1,12 +1,12 @@
 import { GameParams, GameSnapshot } from '@/engine'
 import { AnimationQuery } from '@/shared/lib/use-animations'
 
-export const useAnimatedGameOver = (
-	addAnimations: (animations: AnimationQuery[]) => void,
-	params: GameParams,
-	config: { duration: number }
-) => {
-	const { duration } = config
+export const useAnimatedGameOver = (config: {
+	duration: number
+	params: GameParams
+	addAnimations: (animations: AnimationQuery[]) => void
+}) => {
+	const { duration, addAnimations, params } = config
 
 	const animateLose = (actionSnapshot: GameSnapshot) => {
 		const firstExplosionTime = duration

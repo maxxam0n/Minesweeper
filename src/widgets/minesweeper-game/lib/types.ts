@@ -17,3 +17,11 @@ export type ActionCommittedCallback = (result: {
 	actionSnapshot: GameSnapshot
 	actionChanges: ActionChanges
 }) => void
+
+export type GameExpose = {
+	reset: () => void
+	score: number
+	efficiency: number
+	time: number
+	flagsRemaining: number
+}

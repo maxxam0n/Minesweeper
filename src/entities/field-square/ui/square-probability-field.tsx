@@ -1,6 +1,6 @@
 import { MineProbability } from '@/engine'
 import { Layer } from '@/ui-engine'
-import { useViewConfig } from '@/providers/game-view'
+import { useGameSettings } from '@/providers/game-settings'
 import { ProbabilityCell } from './shapes/probability-cell-shape'
 
 interface SquareProbabilityFieldProps {
@@ -13,8 +13,10 @@ export const SquareProbabilityField = ({
 	probabilities,
 }: SquareProbabilityFieldProps) => {
 	const {
-		cell: { size },
-	} = useViewConfig()
+		settings: {
+			cell: { size },
+		},
+	} = useGameSettings()
 
 	return (
 		<Layer name="probabilities" zIndex={zIndex} opacity={0.3}>

@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { Layer, LineShape } from '@/ui-engine'
 import { GameParams } from '@/engine'
-import { useGameColors } from '@/providers/game-colors'
-import { useViewConfig } from '@/providers/game-view'
+import { useGameSettings } from '@/providers/game-settings'
 
 interface SquareGridProps {
 	zIndex: number
@@ -17,16 +16,18 @@ export const SquareGrid = ({
 	height,
 	zIndex,
 }: SquareGridProps) => {
-	const { BORDER } = useGameColors()
 	const {
-		cell: { size, borderWidth },
-	} = useViewConfig()
+		settings: {
+			cell: { size, borderWidth },
+			colors: { border },
+		},
+	} = useGameSettings()
 
 	const { cols, rows } = params
 
 	const gridLines = useMemo(() => {
 		const lines: JSX.Element[] = []
-		const lineColor = BORDER
+		const lineColor = border
 
 		// Горизонтальные линии
 		for (let i = 0; i <= rows; i++) {
@@ -57,7 +58,7 @@ export const SquareGrid = ({
 			)
 		}
 		return lines
-	}, [rows, cols, size, width, height, BORDER])
+	}, [rows, cols, size, width, height, border])
 
 	return (
 		<Layer name="grid" zIndex={zIndex}>

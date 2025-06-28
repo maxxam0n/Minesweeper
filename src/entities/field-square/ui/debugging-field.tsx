@@ -1,6 +1,6 @@
 import { Layer, RectShape } from '@/ui-engine'
 import { CellData } from '@/engine'
-import { useViewConfig } from '@/providers/game-view'
+import { useGameSettings } from '@/providers/game-settings'
 
 interface SquareProbabilityFieldProps {
 	connectedGroups: CellData[][]
@@ -10,8 +10,10 @@ export const DebuggingField = ({
 	connectedGroups,
 }: SquareProbabilityFieldProps) => {
 	const {
-		cell: { size },
-	} = useViewConfig()
+		settings: {
+			cell: { size },
+		},
+	} = useGameSettings()
 
 	return (
 		<Layer name="connected-group" zIndex={50} opacity={0.3}>

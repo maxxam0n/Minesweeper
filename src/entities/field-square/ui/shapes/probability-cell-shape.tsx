@@ -1,5 +1,5 @@
 import { Group, RectShape } from '@/ui-engine'
-import { useViewConfig } from '@/providers/game-view'
+import { useGameSettings } from '@/providers/game-settings'
 import { BaseShapeProps } from '@/shared/types/shape'
 import { BevelShape } from './bevel-shape'
 
@@ -13,8 +13,10 @@ export const ProbabilityCell = ({
 	y = 0,
 }: ProbabilityCellShape) => {
 	const {
-		cell: { size },
-	} = useViewConfig()
+		settings: {
+			cell: { size },
+		},
+	} = useGameSettings()
 
 	const color = probability > 0 ? 'red' : 'green'
 	const opacity = probability > 0 ? probability : 1

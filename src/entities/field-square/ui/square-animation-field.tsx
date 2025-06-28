@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { Layer, RectShape } from '@/ui-engine'
-import { useGameColors } from '@/providers/game-colors'
-import { useViewConfig } from '@/providers/game-view'
+import { useGameSettings } from '@/providers/game-settings'
 import { Animation } from '@/shared/lib/use-animations'
 import { AppearEffect } from '@/shared/shapes/appear-effect'
 import { FlagShape } from '@/shared/shapes/flag-shape'
@@ -26,11 +25,12 @@ export const SquareAnimationField = ({
 	onAnimationComplete,
 }: SquareAnimationFieldProps) => {
 	const {
-		cell: { size },
-		animations: { duration },
-	} = useViewConfig()
-
-	const { REVEALED, CLOSED, FLAG, FLAG_SHAFT, MINE } = useGameColors()
+		settings: {
+			cell: { size },
+			animations: { duration },
+			colors: { revealed, closed, flag, flagShaft, mine },
+		},
+	} = useGameSettings()
 
 	const removedAnimationIds = useRef<string[]>([])
 	const animationFrameId = useRef<number>()
@@ -83,7 +83,7 @@ export const SquareAnimationField = ({
 					y={y}
 					width={size}
 					height={size}
-					fillColor={REVEALED}
+					fillColor={revealed}
 				/>
 			)
 		} else if (anim.type === 'reveal') {
@@ -101,7 +101,7 @@ export const SquareAnimationField = ({
 							duration={anim.duration || duration}
 							onComplete={removeUnitAnimation}
 						>
-							<RectShape width={size} height={size} fillColor={CLOSED} />
+							<RectShape width={size} height={size} fillColor={closed} />
 						</RevealingEffect>
 					</DelayedAnimation>
 				)
@@ -115,7 +115,7 @@ export const SquareAnimationField = ({
 						duration={anim.duration || duration}
 						onComplete={removeUnitAnimation}
 					>
-						<RectShape width={size} height={size} fillColor={CLOSED} />
+						<RectShape width={size} height={size} fillColor={closed} />
 					</RevealingEffect>
 				)
 		} else if (anim.type === 'appear') {
@@ -130,11 +130,7 @@ export const SquareAnimationField = ({
 					y={y}
 					onComplete={removeUnitAnimation}
 				>
-					<FlagShape
-						size={size}
-						flagColor={FLAG}
-						shaftColor={FLAG_SHAFT}
-					/>
+					<FlagShape size={size} flagColor={flag} shaftColor={flagShaft} />
 				</AppearEffect>
 			)
 		} else if (anim.type === 'disappear') {
@@ -148,11 +144,7 @@ export const SquareAnimationField = ({
 					duration={anim.duration || duration}
 					onComplete={removeUnitAnimation}
 				>
-					<FlagShape
-						size={size}
-						flagColor={FLAG}
-						shaftColor={FLAG_SHAFT}
-					/>
+					<FlagShape size={size} flagColor={flag} shaftColor={flagShaft} />
 				</DisappearEffect>
 			)
 		} else if (anim.type === 'error') {
@@ -180,7 +172,7 @@ export const SquareAnimationField = ({
 					power={50}
 					onComplete={removeUnitAnimation}
 				>
-					<MineShape size={size} color={MINE} />
+					<MineShape size={size} color={mine} />
 				</ExplosionEffect>
 			)
 		}

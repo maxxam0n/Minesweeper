@@ -1,16 +1,17 @@
 import { memo } from 'react'
 import { PolygonShape } from '@/ui-engine'
-import { useGameColors } from '@/providers/game-colors'
-import { useViewConfig } from '@/providers/game-view'
+import { useGameSettings } from '@/providers/game-settings'
 import { BaseShapeProps } from '@/shared/types/shape'
 
 interface BevelShapeProps extends Omit<BaseShapeProps, 'size'> {}
 
 export const BevelShape = memo(({ x = 0, y = 0 }: BevelShapeProps) => {
-	const { LIGHT_BEVEL, DARK_BEVEL } = useGameColors()
 	const {
-		cell: { size, bevelWidth },
-	} = useViewConfig()
+		settings: {
+			cell: { size, bevelWidth },
+			colors: { lightBevel, darkBevel },
+		},
+	} = useGameSettings()
 
 	return (
 		<>
@@ -25,7 +26,7 @@ export const BevelShape = memo(({ x = 0, y = 0 }: BevelShapeProps) => {
 					{ x, y: y + size },
 				]}
 				closed={true}
-				fillColor={LIGHT_BEVEL}
+				fillColor={lightBevel}
 				zIndex={1}
 			/>
 			{/* Темная грань снизу и справа */}
@@ -41,7 +42,7 @@ export const BevelShape = memo(({ x = 0, y = 0 }: BevelShapeProps) => {
 					{ x: x + size - bevelWidth, y: y + bevelWidth },
 					{ x: x + size, y },
 				]}
-				fillColor={DARK_BEVEL}
+				fillColor={darkBevel}
 				closed={true}
 				zIndex={1}
 			/>

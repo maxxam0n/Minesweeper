@@ -1,13 +1,11 @@
 import { useRef, useState } from 'react'
 import { Animation, AnimationQuery } from './types'
 
-export const useAnimations = (enabled: boolean) => {
+export const useAnimations = () => {
 	const nextAnimationId = useRef(0)
 	const [animations, setAnimations] = useState<Animation[]>([])
 
 	const addAnimations = (animations: AnimationQuery[]) => {
-		if (!enabled) return
-
 		const newAnimations = animations.map(animQuery => ({
 			id: `animation-${nextAnimationId.current++}`,
 			...animQuery,
@@ -19,14 +17,14 @@ export const useAnimations = (enabled: boolean) => {
 	const addStaggeredAnimations = (
 		anims: Omit<AnimationQuery, 'delay'>[],
 		delay: number,
-		batchSize: number = 1,
+		batchSize: number = 1
 	) => {
 		let animationsBatch: AnimationQuery[] = []
 
 		let batched = 0
 		let batchedDelay = 0
 
-		anims.forEach((anim) => {
+		anims.forEach(anim => {
 			let summaryDelay = batchedDelay
 
 			if (batched < batchSize) {
@@ -44,8 +42,6 @@ export const useAnimations = (enabled: boolean) => {
 	}
 
 	const removeAnimations = (animationIds: string[]) => {
-		if (!enabled) return
-
 		setAnimations(prev => {
 			const remainingAnimations = prev.filter(
 				anim => !animationIds.includes(anim.id)

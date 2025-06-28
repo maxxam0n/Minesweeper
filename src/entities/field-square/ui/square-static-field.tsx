@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { CellData } from '@/engine'
 import { Layer, RectShape, Group } from '@/ui-engine'
-import { useGameColors } from '@/providers/game-colors'
-import { useViewConfig } from '@/providers/game-view'
+import { useGameSettings } from '@/providers/game-settings'
 import { DigitShape } from '@/shared/shapes/digit-shape'
 import { MineShape } from '@/shared/shapes/mine-shape'
 import { CrossShape } from '@/shared/shapes/cross-shape'
@@ -26,10 +25,11 @@ export const SquareStaticField = ({
 	zIndex,
 }: FieldProps) => {
 	const {
-		cell: { size, font },
-	} = useViewConfig()
-	const { REVEALED, CLOSED, MINE, FLAG, FLAG_SHAFT, EXPLODED, ...digits } =
-		useGameColors()
+		settings: {
+			cell: { size, font },
+			colors: { mine, flag, flagShaft, exploded, revealed, ...colors },
+		},
+	} = useGameSettings()
 
 	const layersContent = useMemo(() => {
 		return data.flat().reduce(
@@ -41,14 +41,14 @@ export const SquareStaticField = ({
 				// Слой Solution - рисуем полное отображение открытого поля включая (все цифры и мины)
 				if (cellData.adjacentMines > 0 && !cellData.isMine) {
 					const colorKey =
-						cellData.adjacentMines as unknown as keyof typeof digits
+						cellData.adjacentMines as unknown as keyof typeof colors
 
 					acc.solutionDigitsAndMines.push(
 						<DigitShape
 							key={`${cellKey}-digit`}
 							digit={cellData.adjacentMines}
 							font={font}
-							color={digits[colorKey]}
+							color={colors[colorKey]}
 							size={size}
 							x={x}
 							y={y}
@@ -60,7 +60,7 @@ export const SquareStaticField = ({
 							key={`${cellKey}-mine`}
 							x={x}
 							y={y}
-							color={MINE}
+							color={mine}
 							size={size}
 						/>
 					)
@@ -93,8 +93,8 @@ export const SquareStaticField = ({
 							<RectShape width={size} height={size} />
 							<FlagShape
 								size={size}
-								flagColor={FLAG}
-								shaftColor={FLAG_SHAFT}
+								flagColor={flag}
+								shaftColor={flagShaft}
 							/>
 						</Group>
 					)
@@ -104,9 +104,9 @@ export const SquareStaticField = ({
 							<RectShape
 								height={size}
 								width={size}
-								fillColor={EXPLODED}
+								fillColor={exploded}
 							/>
-							<MineShape color={MINE} size={size} />
+							<MineShape color={mine} size={size} />
 						</Group>
 					)
 				}
@@ -128,11 +128,11 @@ export const SquareStaticField = ({
 				y={0}
 				width={width}
 				height={height}
-				fillColor={REVEALED}
+				fillColor={revealed}
 				zIndex={-1}
 			/>
 		),
-		[width, height, REVEALED]
+		[width, height, revealed]
 	)
 
 	const { renderer: maskRenderer } = useIncrementalRender()
