@@ -1,5 +1,6 @@
 import { BaseField } from './base-field'
 import { FieldFactory } from './field-factory'
+import { mockField } from './mocks'
 import { SimpleCell } from './simple-cell'
 import {
 	CellData,
@@ -26,6 +27,14 @@ export class GameEngine {
 	private flagsRemaining: number
 
 	constructor({ mode = 'guessing', ...config }: MineSweeperConfig) {
+		// debug
+		config.data = mockField
+		config.params = {
+			cols: 5,
+			rows: 5,
+			mines: 2,
+		}
+
 		this.mode = mode
 		this.params = config.params
 		this.field = FieldFactory.create(config)

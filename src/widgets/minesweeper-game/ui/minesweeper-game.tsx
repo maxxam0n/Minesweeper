@@ -15,6 +15,13 @@ interface MinesweeperGameProps {
 }
 
 export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
+	// debugging
+	config.params = {
+		cols: 5,
+		rows: 5,
+		mines: 0,
+	}
+
 	const { params, type } = config
 
 	const {
@@ -159,7 +166,7 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 					animationsList={animations}
 					probabilities={probabilities}
 					showProbabilities={true}
-					showConnectedRegions={true}
+					showConnectedRegions={false}
 					connectedRegions={connectedRegions}
 					removeAnimations={removeAnimations}
 					onCellPress={handleCellPress}

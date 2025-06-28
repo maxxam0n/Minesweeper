@@ -39,12 +39,6 @@ export interface MineProbability {
 	position: Position
 }
 
-export type Subset = {
-	key: string
-	positions: Set<string>
-	mineCount: number
-}
-
 export interface FieldState {
 	field: CellData[][]
 	minedCells: CellData[]

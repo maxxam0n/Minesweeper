@@ -15,7 +15,7 @@ export const DebuggingField = ({
 
 	return (
 		<Layer name="connected-group" zIndex={50} opacity={0.3}>
-			{connectedGroups.slice(0, 1).map(group => {
+			{connectedGroups.map(group => {
 				function getRandomColor() {
 					const letters = '0123456789ABCDEF'
 					let color = '#'

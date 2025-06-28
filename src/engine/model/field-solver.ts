@@ -1,33 +1,61 @@
-import { createKey } from '../lib/utils'
+import { createKey, parseKey } from '../lib/utils'
 import { BaseField } from './base-field'
 import { FieldFactory } from './field-factory'
+import { mockField } from './mocks'
 import { SimpleCell } from './simple-cell'
 import { CellData, FactoryConfig, MineProbability } from './types'
+
+type Assignment = Map<string, boolean>
+
+type Constraint = {
+	cell: CellData
+	neighbors: string[] // ключи соседних закрытых ячеек
+	mines: number // цифра на клетке
+}
 
 export class Solver {
 	private field: BaseField<SimpleCell>
 
 	constructor(config: FactoryConfig) {
+		// debug
+		config.data = mockField
+		config.params = {
+			cols: 5,
+			rows: 5,
+			mines: 2,
+		}
+
 		this.field = FieldFactory.create(config)
 	}
 
 	public solve(): MineProbability[] {
 		const probabilities: Map<string, MineProbability> = new Map()
+
 		const fieldState = this.field.getState()
-		const regions = this.groupConnectedRegions(fieldState.revealedCells)
 
-		for (const region of regions) {
-			let changed: boolean
-			do {
-				const foundMines = this.inferCertainMines(region, probabilities)
-				const foundSafe = this.inferCertainSafeCells(region, probabilities)
+		let changed: boolean
+		do {
+			const certainMinesFound = this.inferCertainMines(
+				fieldState.revealedCells,
+				probabilities
+			)
+			const certainSafeFound = this.inferCertainSafeCells(
+				fieldState.revealedCells,
+				probabilities
+			)
 
-				changed = foundMines || foundSafe
+			// Если нашли 100% вероятности — пробуем ещё раз
+			changed = certainMinesFound || certainSafeFound
+		} while (changed)
 
-				if (!changed) {
-					changed = this.inferFloatingProbabilities(region, probabilities)
-				}
-			} while (changed)
+		// Подключаем более сложную эвристику на основе теории множеств
+		const inferred = this.inferBySetTheory(fieldState.revealedCells)
+
+		for (const prob of inferred) {
+			const key = createKey(prob.position)
+			if (!probabilities.has(key)) {
+				probabilities.set(key, prob)
+			}
 		}
 
 		return Array.from(probabilities.values())
@@ -113,7 +141,7 @@ export class Solver {
 	}
 
 	// Рассчитывает не абсолютные (0 или 1) вероятности
-	private inferFloatingProbabilities(
+	private inferByLocalRatios(
 		cells: CellData[],
 		probabilities: Map<string, MineProbability>
 	): boolean {
@@ -147,6 +175,93 @@ export class Solver {
 		}
 
 		return updated
+	}
+
+	private inferBySetTheory(cells: CellData[]): MineProbability[] {
+		const probabilities: Map<string, number> = new Map()
+
+		const regions = this.groupConnectedRegions(cells)
+
+		for (const region of regions) {
+			const constraints: Constraint[] = []
+			const variables = new Set<string>()
+
+			for (const cell of region) {
+				const siblings = this.field.getSiblings(cell.position)
+				const closedSiblings = siblings.filter(s => !s.isRevealed)
+
+				const variableKeys = closedSiblings.map(s => createKey(s.position))
+				variableKeys.forEach(key => variables.add(key))
+
+				constraints.push({
+					cell,
+					neighbors: variableKeys,
+					mines: cell.adjacentMines,
+				})
+			}
+
+			const variableList = Array.from(variables)
+			const allAssignments = this.generateAllAssignments(variableList)
+
+			// Фильтруем валидные комбинации
+			const validAssignments = allAssignments.filter(assignment =>
+				this.satisfiesAllConstraints(assignment, constraints)
+			)
+
+			// Если нет допустимых комбинаций — пропускаем
+			if (validAssignments.length === 0) continue
+
+			// Подсчёт вероятностей
+			const counts = new Map<string, number>()
+			variableList.forEach(key => counts.set(key, 0))
+
+			for (const assignment of validAssignments) {
+				for (const key of variableList) {
+					if (assignment.get(key)) {
+						counts.set(key, counts.get(key)! + 1)
+					}
+				}
+			}
+
+			for (const key of variableList) {
+				probabilities.set(key, counts.get(key)! / validAssignments.length)
+			}
+		}
+
+		return Array.from(probabilities.entries()).map(([key, value]) => ({
+			position: parseKey(key),
+			value,
+		}))
+	}
+
+	private generateAllAssignments(variables: string[]): Assignment[] {
+		const results: Assignment[] = []
+		const total = 1 << variables.length
+
+		for (let i = 0; i < total; i++) {
+			const assignment: Assignment = new Map()
+			for (let j = 0; j < variables.length; j++) {
+				const bit = (i >> j) & 1
+				assignment.set(variables[j], bit === 1)
+			}
+			results.push(assignment)
+		}
+
+		return results
+	}
+
+	private satisfiesAllConstraints(
+		assignment: Assignment,
+		constraints: Constraint[]
+	): boolean {
+		for (const { neighbors, mines } of constraints) {
+			let count = 0
+			for (const key of neighbors) {
+				if (assignment.get(key)) count++
+			}
+			if (count !== mines) return false
+		}
+		return true
 	}
 
 	// Определяем список групп (регионов), каждая из которых включает все открытые клетки, которые:
