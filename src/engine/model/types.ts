@@ -86,3 +86,7 @@ export interface FactoryConfig {
 	seed?: string
 	data?: CellData[][]
 }
+
+export interface MineSweeperConfig extends FactoryConfig {
+	mode?: GameMode
+}

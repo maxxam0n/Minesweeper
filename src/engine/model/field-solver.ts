@@ -1,7 +1,6 @@
 import { createKey, parseKey } from '../lib/utils'
 import { BaseField } from './base-field'
 import { FieldFactory } from './field-factory'
-import { mockField } from './mocks'
 import { SimpleCell } from './simple-cell'
 import { CellData, FactoryConfig, MineProbability } from './types'
 
@@ -17,14 +16,6 @@ export class Solver {
 	private field: BaseField<SimpleCell>
 
 	constructor(config: FactoryConfig) {
-		// debug
-		config.data = mockField
-		config.params = {
-			cols: 5,
-			rows: 5,
-			mines: 2,
-		}
-
 		this.field = FieldFactory.create(config)
 	}
 

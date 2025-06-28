@@ -6,7 +6,7 @@ import {
 	GameSnapshot,
 } from '@/engine'
 
-export interface GameConfig {
+export interface URLConfig {
 	mode: GameMode
 	type: FieldType
 	params: GameParams

@@ -8,7 +8,7 @@ import { MineShape } from '@/shared/shapes/mine-shape'
 import { CrossShape } from '@/shared/shapes/cross-shape'
 import { FlagShape } from '@/shared/shapes/flag-shape'
 import { useIncrementalRender } from '@/shared/lib/use-incremental-render'
-import { BevelShape } from './shapes/bevel-shape'
+import { CellMask } from './shapes/cell-mask'
 
 interface FieldProps {
 	gameOver: boolean
@@ -72,7 +72,7 @@ export const SquareStaticField = ({
 					(cellData.isUntouched || cellData.isFlagged || cellData.isMissed)
 				) {
 					acc.maskBevels.push(
-						<BevelShape key={`${cellKey}-bevel`} x={x} y={y} />
+						<CellMask key={`${cellKey}-bevel`} x={x} y={y} />
 					)
 				}
 
@@ -135,20 +135,6 @@ export const SquareStaticField = ({
 		[width, height, REVEALED]
 	)
 
-	const maskBackground = useMemo(
-		() => (
-			<RectShape
-				x={0}
-				y={0}
-				width={width}
-				height={height}
-				fillColor={CLOSED}
-				zIndex={-1}
-			/>
-		),
-		[width, height, CLOSED]
-	)
-
 	const { renderer: maskRenderer } = useIncrementalRender()
 
 	const { renderer: overlayRenderer } = useIncrementalRender()
@@ -164,8 +150,12 @@ export const SquareStaticField = ({
 			</Layer>
 
 			{/* Слой 2: Фон закрытых клеток + Фаски */}
-			<Layer name="mask" zIndex={zIndex + 1} renderer={maskRenderer} opacity={1}>
-				{maskBackground}
+			<Layer
+				name="mask"
+				zIndex={zIndex + 1}
+				renderer={maskRenderer}
+				opacity={0.5}
+			>
 				{layersContent.maskBevels}
 			</Layer>
 

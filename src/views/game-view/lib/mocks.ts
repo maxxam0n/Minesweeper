@@ -1,29 +1,9 @@
-import { CellData } from './types'
+import { CellData } from '@/engine'
 
 export const mockField: CellData[][] = [
-	[empty(0, 0), empty(1, 0), empty(2, 0), empty(3, 0), empty(4, 0)],
-	[
-		empty(0, 1),
-		number(1, 1, 2),
-		number(2, 1, 2),
-		number(3, 1, 2),
-		empty(4, 1),
-	],
-	[
-		empty(0, 2),
-		hidden(1, 2, true),
-		hidden(2, 2, false),
-		hidden(3, 2, true),
-		empty(4, 2),
-	],
-	[
-		empty(0, 3),
-		number(1, 3, 1),
-		number(2, 3, 2),
-		number(3, 3, 2),
-		empty(4, 3),
-	],
-	[empty(0, 4), empty(1, 4), empty(2, 4), empty(3, 4), empty(4, 4)],
+	[number(0, 0, 3), number(1, 0, 4), number(2, 0, 3)],
+	[hidden(0, 1, true), hidden(1, 1), hidden(2, 1, true)],
+	[number(0, 2, 2), number(1, 2, 4), number(2, 2, 3)],
 ]
 
 function hidden(col: number, row: number, mine = false): CellData {

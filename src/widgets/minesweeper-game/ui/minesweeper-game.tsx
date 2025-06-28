@@ -1,27 +1,23 @@
+import { CellData } from '@/engine'
 import { useViewConfig } from '@/providers/game-view'
 import { SquareField } from '@/entities/field-square'
 import { useAnimations } from '@/shared/lib/use-animations'
 import { useGame } from '../lib/use-game'
 import { useTimer } from '../lib/use-timer'
 import { useStatistic } from '../lib/use-statistic'
-import { ActionCommittedCallback, GameConfig } from '../lib/types'
+import { ActionCommittedCallback, URLConfig } from '../lib/types'
 import { useGameLifecycle } from '../lib/use-game-lifecycle'
 import { useAnimatedInteraction } from '../lib/use-animated-interaction'
 import { useDirectInteraction } from '../lib/use-direct-interaction'
 import { useSolver } from '../lib/use-solver'
 
 interface MinesweeperGameProps {
-	config: GameConfig
+	config: URLConfig
+	withSolver?: boolean
+	data?: CellData[][]
 }
 
-export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
-	// debugging
-	config.params = {
-		cols: 5,
-		rows: 5,
-		mines: 0,
-	}
-
+export const MinesweeperGame = ({ config, data }: MinesweeperGameProps) => {
 	const { params, type } = config
 
 	const {
@@ -31,8 +27,14 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 
 	const [width, height] = [params.cols * size, params.rows * size]
 
-	const { resetGame, revealCell, toggleFlag, ...gameData } = useGame(config)
-	// const { time, startTimer, stopTimer, resetTimer } = useTimer()
+	const { 
+		resetGame, 
+		revealCell, 
+		toggleFlag, 
+		...gameData 
+	} = useGame({ ...config, data })
+
+	const { time, startTimer, stopTimer, resetTimer } = useTimer()
 	const { score, efficiency, updateStatistic, resetStatistic } = useStatistic()
 
 	const { probabilities, connectedRegions, findRegions, solve } = useSolver({
@@ -46,10 +48,10 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 
 	const { updateStatus, resetStatus } = useGameLifecycle(gameData.status, {
 		onPlay() {
-			// startTimer()
+			startTimer()
 		},
 		onLose(actionSnapshot) {
-			// stopTimer()
+			stopTimer()
 
 			if (animationsEnabled) {
 				const firstExplosionTime = duration
@@ -113,12 +115,12 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 			}
 		},
 		onWin() {
-			// stopTimer()
+			stopTimer()
 		},
 	})
 
 	const reset = () => {
-		// resetTimer()
+		resetTimer()
 		resetStatistic()
 		resetGame()
 		resetStatus()
@@ -130,8 +132,7 @@ export const MinesweeperGame = ({ config }: MinesweeperGameProps) => {
 		updateStatus(actionSnapshot)
 		updateStatistic({
 			revealed: actionSnapshot.revealedCells.length,
-			// time,
-			time: 0,
+			time,
 			params,
 		})
 	}

@@ -1,9 +1,19 @@
 import { useRef, useState } from 'react'
-import { GameEngine, GameSnapshot, GameStatus, Position } from '@/engine'
-import { GameConfig } from './types'
+import {
+	GameEngine,
+	GameSnapshot,
+	GameStatus,
+	MineSweeperConfig,
+	Position,
+} from '@/engine'
 
-export const useGame = ({ params, type, seed, mode }: GameConfig) => {
-	const gameInstance = useRef(new GameEngine({ params, type, seed, mode }))
+export const useGame = ({
+	params,
+	type,
+	mode,
+	...other
+}: MineSweeperConfig) => {
+	const gameInstance = useRef(new GameEngine({ params, type, ...other }))
 
 	const [gameState, setGameState] = useState<GameSnapshot>(
 		gameInstance.current.gameSnapshot
