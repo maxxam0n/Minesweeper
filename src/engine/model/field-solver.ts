@@ -40,14 +40,14 @@ export class Solver {
 		} while (changed)
 
 		// Подключаем более сложную эвристику на основе теории множеств
-		const inferred = this.inferBySetTheory(fieldState.revealedCells)
+		// const inferred = this.inferBySetTheory(fieldState.revealedCells)
 
-		for (const prob of inferred) {
-			const key = createKey(prob.position)
-			if (!probabilities.has(key)) {
-				probabilities.set(key, prob)
-			}
-		}
+		// for (const prob of inferred) {
+		// 	const key = createKey(prob.position)
+		// 	if (!probabilities.has(key)) {
+		// 		probabilities.set(key, prob)
+		// 	}
+		// }
 
 		return Array.from(probabilities.values())
 	}

@@ -8,28 +8,29 @@ import {
 } from '@/engine'
 
 interface SolverProps {
+	skipImmediatelySolve?: boolean
 	data: CellData[][]
 	params: GameParams
 	type: FieldType
 }
 
-export const useSolver = (props: SolverProps) => {
+export const useSolver = ({ skipImmediatelySolve, ...config }: SolverProps) => {
 	const [probabilities, setProbabilities] = useState<MineProbability[]>(() =>
-		new Solver(props).solve()
+		skipImmediatelySolve ? [] : new Solver(config).solve()
 	)
 
 	const [connectedRegions, setConnectedRegions] = useState<CellData[][]>(() =>
-		new Solver(props).createConnectedRegions()
+		skipImmediatelySolve ? [] : new Solver(config).createConnectedRegions()
 	)
 
 	const solve = (data: CellData[][]) => {
-		setProbabilities(new Solver({ ...props, data }).solve())
+		setProbabilities(new Solver({ ...config, data }).solve())
 	}
 
 	// Отладочные методы
 	const findRegions = (data: CellData[][]) => {
 		setConnectedRegions(
-			new Solver({ ...props, data }).createConnectedRegions()
+			new Solver({ ...config, data }).createConnectedRegions()
 		)
 	}
 

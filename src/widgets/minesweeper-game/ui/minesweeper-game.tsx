@@ -10,171 +10,172 @@ import { useGameLifecycle } from '../lib/use-game-lifecycle'
 import { useAnimatedInteraction } from '../lib/use-animated-interaction'
 import { useDirectInteraction } from '../lib/use-direct-interaction'
 import { useSolver } from '../lib/use-solver'
+import { useAnimatedGameOver } from '../lib/use-animated-game-over'
+import { forwardRef, Ref, useImperativeHandle } from 'react'
+
+type Expose = {
+	reset: () => void
+	score: number
+	efficiency: number
+	time: number
+	flagsRemaining: number
+}
 
 interface MinesweeperGameProps {
 	config: URLConfig
 	withSolver?: boolean
+	withDebug?: boolean
 	data?: CellData[][]
 }
 
-export const MinesweeperGame = ({ config, data }: MinesweeperGameProps) => {
-	const { params, type } = config
+export const MinesweeperGame = forwardRef(
+	(
+		{ config, data, withSolver, withDebug }: MinesweeperGameProps,
+		ref: Ref<Expose>
+	) => {
+		const { params, type } = config
 
-	const {
-		cell: { size },
-		animations: { enabled: animationsEnabled, duration },
-	} = useViewConfig()
+		const {
+			cell: { size },
+			animations: { enabled: animationsEnabled, duration },
+		} = useViewConfig()
 
-	const [width, height] = [params.cols * size, params.rows * size]
+		// Размеры игрового поля
+		const [width, height] = [params.cols * size, params.rows * size]
 
-	const { 
-		resetGame, 
-		revealCell, 
-		toggleFlag, 
-		...gameData 
-	} = useGame({ ...config, data })
+		// Хук использующий апи движка сапера, связующее звено между логикой игры,
+		// логики, строящейся поверх игры (solver, статистика, анимации)
+		// и отображения ui
+		const { resetGame, revealCell, toggleFlag, flagsRemaining, ...gameData } =
+			useGame({
+				...config,
+				data,
+			})
 
-	const { time, startTimer, stopTimer, resetTimer } = useTimer()
-	const { score, efficiency, updateStatistic, resetStatistic } = useStatistic()
+		// Обычный таймер
+		const { time, startTimer, stopTimer, resetTimer } = useTimer()
 
-	const { probabilities, connectedRegions, findRegions, solve } = useSolver({
-		data: gameData.field,
-		params,
-		type,
-	})
+		// Расчет статистики
+		const { score, efficiency, updateStatistic, resetStatistic } =
+			useStatistic()
 
-	const { animations, addAnimations, removeAnimations } =
-		useAnimations(animationsEnabled)
-
-	const { updateStatus, resetStatus } = useGameLifecycle(gameData.status, {
-		onPlay() {
-			startTimer()
-		},
-		onLose(actionSnapshot) {
-			stopTimer()
-
-			if (animationsEnabled) {
-				const firstExplosionTime = duration
-
-				const { notFoundMines, explodedCells, errorFlags } = actionSnapshot
-
-				addAnimations(
-					actionSnapshot.explodedCells.map(cell => ({
-						type: 'explosion',
-						position: cell.position,
-						duration,
-					}))
-				)
-
-				if (notFoundMines.length > 0) {
-					const epicenter = explodedCells[0]?.position || {
-						col: Math.floor(params.cols / 2),
-						row: Math.floor(params.rows / 2),
-					}
-
-					const sortedMines = [...notFoundMines].sort((a, b) => {
-						const distA = Math.hypot(
-							a.position.col - epicenter.col,
-							a.position.row - epicenter.row
-						)
-						const distB = Math.hypot(
-							b.position.col - epicenter.col,
-							b.position.row - epicenter.row
-						)
-						return distA - distB
-					})
-
-					addAnimations(
-						sortedMines.slice(0, 5).map(cell => ({
-							type: 'explosion',
-							position: cell.position,
-							duration,
-						}))
-					)
-
-					addAnimations(
-						sortedMines.slice(5).map((cell, index) => ({
-							type: 'reveal',
-							position: cell.position,
-							delay: index * 5,
-							duration,
-						}))
-					)
-				}
-
-				if (errorFlags.length > 0) {
-					addAnimations(
-						errorFlags.map(cell => ({
-							type: 'error',
-							position: cell.position,
-							delay: firstExplosionTime * 2,
-							duration,
-						}))
-					)
-				}
+		// Расчет вероятностей на основе снимка поля
+		const { probabilities, connectedRegions, findRegions, solve } = useSolver(
+			{
+				data: gameData.field,
+				skipImmediatelySolve: withSolver,
+				params,
+				type,
 			}
-		},
-		onWin() {
-			stopTimer()
-		},
-	})
+		)
 
-	const reset = () => {
-		resetTimer()
-		resetStatistic()
-		resetGame()
-		resetStatus()
-	}
+		// Для регистрации анимированных действий
+		const { animations, addAnimations, removeAnimations } =
+			useAnimations(animationsEnabled)
 
-	const onActionCommitted: ActionCommittedCallback = ({ actionSnapshot }) => {
-		solve(actionSnapshot.field)
-		findRegions(actionSnapshot.field)
-		updateStatus(actionSnapshot)
-		updateStatistic({
-			revealed: actionSnapshot.revealedCells.length,
-			time,
+		// Анимации победы и поражения
+		const { animateLose, animateWin } = useAnimatedGameOver(
+			addAnimations,
 			params,
+			{ duration }
+		)
+
+		// Логика жизненного цикла игры
+		const { updateStatus, resetStatus } = useGameLifecycle(gameData.status, {
+			onPlay() {
+				startTimer()
+			},
+			onLose(actionSnapshot) {
+				stopTimer()
+				if (animationsEnabled) {
+					animateLose(actionSnapshot)
+				}
+			},
+			onWin(actionSnapshot) {
+				stopTimer()
+				if (animationsEnabled) {
+					animateWin(actionSnapshot)
+				}
+			},
 		})
+
+		// Апи компонента
+		const reset = () => {
+			resetTimer()
+			resetStatistic()
+			resetGame()
+			resetStatus()
+		}
+
+		// Обработка клика на клетку (только левый клик, правые не обрабатываются)
+		const onActionCommitted: ActionCommittedCallback = ({
+			actionSnapshot,
+		}) => {
+			if (withSolver) solve(actionSnapshot.field)
+			if (withDebug) findRegions(actionSnapshot.field)
+			updateStatus(actionSnapshot)
+			updateStatistic({
+				revealed: actionSnapshot.revealedCells.length,
+				time,
+				params,
+			})
+		}
+
+		// Обработчики кликов, запускающие анимации
+		const animatedHandlers = useAnimatedInteraction({
+			animations,
+			revealCell,
+			toggleFlag,
+			onActionCommitted,
+			addAnimations,
+			removeAnimations,
+		})
+
+		// Обычные обработчики кликов
+		const directHandlers = useDirectInteraction({
+			revealCell,
+			toggleFlag,
+			onActionCommitted,
+		})
+
+		// На основе animationsEnabled используем анимированные или не анимированные действия
+		const { handleCellPress, handleCellRelease, handleToggleFlag } =
+			animationsEnabled ? animatedHandlers : directHandlers
+
+		// Компонент предоставляет способ себя обнулить
+		useImperativeHandle(
+			ref,
+			() => ({
+				reset,
+				score,
+				efficiency,
+				time,
+				flagsRemaining,
+			}),
+			[reset, score, efficiency, time, flagsRemaining]
+		)
+
+		return (
+			<>
+				{type === 'square' && (
+					<SquareField
+						params={params}
+						field={gameData.field}
+						gameOver={gameData.gameOver}
+						width={width}
+						height={height}
+						animationsList={animations}
+						showProbabilities={withSolver}
+						showConnectedRegions={withDebug}
+						probabilities={probabilities}
+						connectedRegions={connectedRegions}
+						removeAnimations={removeAnimations}
+						onCellPress={handleCellPress}
+						onCellRelease={handleCellRelease}
+						onToggleFlag={handleToggleFlag}
+					/>
+				)}
+			</>
+		)
 	}
-
-	const animatedHandlers = useAnimatedInteraction({
-		animations,
-		revealCell,
-		toggleFlag,
-		onActionCommitted,
-		addAnimations,
-		removeAnimations,
-	})
-
-	const directHandlers = useDirectInteraction({
-		revealCell,
-		toggleFlag,
-		onActionCommitted,
-	})
-
-	const { handleCellPress, handleCellRelease, handleToggleFlag } =
-		animationsEnabled ? animatedHandlers : directHandlers
-
-	return (
-		<>
-			{type === 'square' && (
-				<SquareField
-					params={params}
-					field={gameData.field}
-					gameOver={gameData.gameOver}
-					width={width}
-					height={height}
-					animationsList={animations}
-					probabilities={probabilities}
-					showProbabilities={true}
-					showConnectedRegions={false}
-					connectedRegions={connectedRegions}
-					removeAnimations={removeAnimations}
-					onCellPress={handleCellPress}
-					onCellRelease={handleCellRelease}
-					onToggleFlag={handleToggleFlag}
-				/>
-			)}
-		</>
-	)
-}
+)

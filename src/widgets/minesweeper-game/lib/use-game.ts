@@ -22,7 +22,7 @@ export const useGame = ({
 	const { status, flaggedCells, ...otherData } = gameState
 
 	const gameOver = status == GameStatus.Won || status == GameStatus.Lost
-	const remainingMines = params.mines - flaggedCells.length
+	const flagsRemaining = params.mines - flaggedCells.length
 
 	const resetGame = () => {
 		gameInstance.current = new GameEngine({
@@ -62,7 +62,7 @@ export const useGame = ({
 		status,
 		gameOver,
 		flaggedCells,
-		remainingMines,
+		flagsRemaining,
 		...otherData,
 		resetGame,
 		revealCell,

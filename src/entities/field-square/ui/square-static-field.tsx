@@ -154,7 +154,7 @@ export const SquareStaticField = ({
 				name="mask"
 				zIndex={zIndex + 1}
 				renderer={maskRenderer}
-				opacity={0.5}
+				opacity={1}
 			>
 				{layersContent.maskBevels}
 			</Layer>

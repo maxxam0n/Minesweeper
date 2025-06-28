@@ -13,13 +13,13 @@ export const GameViewContent = () => {
 	})
 
 	// Debug. Создаем моковые данные
-	const { config, fieldData } = useMockParams()
+	// const { config, fieldData } = useMockParams()
 
 	return (
 		<div className="bg-background h-screen flex justify-center items-center">
 			<GameColorsProvider>
 				<GameViewProvider>
-					<MinesweeperGame config={config} data={fieldData} />
+					<MinesweeperGame config={urlConfig} data={undefined} />
 				</GameViewProvider>
 			</GameColorsProvider>
 		</div>
