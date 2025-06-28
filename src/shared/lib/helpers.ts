@@ -24,7 +24,6 @@ export async function ensureFontIsReady(
 		!fontSpecifier.toLowerCase().includes('italic')
 	) {
 		// Если это базовый системный шрифт без стилей, считаем его сразу готовым
-		// (document.fonts.check может некорректно работать для них без явного @font-face)
 		if (document.fonts.check(fontSpecifier)) return true
 	}
 
@@ -33,14 +32,11 @@ export async function ensureFontIsReady(
 		// Дополнительная проверка, так как load может разрешиться, даже если шрифт не применился
 		if (document.fonts.check(fontSpecifier)) {
 			return true
-		} else {
-			console.warn(
-				`Font "${fontSpecifier}" loaded but check failed. Using fallback.`
-			)
-			return true
-		}
+		} else throw new Error('Font not loaded')
 	} catch (error) {
-		console.error(`Error loading font "${fontSpecifier}":`, error)
-		return true // Разрешаем с ошибкой, чтобы не блокировать
+		if (error instanceof Error) {
+			console.error(`Error loading font "${fontSpecifier}":`, error)
+			throw new Error(error.message)
+		} else return false
 	}
 }

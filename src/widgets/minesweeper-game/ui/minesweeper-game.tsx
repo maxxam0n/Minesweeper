@@ -1,5 +1,5 @@
+import { forwardRef, Ref, useImperativeHandle } from 'react'
 import { CellData } from '@/engine'
-import { useViewConfig } from '@/providers/game-view'
 import { SquareField } from '@/entities/field-square'
 import { useAnimations } from '@/shared/lib/use-animations'
 import { useGame } from '../lib/use-game'
@@ -11,7 +11,7 @@ import { useAnimatedInteraction } from '../lib/use-animated-interaction'
 import { useDirectInteraction } from '../lib/use-direct-interaction'
 import { useSolver } from '../lib/use-solver'
 import { useAnimatedGameOver } from '../lib/use-animated-game-over'
-import { forwardRef, Ref, useImperativeHandle } from 'react'
+import { useGameSettings } from '@/providers/game-settings'
 
 type Expose = {
 	reset: () => void
@@ -36,9 +36,14 @@ export const MinesweeperGame = forwardRef(
 		const { params, type } = config
 
 		const {
-			cell: { size },
-			animations: { enabled: animationsEnabled, duration },
-		} = useViewConfig()
+			initialized,
+			settings: {
+				cell: {font, bevelWidth, borderWidth, size},
+				animations: { enabled: animationsEnabled, duration },
+				colors: {}
+			}
+	
+		} = useGameSettings()
 
 		// Размеры игрового поля
 		const [width, height] = [params.cols * size, params.rows * size]
